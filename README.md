@@ -3,6 +3,24 @@ Project for PB138: Webdev principles - Study Manager.
 
 # Setup (WIP)
 <!-- TODO -->
+```
+pnpm install
+pnpm dev #backend
+pnpm --filter @pb138/frontend dev #frontend
+```
+or better
+```
+pnpm install
+docker compose up --build
+```
+to restart only frontend or backend
+```
+docker compose up -d [frontend/backend]
+```
+then
+```
+docker compose [stop/down]
+```
 
 # Commit Conventions (WIP)
 <!-- TODO -->

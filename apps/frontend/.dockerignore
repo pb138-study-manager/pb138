@@ -1,0 +1,12 @@
+# Node modules a build výstupy
+node_modules
+dist
+*.log
+
+# Lokálne konfigurácie / IDE
+.vscode
+.idea
+
+# Systémové súbory
+.DS_Store
+Thumbs.db
