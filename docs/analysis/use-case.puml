@@ -1,0 +1,59 @@
+' For preview in VSCode:
+' 1. you need to have Java and Graphviz installed on your system
+' 2. install the "PlantUML" extension by jebbs
+' 3. right click -> "Preview Current Diagram" or Alt + D
+
+' PlantUML Use Case Diagram
+
+@startuml Study Manager 
+
+!pragma ratio 0.80
+
+left to right direction
+
+' Style: (colors from https://sarafian.github.io/assets/images/posts/plantuml/2021-02-24-plantuml-tips-tricks-1/colors.svg)
+skinparam UsecaseBackgroundColor Plum
+skinparam RectangleBackgroundColor Thistle
+skinparam ActorBackgroundColor Turquoise
+skinparam ActorStyle Hollow
+
+' Actors:
+actor "Unregistered User" as unregisteredUser
+actor "User" as user
+actor "Mentor" as mentor
+actor "Admin" as admin
+'actor "<<System>>" as system
+actor "<<Time>>" as time
+
+' System boundary:
+rectangle "Study Manager" as studyManager {
+    usecase "Create account" as createAccount
+    usecase "Manage task" as manageTask
+    usecase "Manage group" as manageGroup #peachpuff
+    usecase "Search student" as searchStudent
+    usecase "Send email notification" as sendNotification
+    usecase "Check deadlines" as checkDeadlines #peachpuff
+    usecase "Manage roles" as manageRoles
+}
+
+' Generalizations
+mentor -[norank]-|> user
+
+' Includes and extends
+sendNotification ..> checkDeadlines : <<extend>>\nif date > deadline
+manageGroup ..> searchStudent : <<include>>
+
+unregisteredUser --> createAccount
+user --> manageTask
+mentor --> manageGroup
+
+'sendNotification -- system
+checkDeadlines <-- time
+manageRoles <-- admin
+
+sendNotification --> user
+
+' For layout purposes:
+createAccount -[hidden]-> manageRoles
+
+@enduml
