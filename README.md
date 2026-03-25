@@ -2,7 +2,10 @@
 Project for PB138: Webdev principles - Study Manager.
 
 # Setup (WIP)
-<!-- Please add. -->
+<!-- TODO -->
+
+# Commit Conventions (WIP)
+<!-- TODO -->
 
 # Team Members
 <!-- Insert your name and uco -->
