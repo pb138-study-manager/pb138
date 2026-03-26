@@ -51,6 +51,9 @@ The application is primarily created and adapted for university students, but it
 - CI/CD: GitHub Actions
 - Other: Docker, ESLint, Prettier, Mermaid, PlantUML, Jira
 
+# Use Case Diagram
+![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
+
 # Copilot Setup Prompt
 Create a monorepo structure for a web application using:
 - frontend: React + TypeScript + Tailwind + TanStack Start
