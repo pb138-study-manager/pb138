@@ -1,8 +1,7 @@
-# Use Case Name
+<br><br>
 
-## ID (alias)
-
-## Brief Description
+# Use Case (alias)
+<!--Brief description-->
 
 ## Primary Actors
 
@@ -14,16 +13,12 @@
 
 ## Main Flow of Events
 <!-- happy path only -->
-- 1. ...
-- 2. IF ...
-- 2. 1. ...
-- 2. 2. ...
-- 3. ELSE ...
+1. ...
+2. IF ...
+2. 1. ...
+2. 2. ...
+3. ELSE ...
 
 ## Alternative Flows
 
 ## Post-conditions
-
-### Success
-
-### Failure
