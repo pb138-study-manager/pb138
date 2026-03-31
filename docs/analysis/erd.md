@@ -8,8 +8,19 @@ For preview in VSCode:
 erDiagram
     USER {
         int id PK
-        string name
         string email
+        string login
+        string name
+        string title
+        string organization
+        string pwdhash
+        bool active
+    }
+
+    GROUP {
+        int id PK
+        int mentor_id FK
+        set_int student_id
     }
 
     TASK {
@@ -17,7 +28,39 @@ erDiagram
         string title
         string description
         date due_date
+        string place
+        string status
         int user_id FK
+    }
+
+    EVAL {
+        int id PK
+        int task_id FK
+        int student_id FK
+        string eval
+    }
+
+    EVENT {
+        int id PK
+        string title
+        string description
+        date date
+        string place
+        int user_id FK
+    }
+
+    NOTE {
+        int id PK
+        string title
+        string description
+    }
+
+    MESSAGE {
+        int id PK
+        int recipient_id FK
+        date datetime
+        string subject
+        string body
     }
 
     ROLE {
@@ -25,8 +68,19 @@ erDiagram
         string name
     }
 
+    LOG {
+        int id PK
+        date date
+        string description
+    }
+
     %% Relationships
     USER ||--o{ TASK : "has"
+    USER ||--o{ EVAL : "has"
+    USER ||--o{ EVENT : "attends"
+    USER ||--o{ NOTE : "has"
+    USER ||--o{ GROUP : "is in"
+    USER ||--o{ MESSAGE : "has"
     USER }|..|{ ROLE : "assigned to"
 ```
     

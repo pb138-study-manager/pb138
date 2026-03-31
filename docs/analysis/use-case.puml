@@ -33,8 +33,9 @@ rectangle "Study Manager" as studyManager {
 
     ' logged in user
     usecase "Manage tasks" as manageTask
-    usecase "Filter tasks" as filter #aquamarine
+    usecase "Search task" as searchTask #aquamarine
     usecase "Mark as done" as markDone #aquamarine
+    usecase "Filter tasks" as filter
     usecase "Manage events" as manageEvent
     usecase "Manage notes" as manageNotes
     usecase "See my groups" as seeGroups
@@ -74,7 +75,7 @@ rectangle "Study Manager" as studyManager {
 mentor -[norank]-|> user
 
 ' Includes and extends
-manageTask ..> filter : <<include>>
+manageTask ..> searchTask : <<include>>
 manageTask ..> markDone : <<include>>
 manageProfile ..> changePersonalInfo : <<include>>
 manageProfile ..> changePassword : <<include>>
@@ -95,6 +96,7 @@ unregisteredUser --> createAccount
 unregisteredUser --> logIn
 
 user --> manageTask
+user --> filter
 user --> manageEvent
 user --> manageNotes
 user --> seeGroups

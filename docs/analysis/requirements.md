@@ -1,3 +1,4 @@
+# Guest
 # Create account (createAccount)
 UC createAccount allows unregistered user to register on the platform.
 
@@ -59,3 +60,29 @@ A3. - In step 3., if the submitted data are incorrect (non-existent login/email 
 
 ## Post-conditions
 User is authenticated in the system. Active session exists and is logged.
+
+
+# User
+# Create tasks (createTask)
+UC createTask allows user to create and task and save it.
+
+## Primary Actors
+User
+
+## Trigger
+User presses the "+" button on main page.
+
+## Pre-conditions
+User is authenticated to the system
+
+## Main Flow of Events
+<!-- happy path only -->
+1. ...
+2. IF ...
+2. 1. ...
+2. 2. ...
+3. ELSE ...
+
+## Alternative Flows
+
+## Post-conditions
