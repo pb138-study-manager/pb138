@@ -35,7 +35,7 @@ rectangle "Study Manager" as studyManager {
 
     ' logged in user
     usecase "Manage tasks" as manageTask
-    usecase "Search task" as searchTask
+    ' usecase "Search task" as searchTask
     usecase "Mark as done" as markDone
     usecase "Filter tasks" as filter
 
