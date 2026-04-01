@@ -27,11 +27,11 @@ Optional fields: title, fullname, organization.
 ## Alternative Flows
 A1. Any time during the flow, user can leave the sign up form. In that case, the information are not saved.
 
-A3. - In step 3., if the submitted input is invalid (e.g., missing required fields or invalid email format), the system rejects the submission and displays appropriate validation error messages for each invalid field. The form remains open with previously entered values preserved. The system waits for the user to correct the input and resubmit the form. Upon resubmission, the flow returns to step 3.
+A3. - If the submitted input is invalid (e.g., missing required fields or invalid email format), the system rejects the submission and displays appropriate validation error messages for each invalid field. The form remains open with previously entered values preserved. The system waits for the user to correct the input and resubmit the form. Upon resubmission, the flow returns to step 3.
 
-A7.1 - In step 7., if the verification code is incorrect, user can submit it again up to 3 times. After 3 incorrect submit, the email address owner is warned about someone trying to create an account. The form is closed and the information are not saved.
+A7.1 - If the verification code is incorrect, user can submit it again up to 3 times. After 3 incorrect submit, the email address owner is warned about someone trying to create an account. The form is closed and the information are not saved.
 
-A7.2 - In step 7., if the verification code is not submitted within 3 hours since the email was sent, the form is closed and the information are not saved.
+A7.2 - If the verification code is not submitted within 3 hours since the email was sent, the form is closed and the information are not saved.
 
 ## Post-conditions
 New user account is created and saved in the database.
@@ -56,7 +56,7 @@ The user is on the landing page that contains log in form.
 5. User is redirected to the main page.
 
 ## Alternative Flows
-A3. - In step 3., if the submitted data are incorrect (non-existent login/email in the system database or incorrect password), appropriate message is shown. The fields are cleaned and user stays on the landing page. There they can retry to log in.
+A3. - If the submitted data are incorrect (non-existent login/email in the system database or incorrect password), appropriate message is shown. The fields are cleaned and user stays on the landing page. There they can retry to log in.
 
 ## Post-conditions
 User is authenticated in the system. Active session exists and is logged.
@@ -73,16 +73,107 @@ User
 User presses the "+" button on main page.
 
 ## Pre-conditions
-User is authenticated to the system
+User is logged in.<br>
+Required fields: title, due_date.<br>
+Optional fields: description.<br>
+Status defaults to 'TODO'.
 
 ## Main Flow of Events
-<!-- happy path only -->
-1. ...
-2. IF ...
-2. 1. ...
-2. 2. ...
-3. ELSE ...
+1. User fills out task creation form.  
+2. User submits the form.  
+3. System validates input: required fields filled, due_date valid.
+4. System creates a new Task record in the database with `user_id` set to the task owner.  
+5. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group (`user_id` = member id, `assignment_id` = assignment id).  
+6. System updates the task list.  
 
 ## Alternative Flows
+A3. - If input validation fails, system displays error messages.
 
 ## Post-conditions
+Task(s) are created in the task table and visible in the task list for relevant users.  
+
+<br><br>
+
+# View Task (viewTask)
+UC viewTask allows a user to view details of a task.
+
+## Primary Actors
+User
+
+## Trigger
+User clicks on a task in their task list.
+
+## Pre-conditions
+User is logged in.<br>
+Task exists in Task table and is assigned to the user (or via group assignment if mentor).
+
+## Main Flow of Events
+1. User selects a task from the list.  
+2. System retrieves Task record and related Eval (if exists) from database.  
+3. System displays: title, description, due_date, status, feedback and score from Eval (if exists).  
+
+## Alternative Flows
+A3. - If task does not exist or user has no access rights (`user_id` mismatch), system displays "Task not found" or "Access denied".  
+
+## Post-conditions
+User can view task details.  
+
+<br><br>
+
+# Update Task (updateTask)
+UC updateTask allows a user to edit a task they own, or mentor to edit tasks assigned to group members.
+
+## Primary Actors
+User
+
+## Trigger
+User clicks "Edit Task" button in task view.
+
+## Pre-conditions
+User is logged in.<br>
+Task exists in Task table and user has access (`user_id` = task owner or mentor managing group assignment).  
+
+## Main Flow of Events
+1. User edits task fields (title, description, due_date, status).  
+2. User submits the form.  
+3. System validates input and checks permissions.  
+4. System updates Task record in the database.  
+5. System updates task list.  
+
+## Alternative Flows
+A3. - If input validation fails, system displays error messages.  
+A4. - If task does not exist or user lacks permission, system displays error.  
+
+## Post-conditions
+Task record updated in database.
+
+<br><br>
+
+# Delete Task (deleteTask)
+UC deleteTask allows a user to delete a task they own, or mentor to delete tasks assigned to group members.
+
+## Primary Actors
+User
+
+## Trigger
+User clicks "Delete Task" button.
+
+## Pre-conditions
+User is logged in.<br>
+Task exists in Task table and user has permission (`user_id` = task owner or mentor managing group assignment).  
+
+## Main Flow of Events
+1. User clicks "Delete Task."  
+2. System asks for confirmation ("Are you sure?").  
+3. User confirms deletion.  
+4. System sets `deleted_at` timestamp for the Task record instead of removing it.
+5. System updates task list and shows confirmation message.  
+
+## Alternative Flows
+A2. - If user cancels deletion, task remains unchanged.  
+A4. - If task does not exist or user lacks permission, system shows error.  
+
+## Post-conditions
+Task no longer visible in task lists.
+
+<br><br>
