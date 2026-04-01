@@ -146,7 +146,7 @@ erDiagram
     }
 
     %% Relationships
-    User ||--|| UserProfile : "has"
+    User ||--o| UserProfile : "has"
     User ||--|| UserSettings : "has"
 
     User ||--|{ UserRole : "assigned to"

@@ -79,7 +79,7 @@ mentor -[norank]-|> user
 
 ' Includes and extends
 ' settings ..> setLanguage : <<include>>
-settings ..> setMode : <<include>>
+settings <.. setMode : <<extend>>
 sendNotification <.. checkDeadlines : <<include>>
 
 ' Associations:
@@ -87,7 +87,7 @@ unregisteredUser --> createAccount
 unregisteredUser --> logIn
 
 user --> manageTask
-user --> searchTask
+'user --> searchTask
 user --> markDone
 user --> filter
 
