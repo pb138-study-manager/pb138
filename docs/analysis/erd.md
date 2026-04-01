@@ -24,6 +24,7 @@ erDiagram
         string login "unique"
         string pwd_hash
         bool active_session "true if user has at least one active session at the moment"
+        datetime deleted_at "default null"
     }
 
     UserProfile {
@@ -70,6 +71,7 @@ erDiagram
         string description "nullable"
         datetime due_date
         string status "enum = ['TODO', 'IN PROGRESS', 'DONE']"
+        datetime deleted_at "default null"
     }
 
     Eval {
@@ -89,6 +91,7 @@ erDiagram
         datetime start_date
         datetime end_date
         string place "nullable"
+        datetime deleted_at "default null"
     }
 
     Note {
@@ -96,12 +99,14 @@ erDiagram
         int user_id FK
         string title
         string description
+        datetime deleted_at "default null"
     }
 
     Group {
         int id PK
         int mentor_id FK
         string name
+        datetime deleted_at "default null"
     }
 
     GroupMember {
@@ -115,6 +120,7 @@ erDiagram
         string title
         string description "nullable"
         datetime due_date
+        datetime deleted_at "default null"
     }
 
     Email {
@@ -122,6 +128,7 @@ erDiagram
         int recipient_id FK
         datetime sent_at
         string status
+        datetime deleted_at "default null"
     }
 
     EmailTemplate {
