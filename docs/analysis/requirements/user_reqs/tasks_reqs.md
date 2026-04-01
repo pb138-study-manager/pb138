@@ -16,15 +16,16 @@ Status defaults to 'TODO'.
 
 ## Main Flow of Events
 1. User chooses the 'Task' form (other option is 'Event').
-2. User fills out task creation form.  
-3. User submits the form.  
-4. System validates input: required fields filled, due_date valid.
-5. System creates a new Task record in the database with `user_id` set to the task owner.  
-6. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group (`user_id` = member id, `assignment_id` = assignment id).  
-7. System updates the task list.  
+2. System displays task creation form.  
+3. User fills out task creation form.  
+4. User submits the form.  
+5. System validates input: required fields filled, due_date valid.
+6. System creates a new Task record in the database with `user_id` set to the task owner.  
+7. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group (`user_id` = member id, `assignment_id` = assignment id).  
+8. System updates the task/event list.  
 
 ## Alternative Flows
-A3. - If input validation fails, system displays error messages.
+A3. - If input validation fails, system displays error messages and allows correction.
 
 ## Post-conditions
 Task(s) are created in the task table and visible in the task list for relevant users.  
@@ -42,7 +43,8 @@ User clicks on a task in their task list.
 
 ## Pre-conditions
 User is logged in.<br>
-Task exists in Task table and is assigned to the user (or via group assignment if mentor).
+Task exists in Task table and is assigned to the user (or via group assignment if mentor).<br>
+Task has `deleted_at IS NULL`.
 
 ## Main Flow of Events
 1. User selects a task from the list.  
@@ -50,7 +52,7 @@ Task exists in Task table and is assigned to the user (or via group assignment i
 3. System displays: title, description, due_date, status, feedback and score from Eval (if exists).  
 
 ## Alternative Flows
-A3. - If task does not exist or user has no access rights (`user_id` mismatch), system displays "Task not found" or "Access denied".  
+A2. - If task does not exist or user has no access rights (`user_id` mismatch), system displays "Task not found" or "Access denied".  
 
 ## Post-conditions
 User can view task details.  
@@ -64,11 +66,12 @@ UC updateTask allows a user to edit a task they own, or mentor to edit tasks ass
 User
 
 ## Trigger
-User clicks "Edit Task" button in task view.
+User clicks "Edit Task" button in task detail view.
 
 ## Pre-conditions
 User is logged in.<br>
-Task exists in Task table and user has access (`user_id` = task owner or mentor managing group assignment).  
+Task exists in Task table and user has access (`user_id` = task owner or mentor managing group assignment).<br>
+Event has `deleted_at IS NULL`.
 
 ## Main Flow of Events
 1. User edits task fields (title, description, due_date, status).  
@@ -78,8 +81,8 @@ Task exists in Task table and user has access (`user_id` = task owner or mentor 
 5. System updates task list.  
 
 ## Alternative Flows
-A3. - If input validation fails, system displays error messages.  
-A4. - If task does not exist or user lacks permission, system displays error.  
+A3.1. - If input validation fails, system displays error messages, correction allowed. 
+A3.2. - If task does not exist or user lacks permission, system displays error.  
 
 ## Post-conditions
 Task record updated in database.
@@ -97,13 +100,14 @@ User clicks "Delete Task" button.
 
 ## Pre-conditions
 User is logged in.<br>
-Task exists in Task table and user has permission (`user_id` = task owner or mentor managing group assignment).  
+Task exists in Task table and user has permission (`user_id` = task owner or mentor managing group assignment).<br>
+Event has `deleted_at IS NULL`.
 
 ## Main Flow of Events
 1. User clicks "Delete Task."  
 2. System asks for confirmation ("Are you sure?").  
 3. User confirms deletion.  
-4. System sets `deleted_at` timestamp for the Task record instead of removing it.
+4. System sets `deleted_at` timestamp for the Task record.
 5. System updates task list and shows confirmation message.  
 
 ## Alternative Flows
@@ -149,7 +153,7 @@ Task status is updated to 'DONE' or 'TODO' based on initial state.
 <br><br>
 
 # Filter Tasks (filter)
-UC filter allows a user to filter and sort their tasks based on selected criteria.
+UC filter allows a user to filter and sort their tasks/events based on selected criteria.
 
 ## Primary Actors
 User
@@ -163,7 +167,7 @@ Tasks exist in the Task table associated with the user (`user_id`).<br>
 Only tasks with `deleted_at IS NULL` are considered.
 
 ## Main Flow of Events
-1. User selects filter criteria (e.g., status, due_date range, assignment presence).  
+1. User selects filter criteria (e.g., status, due_date range, assignment presence, show events).  
 2. User optionally selects sorting criteria (e.g., due_date, status).  
 3. User applies the filter.  
 4. System validates input (e.g., correct date range).  
