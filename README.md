@@ -59,6 +59,9 @@ The application is primarily created and adapted for university students, but it
 # Use Case Diagram
 ![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
 
+# Entity Realtionship Diagram
+![ER Diagram](./docs/analysis/diagrams/entity-relationship.png)
+
 <!--
 # Copilot Setup Prompt
 Create a monorepo structure for a web application using:
