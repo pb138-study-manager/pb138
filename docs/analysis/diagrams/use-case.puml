@@ -1,0 +1,127 @@
+' PlantUML Use Case Diagram
+
+' For preview in VSCode:
+' 1. you need to have Java and Graphviz installed on your system
+' 2. install the "PlantUML" extension by jebbs
+' 3. right click -> "Preview Current Diagram" or Alt + D
+
+' Manage ~~ CRUD operations for tasks, events, notes, groups
+
+@startuml Study Manager 
+
+!pragma ratio 0.80
+
+left to right direction
+
+' Style: (colors from https://sarafian.github.io/assets/images/posts/plantuml/2021-02-24-plantuml-tips-tricks-1/colors.svg)
+skinparam UsecaseBackgroundColor SkyBlue
+skinparam RectangleBackgroundColor APPLICATION
+skinparam ActorBackgroundColor MidnightBlue
+skinparam ActorStyle Hollow
+
+' Actors:
+actor "Unregistered User" as unregisteredUser
+actor "User" as user
+actor "Mentor" as mentor
+actor "Admin" as admin
+'actor "<<System>>" as system
+actor "<<Time>>" as time
+
+' System boundary:
+rectangle "Study Manager" as studyManager {
+    ' unregistered user
+    usecase "Create account" as createAccount
+    usecase "Log in" as logIn
+
+    ' logged in user
+    usecase "Manage tasks" as manageTask
+    ' usecase "Search task" as searchTask
+    usecase "Mark as done" as markDone
+    usecase "Filter tasks" as filter
+
+    usecase "Manage events" as manageEvent
+    ' usecase "Import calendar" as importCal
+    ' usecase "See calendar" as seeCal
+
+    usecase "Change personal information" as changePersonalInfo
+    usecase "Change password" as changePassword
+    usecase "Change settings" as settings
+    ' usecase "Set language" as setLanguage #aquamarine
+    usecase "Set mode" as setMode #aquamarine
+
+    usecase "Manage notes" as manageNotes
+    usecase "See my groups" as seeGroups
+    usecase "Read emails" as readEmails
+    usecase "Log out" as logOut
+
+    ' usecase "Start timer" as startTimer
+    ' usecase "See timer history" as timerHistory
+
+    ' mentor
+    usecase "Manage groups" as manageGroup
+    usecase "Assign task" as assignTask
+    usecase "Search student" as searchStudent
+    usecase "Evaluate task" as evaluateTask
+    ' usecase "Message group" as messageGroup
+    
+    'admin or system
+    usecase "Check deadlines" as checkDeadlines
+    usecase "Send email notification" as sendNotification #aquamarine
+    usecase "Manage users" as manageUsers
+    usecase "Manage roles" as manageRoles
+    usecase "Manage system settings" as manageSystemSettings
+    usecase "View system logs" as viewLogs
+    usecase "Manage database" as manageDatabase
+}
+
+' Generalizations
+mentor -[norank]-|> user
+
+' Includes and extends
+' settings ..> setLanguage : <<include>>
+settings <.. setMode : <<extend>>
+sendNotification <.. checkDeadlines : <<include>>
+
+' Associations:
+unregisteredUser --> createAccount
+unregisteredUser --> logIn
+
+user --> manageTask
+'user --> searchTask
+user --> markDone
+user --> filter
+
+user --> manageEvent
+'user --> importCal
+'user --> seeCal
+
+user --> changePersonalInfo
+user --> changePassword
+user --> settings
+
+user --> manageNotes
+user --> seeGroups
+user --> readEmails
+user --> logOut
+sendNotification --> user
+
+mentor --> manageGroup
+mentor --> assignTask
+mentor --> searchStudent
+mentor --> evaluateTask
+
+checkDeadlines <-- time
+manageUsers <-- admin
+manageRoles <-- admin
+manageSystemSettings <-- admin
+viewLogs <-- admin
+manageDatabase <-- admin
+
+' For layout purposes:
+logIn <-[hidden]- viewLogs
+logIn <-[hidden]- manageUsers
+logIn <-[hidden]- manageRoles
+logIn <-[hidden]- manageSystemSettings
+logIn <-[hidden]- manageDatabase
+
+@enduml
