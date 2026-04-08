@@ -24,6 +24,11 @@ docker compose [stop/down]
 
 # Commit Conventions (WIP)
 <!-- TODO -->
+Message in format:
+```
+"action: description"
+```
+Action examples: feat, change, fix.
 
 # Team Members
 <!-- Insert your name and uco -->
@@ -54,6 +59,7 @@ The application is primarily created and adapted for university students, but it
 # Use Case Diagram
 ![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
 
+<!--
 # Copilot Setup Prompt
 Create a monorepo structure for a web application using:
 - frontend: React + TypeScript + Tailwind + TanStack Start
@@ -93,6 +99,7 @@ Create a GitHub Actions pipeline that:
 
 Set up Playwright for end-to-end testing in a React app.
 Include a basic test for the homepage.
+-->
 
 # Setup Structure
 ```
@@ -117,6 +124,12 @@ pb138/
 │       ├── tailwind.config.js  
 │       ├── Dockerfile  
 │       └── nginx.conf  
+├── docs/
+│   └── analysis/
+│       ├── diagrams/
+│       │   ├── erd.md            # Mermaid Entity Relationship Diagram
+│       │   └── use-case.puml     # Simplified PlantUML Use Case Diagram
+│       └── requirements/
 ├── .github/workflows/ci.yml      # CI: lint → test → build → e2e  
 ├── docker-compose.yml            # PostgreSQL + backend + frontend  
 ├── .eslintrc.json                # ESLint (react/jsx-runtime for modern React)  
