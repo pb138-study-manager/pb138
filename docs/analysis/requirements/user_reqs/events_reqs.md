@@ -22,8 +22,9 @@ Optional fields: description, place.
    - required fields are filled
    - `start_date <= end_date`  
 6. System creates a new Event record in the database with `user_id = current_user`.  
-7. System saves the record.  
-8. System updates task/event list.
+7. System saves the record.
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System updates task/event list.
 
 ## Alternative Flows
 A4. - If input validation fails, system displays error messages and allows correction.  
@@ -81,8 +82,9 @@ Event has `deleted_at IS NULL`.
 3. System validates input:
    - required fields are filled
    - `start_date <= end_date`  
-4. System updates Event record in the database. 
-5. System updates task/event list.
+4. System updates Event record in the database.
+5. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+6. System updates task/event list.
 
 ## Alternative Flows
 A3.1. - If validation fails, system displays error messages, correction allowed.  
@@ -111,8 +113,9 @@ Event has `deleted_at IS NULL`.
 1. User clicks "Delete Event".  
 2. System asks for confirmation.  
 3. User confirms deletion.  
-4. System sets `deleted_at` timestamp for the Event record.  
-5. System updates task/event list and displays confirmation message.  
+4. System sets `deleted_at` timestamp for the Event record.
+5. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+6. System updates task/event list and displays confirmation message.  
 
 ## Alternative Flows
 A2. - If user cancels deletion, event remains unchanged.  

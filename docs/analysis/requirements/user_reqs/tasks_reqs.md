@@ -22,8 +22,9 @@ Status defaults to 'TODO'.
 4. User submits the form.  
 5. System validates input: required fields filled, due_date valid.
 6. System creates a new Task record in the database with `user_id` set to the task owner.  
-7. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group (`user_id` = member id, `assignment_id` = assignment id).  
-8. System updates the task/event list.  
+7. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group `user_id` = member id, `assignment_id` = assignment id).  
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System updates the task/event list.  
 
 ## Alternative Flows
 A3. - If input validation fails, system displays error messages and allows correction.
@@ -78,8 +79,9 @@ Event has `deleted_at IS NULL`.
 1. User edits task fields (title, description, due_date, status).  
 2. User submits the form.  
 3. System validates input and checks permissions.  
-4. System updates Task record in the database.  
-5. System updates task list.  
+4. System updates Task record in the database.
+5. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+6. System updates task list.  
 
 ## Alternative Flows
 A3.1. - If input validation fails, system displays error messages, correction allowed. 
@@ -109,7 +111,8 @@ Event has `deleted_at IS NULL`.
 2. System asks for confirmation ("Are you sure?").  
 3. User confirms deletion.  
 4. System sets `deleted_at` timestamp for the Task record.
-5. System updates task list and shows confirmation message.  
+5. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+6. System updates task list and shows confirmation message.  
 
 ## Alternative Flows
 A2. - If user cancels deletion, task remains unchanged.  
@@ -141,7 +144,8 @@ Task has `deleted_at IS NULL`.
 3. System verifies ownership and that task is not deleted.  
 4. System updates Task status to 'DONE'.  
 5. System saves changes to the database.  
-6. System updates task list and changes the view.  
+6. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+7. System updates task list and changes the view.  
 
 ## Alternative Flows
 A3. - If task does not exist or `deleted_at IS NOT NULL`, system displays error message.  

@@ -22,7 +22,8 @@ Optional fields: title, fullname, organization.
 6. User submits the verification code from their email.
 7. System validates the submitted code.
 8. After verification, new account is created and saved to the database.
-9. User is redirected to log in screen.
+9. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+10. User is redirected to log in screen.
 
 ## Alternative Flows
 A1. Any time during the flow, user can leave the sign up form. In that case, the information are not saved.
@@ -53,7 +54,8 @@ The user is on the landing page that contains log in form.
 2. User submits the login data (via "Log in" button).
 3. System verifies the submission - whether active account with submitted login/email exists and the password is associated correctly.
 4. System logs the user in.
-5. User is redirected to the main page.
+5. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+6. User is redirected to the main page.
 
 ## Alternative Flows
 A3. - If the submitted data are incorrect (non-existent login/email in the system database or incorrect password), appropriate message is shown. The fields are cleaned and user stays on the landing page. There they can retry to log in.

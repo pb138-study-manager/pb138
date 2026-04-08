@@ -20,8 +20,9 @@ Mentor has permission to create groups.
 6. System validates input (e.g., non-empty name).  
 7. System creates a new Group record with `mentor_id = current_user`.  
 8. System creates GroupMember records for all selected users.  
-9. System saves all records.  
-10. System displays confirmation and updates group list.  
+9. System saves all records.
+10. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+11. System displays confirmation and updates group list.  
 
 ## Alternative Flows
 A5. - If no users are selected, group is created without members.  
@@ -51,7 +52,8 @@ Mentor is logged in.<br>
 4. Mentor submits user list.
 5. System checks that selected users are not already members.  
 6. System creates GroupMember records for all valid selected users.  
-7. System saves changes and updates member list.  
+7. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+8. System saves changes and updates member list.  
 
 ## Alternative Flows 
 A5. - If some users are already members, system skips them and informs the mentor.
@@ -109,8 +111,9 @@ User is a member of the group.
 2. Mentor clicks "Remove member".  
 3. System asks for confirmation.  
 4. Mentor confirms action.  
-5. System deletes corresponding GroupMember record.  
-6. System updates member list and displays confirmation.  
+5. System deletes corresponding GroupMember record.
+6. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+7. System updates member list and displays confirmation.  
 
 ## Alternative Flows
 A3. - If mentor cancels action, no changes are made.  
@@ -140,7 +143,8 @@ Group exists and `mentor_id = current_user`.
 3. Mentor confirms deletion.  
 4. System deletes Group record.  
 5. System deletes all related GroupMember records.  
-6. System updates group list and displays confirmation.  
+6. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+7. System updates group list and displays confirmation.  
 
 ## Alternative Flows
 A2. - If mentor cancels deletion, group remains unchanged.  
@@ -168,6 +172,7 @@ Mentor has permission to assign tasks.
 ## Main Flow of Events
 1. INCLUDE(createTask)
 2. System updates task list and displays confirmation to mentor.  
+3. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
 
 ## Post-conditions
 An Assignment is created and each group member has a corresponding Task.
@@ -198,9 +203,10 @@ Mentor has permission to evaluate tasks.
 4. Mentor submits the evaluation.  
 5. System validates input (score within allowed range, feedback optional).  
 6. System creates an Eval record linked to the Task (`task_id`).  
-7. System saves the evaluation.  
-8. System displays confirmation to mentor and updates task list with evaluation info.
-9. System notifies user that his task has been evaluated.
+7. System saves the evaluation. 
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System displays confirmation to mentor and updates task list with evaluation info.
+10. System notifies user that his task has been evaluated.
 
 ## Alternative Flows
 A4. - If task status ≠ 'DONE' or due date is yet to come, system displays "Task is not yet completed" and prevents evaluation.  

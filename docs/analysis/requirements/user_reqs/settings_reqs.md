@@ -20,7 +20,8 @@ UserProfile record exists for the user.
 5. System validates input (e.g., field length, format if applicable).  
 6. System updates corresponding fields in UserProfile table.  
 7. System saves changes.  
-8. System displays confirmation message.  
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System displays confirmation message.  
 
 ## Alternative Flows
 A5. - If validation fails, system displays error messages and changes are not applied.  
@@ -52,8 +53,9 @@ User account exists.
 5. System validates new password (e.g., length, complexity rules).  
 6. System updates `pwd_hash` in User table.  
 7. System saves changes. 
-8. System displays confirmation message.
-9. System sends email notification about password change.
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System displays confirmation message.
+10. System sends email notification about password change.
 
 ## Alternative Flows
 A2. - If new password and confirmation do not match, system rejects submission, correction is allowed.  
@@ -85,7 +87,8 @@ UserSettings record default values upon profile creation are: {notifications_ena
 4. User toggles selected settings.  
 5. User submits changes.
 7. System updates UserSettings record.  
-8. System saves and applies changes.
+8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+9. System saves and applies changes.
 
 ## Post-conditions
 UserSettings are updated.
