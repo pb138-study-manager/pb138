@@ -22,7 +22,7 @@ Status defaults to 'TODO'.
 4. User submits the form.  
 5. System validates input: required fields filled, due_date valid.
 6. System creates a new Task record in the database with `user_id` set to the task owner.  
-7. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group `user_id` = member id, `assignment_id` = assignment id).  
+7. If task is created by mentor as a group task, system creates a separate task record for each GroupMember of the group `user_id` = member id, `assignment_id` = assignment id.  
 8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
 9. System updates the task/event list.  
 

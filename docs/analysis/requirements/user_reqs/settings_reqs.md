@@ -55,7 +55,7 @@ User account exists.
 7. System saves changes. 
 8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
 9. System displays confirmation message.
-10. System sends email notification about password change.
+10. INCLUDE(sendNotification)
 
 ## Alternative Flows
 A2. - If new password and confirmation do not match, system rejects submission, correction is allowed.  

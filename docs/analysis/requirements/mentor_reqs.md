@@ -53,7 +53,8 @@ Mentor is logged in.<br>
 5. System checks that selected users are not already members.  
 6. System creates GroupMember records for all valid selected users.  
 7. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
-8. System saves changes and updates member list.  
+8. System saves changes and updates member list.
+9. INCLUSE(sendNotofication)
 
 ## Alternative Flows 
 A5. - If some users are already members, system skips them and informs the mentor.
@@ -113,7 +114,8 @@ User is a member of the group.
 4. Mentor confirms action.  
 5. System deletes corresponding GroupMember record.
 6. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
-7. System updates member list and displays confirmation.  
+7. System updates member list and displays confirmation.
+8. INCLUDE(sendNotification) 
 
 ## Alternative Flows
 A3. - If mentor cancels action, no changes are made.  
@@ -144,7 +146,8 @@ Group exists and `mentor_id = current_user`.
 4. System deletes Group record.  
 5. System deletes all related GroupMember records.  
 6. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
-7. System updates group list and displays confirmation.  
+7. System updates group list and displays confirmation.
+8. INCLUDE(sendNotification)  
 
 ## Alternative Flows
 A2. - If mentor cancels deletion, group remains unchanged.  
@@ -172,7 +175,8 @@ Mentor has permission to assign tasks.
 ## Main Flow of Events
 1. INCLUDE(createTask)
 2. System updates task list and displays confirmation to mentor.  
-3. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
+3. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).
+4. INCLUDE(sendNotification) 
 
 ## Post-conditions
 An Assignment is created and each group member has a corresponding Task.
@@ -206,7 +210,8 @@ Mentor has permission to evaluate tasks.
 7. System saves the evaluation. 
 8. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
 9. System displays confirmation to mentor and updates task list with evaluation info.
-10. System notifies user that his task has been evaluated.
+10. INCLUDE(sendNotification) 
+11. System notifies user that his task has been evaluated.
 
 ## Alternative Flows
 A4. - If task status ≠ 'DONE' or due date is yet to come, system displays "Task is not yet completed" and prevents evaluation.  

@@ -24,6 +24,7 @@ Optional fields: title, fullname, organization.
 8. After verification, new account is created and saved to the database.
 9. System automatically records all actions in the AuditLog table (`actor_id`, `description`, `happened_at`).  
 10. User is redirected to log in screen.
+11. INCLUDE(sendNotification)
 
 ## Alternative Flows
 A1. Any time during the flow, user can leave the sign up form. In that case, the information are not saved.
