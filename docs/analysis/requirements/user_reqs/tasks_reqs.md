@@ -6,7 +6,8 @@ UC createTask allows user to create and task and save it.
 User
 
 ## Trigger
-User presses the "+" button on main page.
+User presses the "+" button on main page.<br>
+Mentor presses the "+" button in group interface.
 
 ## Pre-conditions
 User is logged in.<br>
