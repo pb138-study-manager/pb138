@@ -33,7 +33,7 @@ Action examples: feat, change, fix.
 # Team Members
 <!-- Insert your name and uco -->
 - Valéria Kvaššayová (550435)
-- 
+- Jaroslav Svajčík (564578)
 - 
 - 
 
