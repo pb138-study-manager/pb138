@@ -1,43 +1,59 @@
 # PB138
+
 Project for PB138: Webdev principles - Study Manager.
 
 # Setup (WIP)
+
 <!-- TODO -->
+
 ```
 pnpm install
 pnpm dev #backend
 pnpm --filter @pb138/frontend dev #frontend
 ```
+
 or better
+
 ```
 pnpm install
 docker compose up --build
 ```
+
 to restart only frontend or backend
+
 ```
 docker compose up -d [frontend/backend]
 ```
+
 then
+
 ```
 docker compose [stop/down]
 ```
 
 # Commit Conventions (WIP)
+
 <!-- TODO -->
+
 Message in format:
+
 ```
 "action: description"
 ```
+
 Action examples: feat, change, fix.
 
 # Team Members
+
 <!-- Insert your name and uco -->
+
 - Valéria Kvaššayová (550435)
 - Jaroslav Svajčík (564578)
-- 
+- Peter Perveka (564577)
 - 
 
 # Description
+
 <!-- >I created this description for PB175, feel free to change it. -->
 
 Study Manager is a web application that allows users to manage various tasks and events that they create themselves or are assigned to them. They can view these in the form of a to-do list, schedule, timetable, calendar, and filter them. The application includes a notification system and a pomodoro timer with a history of launches.
@@ -47,7 +63,9 @@ The functional interface is only accessible to logged in users, who can also man
 The application is primarily created and adapted for university students, but it is universally usable outside of the academic environment.
 
 # Tech stack
+
 <!-- Also previously created for PB175 - feel free to change. -->
+
 - Frontend: React + TypeScript + Tailwind CSS + TanStack Start
 - Backend: Bun + ElysiaJS + TypeScript
 - Database: PostgreSQL
@@ -57,9 +75,11 @@ The application is primarily created and adapted for university students, but it
 - Other: Docker, ESLint, Prettier, Mermaid, PlantUML, Jira
 
 # Use Case Diagram
+
 ![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
 
 # Entity Realtionship Diagram
+
 ![ER Diagram](./docs/analysis/diagrams/entity-relationship.png)
 
 <!--
@@ -105,37 +125,38 @@ Include a basic test for the homepage.
 -->
 
 # Setup Structure
+
 ```
-pb138/  
-├── apps/  
-│   ├── backend/          # ElysiaJS + TypeScript + Drizzle ORM  
-│   │   ├── src/  
-│   │   │   ├── index.ts          # Main server with /health route  
-│   │   │   ├── index.test.ts     # Bun unit tests  
-│   │   │   └── db/               # Drizzle ORM (schema + client)  
-│   │   ├── drizzle.config.ts  
-│   │   ├── Dockerfile  
-│   │   └── .env.example  
-│   └── frontend/         # React 18 + TypeScript + Tailwind + TanStack Router  
-│       ├── src/  
-│       │   ├── main.tsx          # App entry with RouterProvider  
-│       │   ├── routes/           # File-based routing  
-│       │   └── routeTree.gen.ts  # TanStack Router generated tree  
-│       ├── e2e/                  # Playwright E2E tests (3 tests for homepage)  
-│       ├── playwright.config.ts  
-│       ├── vite.config.ts        # Vite + vitest (jsdom environment)  
-│       ├── tailwind.config.js  
-│       ├── Dockerfile  
-│       └── nginx.conf  
+pb138/
+├── apps/
+│   ├── backend/          # ElysiaJS + TypeScript + Drizzle ORM
+│   │   ├── src/
+│   │   │   ├── index.ts          # Main server with /health route
+│   │   │   ├── index.test.ts     # Bun unit tests
+│   │   │   └── db/               # Drizzle ORM (schema + client)
+│   │   ├── drizzle.config.ts
+│   │   ├── Dockerfile
+│   │   └── .env.example
+│   └── frontend/         # React 18 + TypeScript + Tailwind + TanStack Router
+│       ├── src/
+│       │   ├── main.tsx          # App entry with RouterProvider
+│       │   ├── routes/           # File-based routing
+│       │   └── routeTree.gen.ts  # TanStack Router generated tree
+│       ├── e2e/                  # Playwright E2E tests (3 tests for homepage)
+│       ├── playwright.config.ts
+│       ├── vite.config.ts        # Vite + vitest (jsdom environment)
+│       ├── tailwind.config.js
+│       ├── Dockerfile
+│       └── nginx.conf
 ├── docs/
 │   └── analysis/
 │       ├── diagrams/
 │       │   ├── erd.md            # Mermaid Entity Relationship Diagram
 │       │   └── use-case.puml     # Simplified PlantUML Use Case Diagram
 │       └── requirements/
-├── .github/workflows/ci.yml      # CI: lint → test → build → e2e  
-├── docker-compose.yml            # PostgreSQL + backend + frontend  
-├── .eslintrc.json                # ESLint (react/jsx-runtime for modern React)  
-├── .prettierrc  
-└── package.json                  # npm workspaces root  
+├── .github/workflows/ci.yml      # CI: lint → test → build → e2e
+├── docker-compose.yml            # PostgreSQL + backend + frontend
+├── .eslintrc.json                # ESLint (react/jsx-runtime for modern React)
+├── .prettierrc
+└── package.json                  # npm workspaces root
 ```
