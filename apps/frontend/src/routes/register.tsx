@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export const Route = createFileRoute('/register')({
   component: RegisterPage,
@@ -13,6 +15,8 @@ function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const isFilled = email.length > 0 && password.length >= 5 && fullName.length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,63 +42,61 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
-
+    <div className="min-h-screen bg-white flex items-center justify-center px-5">
+      <div className="bg-whte rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
         <h1 className="text-3xl font-bold text-black text-center">Sign In</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          <input
+          <Input
             type="text"
             placeholder="Full name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full h-11 px-4"
           />
 
-          <input
+          <Input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full h-11 px-4"
           />
 
-          <input
+          <Input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-base text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full h-11 px-4"
           />
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gray-300 text-white text-base font-semibold hover:bg-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full text-white rounded-lg h-11 px-4 transition-colors ${
+              isFilled ? 'bg-[#555555] hover:bg-[#333333]' : 'bg-[#C4C4C4] hover:bg-[#b0b0b0]'
+            }`}
           >
             {loading ? 'Creating account...' : 'Register'}
-          </button>
+          </Button>
         </form>
 
         <div className="flex flex-col gap-3 items-center">
           <div className="w-full h-px bg-gray-200" />
-          <p className="text-base text-gray-700">
+          <p className="text-sm text-gray-700">
             Already have an account?{' '}
             <Link to="/login" className="underline text-black font-medium hover:text-gray-600">
               Login
             </Link>
           </p>
         </div>
-
       </div>
     </div>
   );
