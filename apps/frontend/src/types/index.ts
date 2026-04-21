@@ -20,6 +20,15 @@ export interface Task {
   eval?: Eval;
 }
 
+export interface FeaturedTaskItem {
+  id: number;
+  title: string;
+  time: string;
+  location: string;
+  color: 'yellow' | 'green';
+}
+
+
 export interface Event {
   id: number;
   userId: number;

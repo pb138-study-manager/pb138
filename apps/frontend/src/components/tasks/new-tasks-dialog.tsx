@@ -3,8 +3,9 @@ import { Calendar, Tag, Flag, BookOpen, CheckSquare, ChevronUp } from 'lucide-re
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import DatePickerDialog from './date-picker-dialog';
 
-export default function CreateTaskDialog({
+export default function NewTaskDialog({
   isOpen,
   onOpenChange,
 }: {
@@ -20,6 +21,7 @@ export default function CreateTaskDialog({
     { icon: BookOpen, label: 'Course' },
     { icon: CheckSquare, label: 'Subtasks' },
   ];
+  const [isDateOpen, setIsDateOpen] = useState(false);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -36,15 +38,30 @@ export default function CreateTaskDialog({
           />
           <div className="border-t" />
           <div className="flex flex-wrap gap-2">
-            {taskOptions.map((option) => (
-              <Button
-                key={option.label}
-                className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
-              >
-                <option.icon className="w-4 h-4" />
-                {option.label}
-              </Button>
-            ))}
+            {taskOptions.map((option) => {
+              if (option.label === 'Date') {
+                return (
+                  <Button
+                    key={option.label}
+                    onClick={() => setIsDateOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
+                  >
+                    <option.icon className="w-4 h-4" />
+                    {option.label}
+                  </Button>
+                );
+              }
+
+              return (
+                <Button
+                  key={option.label}
+                  className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
+                >
+                  <option.icon className="w-4 h-4" />
+                  {option.label}
+                </Button>
+              );
+            })}
           </div>
         </div>
         <div className="flex justify-end mt-6">
@@ -56,6 +73,7 @@ export default function CreateTaskDialog({
           </Button>
         </div>
       </DialogContent>
+      <DatePickerDialog isOpen={isDateOpen} onOpenChange={setIsDateOpen} />
     </Dialog>
   );
 }
