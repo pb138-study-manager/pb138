@@ -1,10 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Clock, Users, Plus, Star, Package, ClipboardCheck } from 'lucide-react';
-import { Task, TaskStatus } from '../../types';
+import {
+  Clock,
+  Users,
+  Plus,
+  Star,
+  Package,
+  ClipboardCheck,
+} from 'lucide-react';
+import { Task, TaskStatus } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/ui/bottom-nav';
+import CreateTaskDialog from '@/components/tasks/new-tasks-dialog';
 
 export const Route = createFileRoute('/tasks/')({
   component: TasksPage,
@@ -34,6 +42,8 @@ const FEATURED_TASKS: FeaturedTaskItem[] = [
     color: 'green',
   },
 ];
+
+
 
 const TASKS_DATA = {
   today: [
@@ -230,6 +240,8 @@ function TaskSection({
     done: 'text-green-600',
   };
 
+  const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
+
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-4">
@@ -238,7 +250,12 @@ function TaskSection({
           <span>{title}</span>
           <span className="ml-1 text-gray-400 py-1 text-base font-medium">{count}</span>
         </h3>
-        <Button variant="outline" size="icon" className="rounded-full mr-3">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full mr-3"
+          onClick={() => setOpenCreateTaskDialog(true)}
+        >
           <Plus className="h-8" />
         </Button>
       </div>
@@ -247,6 +264,7 @@ function TaskSection({
           <TaskCard key={task.id} task={task} />
         ))}
       </div>
+      <CreateTaskDialog isOpen={openCreateTaskDialog} onOpenChange={setOpenCreateTaskDialog} />
     </div>
   );
 }
