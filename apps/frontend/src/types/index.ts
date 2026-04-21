@@ -6,6 +6,15 @@ export interface User {
   login: string;
   email: string;
   roles: RoleName[];
+  name: string;
+  avatarUrl: string;
+}
+
+export interface Mentor {
+  id: number;
+  name: string;
+  code: string;
+  avatarUrl: string;
 }
 
 export interface Task {

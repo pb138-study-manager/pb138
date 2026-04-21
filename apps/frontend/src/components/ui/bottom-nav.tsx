@@ -1,6 +1,7 @@
 import { ClipboardCheck, Clock, ClipboardList, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export default function BottomNav() {
+export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'notes' | 'profile' }) {
   const items = [
     { icon: <ClipboardCheck />, label: 'Tasks', href: '/tasks' },
     { icon: <Clock />, label: 'Today', href: '/today' },
@@ -16,8 +17,22 @@ export default function BottomNav() {
           href={item.href}
           className="flex flex-col items-center justify-center py-3 px-4 text-gray-600 hover:text-blue-600 transition-colors"
         >
-          <span className="text-xl mb-1">{item.icon}</span>
-          <span className="text-xs font-medium">{item.label}</span>
+          <span
+            className={cn(
+              'text-xl mb-1',
+              active === item.label.toLowerCase() ? 'text-blue-600' : ''
+            )}
+          >
+            {item.icon}
+          </span>
+          <span
+            className={cn(
+              'text-xs font-medium',
+              active === item.label.toLowerCase() ? 'text-blue-600' : ''
+            )}
+          >
+            {item.label}
+          </span>
         </a>
       ))}
     </div>

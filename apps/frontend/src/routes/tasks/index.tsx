@@ -175,7 +175,7 @@ export function TasksPage() {
         </div>
       </div>
 
-      <BottomNav />
+      <BottomNav active="tasks" />
     </div>
   );
 }
