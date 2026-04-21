@@ -13,6 +13,10 @@ export default function NewTaskDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [taskName, setTaskName] = useState('');
+  const [isDateOpen, setIsDateOpen] = useState(false);
+
+  // 1. Nový stav pro uložení finálního data
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const taskOptions = [
     { icon: Calendar, label: 'Date' },
@@ -21,7 +25,6 @@ export default function NewTaskDialog({
     { icon: BookOpen, label: 'Course' },
     { icon: CheckSquare, label: 'Subtasks' },
   ];
-  const [isDateOpen, setIsDateOpen] = useState(false);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -39,19 +42,29 @@ export default function NewTaskDialog({
           <div className="border-t" />
           <div className="flex flex-wrap gap-2">
             {taskOptions.map((option) => {
+              // Specifické vykreslení pro tlačítko "Date"
               if (option.label === 'Date') {
+                const hasDate = selectedDate !== null;
+
                 return (
                   <Button
                     key={option.label}
                     onClick={() => setIsDateOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
+                    // 2. Pokud máme datum, tlačítko zmodrá, jinak je šedé
+                    className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm font-medium ${
+                      hasDate
+                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                   >
                     <option.icon className="w-4 h-4" />
-                    {option.label}
+                    {/* 3. Pokud máme datum, vypíšeme ho. Pokud ne, vypíšeme "Date" */}
+                    {hasDate ? selectedDate.toLocaleDateString() : option.label}
                   </Button>
                 );
               }
 
+              // Výchozí vykreslení pro ostatní tlačítka
               return (
                 <Button
                   key={option.label}
@@ -73,7 +86,14 @@ export default function NewTaskDialog({
           </Button>
         </div>
       </DialogContent>
-      <DatePickerDialog isOpen={isDateOpen} onOpenChange={setIsDateOpen} />
+
+      {/* 4. Předáváme novou hodnotu a setter do kalendáře */}
+      <DatePickerDialog
+        isOpen={isDateOpen}
+        onOpenChange={setIsDateOpen}
+        currentDate={selectedDate}
+        onDateSelect={setSelectedDate}
+      />
     </Dialog>
   );
 }
