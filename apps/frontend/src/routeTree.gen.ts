@@ -15,6 +15,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
+import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -46,6 +48,16 @@ const TasksIndexRoute = TasksIndexRouteImport.update({
   path: '/tasks/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotesIndexRoute = NotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
+  id: '/notes/$noteId',
+  path: '/notes/$noteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,6 +65,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/notes/': typeof NotesIndexRoute
   '/tasks/': typeof TasksIndexRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +75,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/notes': typeof NotesIndexRoute
   '/tasks': typeof TasksIndexRoute
 }
 export interface FileRoutesById {
@@ -70,6 +86,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/notes/': typeof NotesIndexRoute
   '/tasks/': typeof TasksIndexRoute
 }
 export interface FileRouteTypes {
@@ -80,9 +98,19 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/notes/$noteId'
+    | '/notes/'
     | '/tasks/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/register' | '/verify-email' | '/tasks'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/notes/$noteId'
+    | '/notes'
+    | '/tasks'
   id:
     | '__root__'
     | '/'
@@ -90,6 +118,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/notes/$noteId'
+    | '/notes/'
     | '/tasks/'
   fileRoutesById: FileRoutesById
 }
@@ -99,6 +129,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  NotesNoteIdRoute: typeof NotesNoteIdRoute
+  NotesIndexRoute: typeof NotesIndexRoute
   TasksIndexRoute: typeof TasksIndexRoute
 }
 
@@ -146,6 +178,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TasksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notes/': {
+      id: '/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof NotesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$noteId': {
+      id: '/notes/$noteId'
+      path: '/notes/$noteId'
+      fullPath: '/notes/$noteId'
+      preLoaderRoute: typeof NotesNoteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -155,6 +201,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  NotesNoteIdRoute: NotesNoteIdRoute,
+  NotesIndexRoute: NotesIndexRoute,
   TasksIndexRoute: TasksIndexRoute,
 }
 export const routeTree = rootRouteImport
