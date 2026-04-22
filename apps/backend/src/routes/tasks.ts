@@ -1,11 +1,12 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import { tasks } from '../db/schema';
-import type { AuthUser } from '../middleware/auth';
+import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
+  .use(authMiddleware)
   .onBeforeHandle(({ user, set }) => {
     if (!user) {
       set.status = 401;
