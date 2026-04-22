@@ -82,3 +82,113 @@ describe('POST /tasks', () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe('PATCH /tasks/:id', () => {
+  let taskId: number;
+
+  beforeAll(async () => {
+    const [task] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Task to update', dueDate: new Date('2026-12-31') })
+      .returning();
+    taskId = task.id;
+  });
+
+  it('updates title and returns updated task', async () => {
+    const res = await testApp.handle(
+      new Request(`http://localhost/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Updated title' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe('Updated title');
+  });
+
+  it('returns 404 when task does not belong to user', async () => {
+    const res = await testApp.handle(
+      new Request('http://localhost/tasks/999999', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Hacked' }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('DELETE /tasks/:id', () => {
+  let taskId: number;
+
+  beforeAll(async () => {
+    const [task] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Task to delete', dueDate: new Date('2026-12-31') })
+      .returning();
+    taskId = task.id;
+  });
+
+  it('soft-deletes the task and removes it from list', async () => {
+    const res = await testApp.handle(
+      new Request(`http://localhost/tasks/${taskId}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+
+    const listRes = await testApp.handle(new Request('http://localhost/tasks'));
+    const list = await listRes.json();
+    expect(list.some((t: { id: number }) => t.id === taskId)).toBe(false);
+  });
+
+  it('returns 404 when task does not belong to user', async () => {
+    const res = await testApp.handle(
+      new Request('http://localhost/tasks/999999', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('PATCH /tasks/:id/toggle-done', () => {
+  let taskId: number;
+
+  beforeAll(async () => {
+    const [task] = await db
+      .insert(tasks)
+      .values({
+        userId: testUserId,
+        title: 'Task to toggle',
+        dueDate: new Date('2026-12-31'),
+        status: 'TODO',
+      })
+      .returning();
+    taskId = task.id;
+  });
+
+  it('toggles TODO → DONE', async () => {
+    const res = await testApp.handle(
+      new Request(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('DONE');
+  });
+
+  it('toggles DONE → TODO', async () => {
+    const res = await testApp.handle(
+      new Request(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.status).toBe('TODO');
+  });
+
+  it('returns 404 when task does not belong to user', async () => {
+    const res = await testApp.handle(
+      new Request('http://localhost/tasks/999999/toggle-done', { method: 'PATCH' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
