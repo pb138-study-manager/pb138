@@ -2,6 +2,7 @@ import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { authMiddleware } from './middleware/auth';
 import { tasksRoutes } from './routes/tasks';
+import { eventsRoutes } from './routes/events';
 
 const PORT = process.env.PORT ?? 3001;
 
@@ -13,6 +14,7 @@ const app = new Elysia()
   }))
   .use(authMiddleware)
   .use(tasksRoutes)
+  .use(eventsRoutes)
   .listen(PORT);
 
 console.log(`Backend running at http://localhost:${PORT}`);
