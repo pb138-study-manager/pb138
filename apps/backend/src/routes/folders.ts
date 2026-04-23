@@ -84,7 +84,10 @@ export const foldersRoutes = new Elysia({ prefix: '/folders' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Folder not found or access denied' };
     }
-    await db.update(notes).set({ folderId: null }).where(eq(notes.folderId, existing.id));
+    await db
+      .update(notes)
+      .set({ folderId: null })
+      .where(and(eq(notes.folderId, existing.id), eq(notes.userId, (user as AuthUser).id)));
     await db.update(folders).set({ deletedAt: new Date() }).where(eq(folders.id, existing.id));
     await logAction(db, (user as AuthUser).id, `Deleted folder ${existing.id}`);
     return { success: true };

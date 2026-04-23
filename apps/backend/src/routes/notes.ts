@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
-import { notes } from '../db/schema';
+import { notes, folders } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
@@ -21,7 +21,23 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
   })
   .post(
     '/',
-    async ({ body, user }) => {
+    async ({ body, user, set }) => {
+      if (body.folderId !== undefined) {
+        const [folder] = await db
+          .select()
+          .from(folders)
+          .where(
+            and(
+              eq(folders.id, body.folderId),
+              eq(folders.userId, (user as AuthUser).id),
+              isNull(folders.deletedAt)
+            )
+          );
+        if (!folder) {
+          set.status = 404;
+          return { error: 'NOT_FOUND', message: 'Folder not found or access denied' };
+        }
+      }
       const [note] = await db
         .insert(notes)
         .values({
@@ -77,6 +93,22 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
       if (!existing) {
         set.status = 404;
         return { error: 'NOT_FOUND', message: 'Note not found or access denied' };
+      }
+      if (body.folderId !== undefined) {
+        const [folder] = await db
+          .select()
+          .from(folders)
+          .where(
+            and(
+              eq(folders.id, body.folderId),
+              eq(folders.userId, (user as AuthUser).id),
+              isNull(folders.deletedAt)
+            )
+          );
+        if (!folder) {
+          set.status = 404;
+          return { error: 'NOT_FOUND', message: 'Folder not found or access denied' };
+        }
       }
       const [updated] = await db
         .update(notes)
