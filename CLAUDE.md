@@ -155,7 +155,7 @@ pgTable, pgEnum, serial, integer, text, boolean, timestamp, primaryKey, unique
 ### Enums
 
 ```typescript
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']); // TEACHER added for courses feature
+export const roleNameEnum = pgEnum('role_name', ['USER', 'TEACHER', 'ADMIN', '']); // TEACHER added for courses feature
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 ```
 
@@ -276,6 +276,16 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 | place | text | nullable |
 | deleted_at | timestamp | nullable |
 
+**`folders`**
+| Column | Type | Constraints |
+|---|---|---|
+| id | serial | PK |
+| user_id | integer | NOT NULL, FK → users.id |
+| name | text | NOT NULL |
+| deleted_at | timestamp | nullable |
+
+> Folders are flat (no nesting). On folder soft-delete: set `notes.folder_id = NULL` for all notes in that folder first, then soft-delete the folder.
+
 **`notes`**
 | Column | Type | Constraints |
 |---|---|---|
@@ -283,6 +293,7 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 | user_id | integer | NOT NULL, FK → users.id |
 | title | text | NOT NULL |
 | description | text | nullable |
+| folder_id | integer | nullable, FK → folders.id |
 | course_id | integer | nullable, FK → courses.id |
 | deleted_at | timestamp | nullable |
 
@@ -293,6 +304,7 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 > **Implement after Notes API.** Do NOT implement now — this is a spec for future work.
 
 **Design decisions:**
+
 - Courses are **shared** — one record per real course, multiple students enroll
 - Teachers are existing `users` with a new `TEACHER` role (add to `roleNameEnum`)
 - Schedule stored as plain text (e.g. `"Mon 10:00-12:00"`) — no separate schedule table
@@ -300,6 +312,7 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 - Course progress = count of DONE tasks linked to that course
 
 **New enum value:** Add `'TEACHER'` to `roleNameEnum`:
+
 ```typescript
 export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
 ```
