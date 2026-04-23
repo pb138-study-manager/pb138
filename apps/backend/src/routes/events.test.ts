@@ -50,3 +50,53 @@ afterAll(async () => {
   await db.delete(events).where(eq(events.userId, testUserId));
   await db.delete(users).where(eq(users.id, testUserId));
 });
+
+describe('GET /events', () => {
+  it('returns empty array when user has no events', async () => {
+    const res = await testApp.handle(await req('http://localhost/events'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0);
+  });
+
+  it('returns events belonging to the user', async () => {
+    await db.insert(events).values({
+      userId: testUserId,
+      title: 'Team meeting',
+      startDate: new Date('2026-05-01T10:00:00Z'),
+      endDate: new Date('2026-05-01T11:00:00Z'),
+    });
+    const res = await testApp.handle(await req('http://localhost/events'));
+    const body = await res.json();
+    expect(body.some((e: { title: string }) => e.title === 'Team meeting')).toBe(true);
+  });
+
+  it('returns event overlapping the query window', async () => {
+    await db.insert(events).values({
+      userId: testUserId,
+      title: 'Multi-day event',
+      startDate: new Date('2026-05-10T00:00:00Z'),
+      endDate: new Date('2026-05-12T00:00:00Z'),
+    });
+    const res = await testApp.handle(
+      await req('http://localhost/events?from=2026-05-11T00:00:00Z&to=2026-05-20T00:00:00Z')
+    );
+    const body = await res.json();
+    expect(body.some((e: { title: string }) => e.title === 'Multi-day event')).toBe(true);
+  });
+
+  it('excludes events outside the query window', async () => {
+    await db.insert(events).values({
+      userId: testUserId,
+      title: 'Future event',
+      startDate: new Date('2026-07-01T00:00:00Z'),
+      endDate: new Date('2026-07-02T00:00:00Z'),
+    });
+    const res = await testApp.handle(
+      await req('http://localhost/events?from=2026-05-01T00:00:00Z&to=2026-05-31T00:00:00Z')
+    );
+    const body = await res.json();
+    expect(body.some((e: { title: string }) => e.title === 'Future event')).toBe(false);
+  });
+});
