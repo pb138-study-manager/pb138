@@ -119,4 +119,23 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
         place: t.Optional(t.String()),
       }),
     }
-  );
+  )
+  .delete('/:id', async ({ params, user, set }) => {
+    const [existing] = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.id, Number(params.id)),
+          eq(events.userId, (user as AuthUser).id),
+          isNull(events.deletedAt)
+        )
+      );
+    if (!existing) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Event not found or access denied' };
+    }
+    await db.update(events).set({ deletedAt: new Date() }).where(eq(events.id, existing.id));
+    await logAction(db, (user as AuthUser).id, `Deleted event ${existing.id}`);
+    return { success: true };
+  });

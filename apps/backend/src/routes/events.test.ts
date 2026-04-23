@@ -241,3 +241,47 @@ describe('PATCH /events/:id', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('DELETE /events/:id', () => {
+  let eventId: number;
+
+  beforeAll(async () => {
+    const [event] = await db
+      .insert(events)
+      .values({
+        userId: testUserId,
+        title: 'Event to delete',
+        startDate: new Date('2026-08-01T09:00:00Z'),
+        endDate: new Date('2026-08-01T10:00:00Z'),
+      })
+      .returning();
+    eventId = event.id;
+  });
+
+  it('soft-deletes the event and removes it from list', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/events/${eventId}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+
+    const listRes = await testApp.handle(await req('http://localhost/events'));
+    const list = await listRes.json();
+    expect(list.some((e: { id: number }) => e.id === eventId)).toBe(false);
+  });
+
+  it('returns 404 for already-deleted event', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/events/${eventId}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when event does not belong to user', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/events/999999', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
