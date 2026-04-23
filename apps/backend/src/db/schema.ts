@@ -193,7 +193,7 @@ export const notes = pgTable('notes', {
   title: text('title').notNull(),
   description: text('description'),
   folderId: integer('folder_id').references(() => folders.id),
-  courseId: integer('course_id'),
+  courseId: integer('course_id'), // no FK — courses table not yet implemented
   deletedAt: timestamp('deleted_at'),
 });
 
