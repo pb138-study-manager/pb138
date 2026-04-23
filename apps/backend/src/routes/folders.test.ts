@@ -67,3 +67,110 @@ describe('GET /folders', () => {
     expect(body.some((f: { name: string }) => f.name === 'Study')).toBe(true);
   });
 });
+
+describe('POST /folders', () => {
+  it('creates a folder and returns it', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Math' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Math');
+    expect(body.userId).toBe(testUserId);
+  });
+
+  it('returns 422 when name is missing', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+    );
+    expect(res.status).toBe(422);
+  });
+});
+
+describe('PATCH /folders/:id', () => {
+  let folderId: number;
+
+  beforeAll(async () => {
+    const [folder] = await db
+      .insert(folders)
+      .values({ userId: testUserId, name: 'To rename' })
+      .returning();
+    folderId = folder.id;
+  });
+
+  it('renames the folder', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/folders/${folderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Renamed' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Renamed');
+  });
+
+  it('returns 404 when folder does not belong to user', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/folders/999999', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Hacked' }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('DELETE /folders/:id', () => {
+  let folderId: number;
+  let noteId: number;
+
+  beforeAll(async () => {
+    const [folder] = await db
+      .insert(folders)
+      .values({ userId: testUserId, name: 'To delete' })
+      .returning();
+    folderId = folder.id;
+    const [note] = await db
+      .insert(notes)
+      .values({ userId: testUserId, title: 'Note in folder', folderId: folder.id })
+      .returning();
+    noteId = note.id;
+  });
+
+  it('soft-deletes the folder and unfolders its notes', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/folders/${folderId}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+
+    const [note] = await db.select().from(notes).where(eq(notes.id, noteId));
+    expect(note.folderId).toBeNull();
+  });
+
+  it('returns 404 for already-deleted folder', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/folders/${folderId}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when folder does not belong to user', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/folders/999999', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
