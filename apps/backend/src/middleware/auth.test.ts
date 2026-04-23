@@ -21,7 +21,7 @@ let testUserId: number;
 // Auth enforcement (401) is tested via tasks.test.ts which uses onBeforeHandle.
 const testApp = new Elysia()
   .use(authMiddleware)
-  .get('/user-context', ({ user }: any) => ({ userId: user?.id ?? null, authenticated: user !== null }));
+  .get('/user-context', ({ user }) => ({ userId: user?.id ?? null, authenticated: user !== null }));
 
 beforeAll(async () => {
   const [user] = await db
