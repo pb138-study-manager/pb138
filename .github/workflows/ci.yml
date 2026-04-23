@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, implement-frontend]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, implement-frontend]
 
 permissions:
   contents: read
@@ -97,6 +97,12 @@ jobs:
       - name: Build backend
         working-directory: apps/backend
         run: bun build src/index.ts --outdir dist --target bun
+
+      - name: Run database migrations
+        working-directory: apps/backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pb138
+        run: bun run db:migrate
 
       - name: Run backend tests
         working-directory: apps/backend
