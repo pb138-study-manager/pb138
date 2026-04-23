@@ -25,4 +25,36 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
     }
 
     return db.select().from(events).where(and(...conditions));
-  });
+  })
+  .post(
+    '/',
+    async ({ body, user, set }) => {
+      // Validate date range: startDate must not be after endDate
+      if (new Date(body.startDate) > new Date(body.endDate)) {
+        set.status = 400;
+        return { error: 'INVALID_DATE_RANGE', message: 'startDate must not be after endDate' };
+      }
+      const [event] = await db
+        .insert(events)
+        .values({
+          userId: (user as AuthUser).id,
+          title: body.title,
+          startDate: new Date(body.startDate),
+          endDate: new Date(body.endDate),
+          description: body.description,
+          place: body.place,
+        })
+        .returning();
+      await logAction(db, (user as AuthUser).id, `Created event ${event.id}: ${event.title}`);
+      return event;
+    },
+    {
+      body: t.Object({
+        title: t.String({ minLength: 1 }),
+        startDate: t.String(),
+        endDate: t.String(),
+        description: t.Optional(t.String()),
+        place: t.Optional(t.String()),
+      }),
+    }
+  );

@@ -100,3 +100,57 @@ describe('GET /events', () => {
     expect(body.some((e: { title: string }) => e.title === 'Future event')).toBe(false);
   });
 });
+
+describe('POST /events', () => {
+  it('creates an event and returns it', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'New event',
+          startDate: '2026-06-01T09:00:00.000Z',
+          endDate: '2026-06-01T10:00:00.000Z',
+          description: 'A test event',
+          place: 'Room 101',
+        }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe('New event');
+    expect(body.place).toBe('Room 101');
+    expect(body.userId).toBe(testUserId);
+  });
+
+  it('returns 400 when startDate is after endDate', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Bad event',
+          startDate: '2026-06-02T10:00:00.000Z',
+          endDate: '2026-06-01T09:00:00.000Z',
+        }),
+      })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('INVALID_DATE_RANGE');
+  });
+
+  it('returns 422 when title is missing', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: '2026-06-01T09:00:00.000Z',
+          endDate: '2026-06-01T10:00:00.000Z',
+        }),
+      })
+    );
+    expect(res.status).toBe(422);
+  });
+});
