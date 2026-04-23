@@ -154,3 +154,33 @@ describe('POST /events', () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe('GET /events/:id', () => {
+  let eventId: number;
+
+  beforeAll(async () => {
+    const [event] = await db
+      .insert(events)
+      .values({
+        userId: testUserId,
+        title: 'Detail event',
+        startDate: new Date('2026-06-10T09:00:00Z'),
+        endDate: new Date('2026-06-10T10:00:00Z'),
+      })
+      .returning();
+    eventId = event.id;
+  });
+
+  it('returns the event by id', async () => {
+    const res = await testApp.handle(await req(`http://localhost/events/${eventId}`));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(eventId);
+    expect(body.title).toBe('Detail event');
+  });
+
+  it('returns 404 for unknown id', async () => {
+    const res = await testApp.handle(await req('http://localhost/events/999999'));
+    expect(res.status).toBe(404);
+  });
+});
