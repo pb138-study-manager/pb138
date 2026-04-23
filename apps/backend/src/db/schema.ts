@@ -160,7 +160,7 @@ export const evals = pgTable('evals', {
 });
 
 // ---------------------------------------------------------------------------
-// Events & Notes
+// Events, Folders & Notes
 // ---------------------------------------------------------------------------
 
 export const events = pgTable('events', {
@@ -176,13 +176,24 @@ export const events = pgTable('events', {
   deletedAt: timestamp('deleted_at'),
 });
 
+export const folders = pgTable('folders', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+
 export const notes = pgTable('notes', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
     .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
-  description: text('description').notNull(),
+  description: text('description'),
+  folderId: integer('folder_id').references(() => folders.id),
+  courseId: integer('course_id'),
   deletedAt: timestamp('deleted_at'),
 });
 
