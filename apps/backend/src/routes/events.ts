@@ -74,4 +74,49 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
       return { error: 'NOT_FOUND', message: 'Event not found or access denied' };
     }
     return event;
-  });
+  })
+  .patch(
+    '/:id',
+    async ({ params, body, user, set }) => {
+      if (body.startDate && body.endDate && new Date(body.startDate) > new Date(body.endDate)) {
+        set.status = 400;
+        return { error: 'INVALID_DATE_RANGE', message: 'startDate must not be after endDate' };
+      }
+      const [existing] = await db
+        .select()
+        .from(events)
+        .where(
+          and(
+            eq(events.id, Number(params.id)),
+            eq(events.userId, (user as AuthUser).id),
+            isNull(events.deletedAt)
+          )
+        );
+      if (!existing) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Event not found or access denied' };
+      }
+      const [updated] = await db
+        .update(events)
+        .set({
+          ...(body.title !== undefined && { title: body.title }),
+          ...(body.description !== undefined && { description: body.description }),
+          ...(body.startDate !== undefined && { startDate: new Date(body.startDate) }),
+          ...(body.endDate !== undefined && { endDate: new Date(body.endDate) }),
+          ...(body.place !== undefined && { place: body.place }),
+        })
+        .where(eq(events.id, existing.id))
+        .returning();
+      await logAction(db, (user as AuthUser).id, `Updated event ${existing.id}`);
+      return updated;
+    },
+    {
+      body: t.Object({
+        title: t.Optional(t.String({ minLength: 1 })),
+        description: t.Optional(t.String()),
+        startDate: t.Optional(t.String()),
+        endDate: t.Optional(t.String()),
+        place: t.Optional(t.String()),
+      }),
+    }
+  );

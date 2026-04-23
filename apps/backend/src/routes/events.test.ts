@@ -184,3 +184,60 @@ describe('GET /events/:id', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('PATCH /events/:id', () => {
+  let eventId: number;
+
+  beforeAll(async () => {
+    const [event] = await db
+      .insert(events)
+      .values({
+        userId: testUserId,
+        title: 'Event to update',
+        startDate: new Date('2026-07-01T09:00:00Z'),
+        endDate: new Date('2026-07-01T10:00:00Z'),
+      })
+      .returning();
+    eventId = event.id;
+  });
+
+  it('updates title and returns updated event', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Updated event title' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.title).toBe('Updated event title');
+  });
+
+  it('returns 400 when both dates given and startDate > endDate', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/events/${eventId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: '2026-07-02T10:00:00.000Z',
+          endDate: '2026-07-01T09:00:00.000Z',
+        }),
+      })
+    );
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('INVALID_DATE_RANGE');
+  });
+
+  it('returns 404 when event does not belong to user', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/events/999999', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Hacked' }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+});
