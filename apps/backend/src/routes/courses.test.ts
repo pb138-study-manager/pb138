@@ -90,10 +90,22 @@ describe('GET /courses', () => {
 
 describe('GET /courses/enrolled', () => {
   it('returns empty array when not enrolled', async () => {
-    const res = await testApp.handle(req('http://localhost/courses/enrolled', userAuth));
+    // Create a new unenrolled user to test clean state
+    const cleanTestAuthId = `clean-test-${Date.now()}`;
+    const [testUser] = await db
+      .insert(users)
+      .values({ email: `courses-clean-${Date.now()}@example.com`, login: `courses-clean-${Date.now()}`, pwdHash: '', authId: cleanTestAuthId })
+      .returning();
+    const testUserAuth = `Bearer ${await makeToken(cleanTestAuthId)}`;
+
+    const res = await testApp.handle(req('http://localhost/courses/enrolled', testUserAuth));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0);
+
+    // Cleanup
+    await db.delete(users).where(eq(users.id, testUser.id));
   });
 
   it('returns only enrolled courses', async () => {
