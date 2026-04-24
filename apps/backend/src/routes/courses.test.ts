@@ -120,3 +120,30 @@ describe('GET /courses/enrolled', () => {
     expect(body.some((c: { id: number }) => c.id === course.id)).toBe(true);
   });
 });
+
+describe('POST /courses', () => {
+  it('creates a course and defaults lectureTeacherId to current user', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/courses', teacherAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'PB999', semester: 'Fall 2026' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.code).toBe('PB999');
+    expect(body.lectureTeacherId).toBe(teacherId);
+  });
+
+  it('returns 403 when called by non-TEACHER user', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/courses', userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'HACK01', semester: 'Fall 2026' }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+});

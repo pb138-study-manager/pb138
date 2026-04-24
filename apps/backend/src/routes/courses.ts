@@ -1,7 +1,8 @@
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import { courses, userCourses } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
+import { logAction } from '../services/audit';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 
 export const coursesRoutes = new Elysia({ prefix: '/courses' })
@@ -64,4 +65,40 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         )
       )
       .where(isNull(courses.deletedAt));
-  });
+  })
+  .post(
+    '/',
+    async ({ body, user, set }) => {
+      if (!(user as AuthUser).roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+      }
+      const [course] = await db
+        .insert(courses)
+        .values({
+          code: body.code,
+          semester: body.semester,
+          name: body.name,
+          color: body.color,
+          lectureSchedule: body.lectureSchedule,
+          seminarSchedule: body.seminarSchedule,
+          lectureTeacherId: body.lectureTeacherId ?? (user as AuthUser).id,
+          seminarTeacherId: body.seminarTeacherId,
+        })
+        .returning();
+      await logAction(db, (user as AuthUser).id, `Created course ${course.id}: ${course.code}`);
+      return course;
+    },
+    {
+      body: t.Object({
+        code: t.String({ minLength: 1 }),
+        semester: t.String({ minLength: 1 }),
+        name: t.Optional(t.String()),
+        color: t.Optional(t.String()),
+        lectureSchedule: t.Optional(t.String()),
+        seminarSchedule: t.Optional(t.String()),
+        lectureTeacherId: t.Optional(t.Number()),
+        seminarTeacherId: t.Optional(t.Number()),
+      }),
+    }
+  );
