@@ -7,6 +7,7 @@ import {
   boolean,
   timestamp,
   primaryKey,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
@@ -263,3 +264,23 @@ export const auditLogs = pgTable('audit_logs', {
   happenedAt: timestamp('happened_at').notNull().defaultNow(),
   description: text('description').notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// User Integrations
+// ---------------------------------------------------------------------------
+
+export const userIntegrations = pgTable(
+  'user_integrations',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    service: text('service').notNull(),
+    connected: boolean('connected').notNull().default(false),
+    connectedAt: timestamp('connected_at'),
+  },
+  (table) => ({
+    userServiceUnique: unique('user_integrations_user_service_unique').on(table.userId, table.service),
+  })
+);
