@@ -73,6 +73,11 @@ describe('GET /users/me', () => {
     expect(Array.isArray(body.integrations)).toBe(true);
   });
 
+  it('returns 401 without authorization header', async () => {
+    const res = await testApp.handle(new Request('http://localhost/users/me'));
+    expect(res.status).toBe(401);
+  });
+
   it('returns enrolled courses with lecture and seminar teachers', async () => {
     const [teacher] = await db
       .insert(users)

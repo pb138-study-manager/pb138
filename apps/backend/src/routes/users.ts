@@ -1,12 +1,11 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
 import { db } from '../db';
 import {
-  users, userProfiles, userSettings, userRoles, roles,
+  users, userProfiles, userSettings,
   userCourses, courses, userIntegrations,
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
-import { logAction } from '../services/audit';
-import { eq, and, isNull, ilike, or } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 export const usersRoutes = new Elysia({ prefix: '/users' })
@@ -17,21 +16,19 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       return { error: 'UNAUTHORIZED', message: 'Invalid or missing token' };
     }
   })
-  .get('/me', async ({ user }) => {
+  .get('/me', async ({ user, set }) => {
     const uid = (user as AuthUser).id;
 
-    // Fetch base user fields
+    // Fetch base user fields — filter soft-deleted users
     const [baseUser] = await db
       .select({ id: users.id, email: users.email, login: users.login })
       .from(users)
-      .where(eq(users.id, uid));
+      .where(and(eq(users.id, uid), isNull(users.deletedAt)));
 
-    // Fetch roles via junction
-    const roleRows = await db
-      .select({ name: roles.name })
-      .from(userRoles)
-      .innerJoin(roles, eq(userRoles.roleId, roles.id))
-      .where(eq(userRoles.userId, uid));
+    if (!baseUser) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'User not found' };
+    }
 
     // Optional profile row (may not exist yet)
     const [profile] = await db
@@ -81,7 +78,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       id: baseUser.id,
       email: baseUser.email,
       login: baseUser.login,
-      roles: roleRows.map((r) => r.name as string),
+      roles: (user as AuthUser).roles,
       profile: {
         name: profile?.name ?? null,
         title: profile?.title ?? null,
@@ -100,14 +97,14 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
           ? {
               id: row.lectureTeacherId,
               name: row.lectureTeacherName ?? null,
-              email: row.lectureTeacherEmail!,
+              email: row.lectureTeacherEmail ?? '',
             }
           : null,
         seminarTeacher: row.seminarTeacherId
           ? {
               id: row.seminarTeacherId,
               name: row.seminarTeacherName ?? null,
-              email: row.seminarTeacherEmail!,
+              email: row.seminarTeacherEmail ?? '',
             }
           : null,
       })),
@@ -118,8 +115,3 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
     };
   });
 
-// Suppress unused-import warnings — these will be used in later tasks (PATCH endpoints, search)
-void t;
-void logAction;
-void ilike;
-void or;
