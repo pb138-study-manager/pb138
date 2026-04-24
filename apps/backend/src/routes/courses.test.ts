@@ -87,3 +87,24 @@ describe('GET /courses', () => {
     expect(found.enrolled).toBe(true);
   });
 });
+
+describe('GET /courses/enrolled', () => {
+  it('returns empty array when not enrolled', async () => {
+    const res = await testApp.handle(req('http://localhost/courses/enrolled', userAuth));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+  });
+
+  it('returns only enrolled courses', async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'ENROLLED-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    await db.insert(userCourses).values({ userId, courseId: course.id });
+
+    const res = await testApp.handle(req('http://localhost/courses/enrolled', userAuth));
+    const body = await res.json();
+    expect(body.some((c: { id: number }) => c.id === course.id)).toBe(true);
+  });
+});

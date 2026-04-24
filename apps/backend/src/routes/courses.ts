@@ -39,4 +39,29 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         )
       )
       .where(isNull(courses.deletedAt));
+  })
+  // MUST be declared before /:id so Elysia doesn't capture "enrolled" as a dynamic segment
+  .get('/enrolled', async ({ user }) => {
+    return db
+      .select({
+        id: courses.id,
+        code: courses.code,
+        name: courses.name,
+        semester: courses.semester,
+        color: courses.color,
+        lectureSchedule: courses.lectureSchedule,
+        seminarSchedule: courses.seminarSchedule,
+        lectureTeacherId: courses.lectureTeacherId,
+        seminarTeacherId: courses.seminarTeacherId,
+        deletedAt: courses.deletedAt,
+      })
+      .from(courses)
+      .innerJoin(
+        userCourses,
+        and(
+          eq(userCourses.courseId, courses.id),
+          eq(userCourses.userId, (user as AuthUser).id)
+        )
+      )
+      .where(isNull(courses.deletedAt));
   });
