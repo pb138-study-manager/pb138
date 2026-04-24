@@ -104,3 +104,32 @@ describe('GET /users/me', () => {
     await db.delete(users).where(eq(users.id, teacher.id));
   });
 });
+
+describe('PATCH /users/me/profile', () => {
+  it('creates profile on first call (upsert)', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test User', organization: 'MU Brno' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Test User');
+    expect(body.organization).toBe('MU Brno');
+  });
+
+  it('updates profile on second call', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Updated Name' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Updated Name');
+  });
+});

@@ -1,4 +1,4 @@
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import {
   users, userProfiles, userSettings,
@@ -6,6 +6,7 @@ import {
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull } from 'drizzle-orm';
+import { logAction } from '../services/audit';
 import { alias } from 'drizzle-orm/pg-core';
 
 export const usersRoutes = new Elysia({ prefix: '/users' })
@@ -113,5 +114,33 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         connectedAt: r.connectedAt?.toISOString() ?? new Date().toISOString(),
       })),
     };
-  });
+  })
+  .patch(
+    '/me/profile',
+    async ({ body, user }) => {
+      const uid = (user as AuthUser).id;
+      const values = {
+        userId: uid,
+        ...(body.name !== undefined && { name: body.name }),
+        ...(body.title !== undefined && { title: body.title }),
+        ...(body.organization !== undefined && { organization: body.organization }),
+        ...(body.bio !== undefined && { bio: body.bio }),
+      };
+      const [updated] = await db
+        .insert(userProfiles)
+        .values(values)
+        .onConflictDoUpdate({ target: userProfiles.userId, set: values })
+        .returning();
+      await logAction(db, uid, `Updated profile`);
+      return updated;
+    },
+    {
+      body: t.Object({
+        name: t.Optional(t.String()),
+        title: t.Optional(t.String()),
+        organization: t.Optional(t.String()),
+        bio: t.Optional(t.String()),
+      }),
+    }
+  );
 
