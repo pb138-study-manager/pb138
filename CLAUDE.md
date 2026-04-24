@@ -155,7 +155,7 @@ pgTable, pgEnum, serial, integer, text, boolean, timestamp, primaryKey, unique
 ### Enums
 
 ```typescript
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN']);
+export const roleNameEnum = pgEnum('role_name', ['USER', 'TEACHER', 'ADMIN', '']); // TEACHER added for courses feature
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 ```
 
@@ -276,14 +276,79 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 | place | text | nullable |
 | deleted_at | timestamp | nullable |
 
+**`folders`**
+| Column | Type | Constraints |
+|---|---|---|
+| id | serial | PK |
+| user_id | integer | NOT NULL, FK → users.id |
+| name | text | NOT NULL |
+| deleted_at | timestamp | nullable |
+
+> Folders are flat (no nesting). On folder soft-delete: set `notes.folder_id = NULL` for all notes in that folder first, then soft-delete the folder.
+
 **`notes`**
 | Column | Type | Constraints |
 |---|---|---|
 | id | serial | PK |
 | user_id | integer | NOT NULL, FK → users.id |
 | title | text | NOT NULL |
-| description | text | NOT NULL |
+| description | text | nullable |
+| folder_id | integer | nullable, FK → folders.id |
+| course_id | integer | nullable, FK → courses.id |
 | deleted_at | timestamp | nullable |
+
+> `tasks` and `events` also get an optional `course_id` FK → `courses.id` when courses are implemented.
+
+### Courses (Planned — Shared Model)
+
+> **Implement after Notes API.** Do NOT implement now — this is a spec for future work.
+
+**Design decisions:**
+
+- Courses are **shared** — one record per real course, multiple students enroll
+- Teachers are existing `users` with a new `TEACHER` role (add to `roleNameEnum`)
+- Schedule stored as plain text (e.g. `"Mon 10:00-12:00"`) — no separate schedule table
+- Students link tasks, events, and notes to a course via optional `course_id` FK
+- Course progress = count of DONE tasks linked to that course
+
+**New enum value:** Add `'TEACHER'` to `roleNameEnum`:
+
+```typescript
+export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
+```
+
+**`courses`**
+| Column | Type | Constraints |
+|---|---|---|
+| id | serial | PK |
+| code | text | NOT NULL, UNIQUE (e.g. 'PB138') |
+| name | text | nullable (full name, e.g. 'Web Development Principles') |
+| semester | text | NOT NULL (e.g. 'Spring 2026') |
+| color | text | nullable (hex color chosen by creator) |
+| lecture_schedule | text | nullable (e.g. 'Mon 10:00-12:00') |
+| seminar_schedule | text | nullable (e.g. 'Thu 14:00-16:00') |
+| lecture_teacher_id | integer | nullable, FK → users.id |
+| seminar_teacher_id | integer | nullable, FK → users.id |
+| deleted_at | timestamp | nullable |
+
+**`user_courses`** (junction — enrollment)
+| Column | Type | Constraints |
+|---|---|---|
+| user_id | integer | FK → users.id |
+| course_id | integer | FK → courses.id |
+| PK | (user_id, course_id) | composite |
+
+**Planned API (`/courses`):**
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/courses` | Yes | Courses user is enrolled in |
+| POST | `/courses` | TEACHER | Create course |
+| GET | `/courses/:id` | Yes | Course detail + enrolled count |
+| PATCH | `/courses/:id` | TEACHER (own) | Update course |
+| DELETE | `/courses/:id` | TEACHER (own) | Soft delete |
+| POST | `/courses/:id/enroll` | Yes | Enroll current user |
+| DELETE | `/courses/:id/enroll` | Yes | Unenroll current user |
+| GET | `/courses/:id/progress` | Yes | Task completion stats for this course |
 
 ### Notification & Audit Tables
 
