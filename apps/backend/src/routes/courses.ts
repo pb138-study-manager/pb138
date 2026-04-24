@@ -101,7 +101,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       }),
     }
   )
-  .get('/:id', async ({ params, user, set }) => {
+  .get('/:id', async ({ params, set }) => {
     const [course] = await db
       .select()
       .from(courses)

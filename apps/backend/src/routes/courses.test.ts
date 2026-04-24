@@ -3,7 +3,7 @@ import { Elysia } from 'elysia';
 import { db } from '../db';
 import { courses, userCourses, users, userRoles, roles, auditLogs, tasks } from '../db/schema';
 import { coursesRoutes } from './courses';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
 const TEST_SECRET = 'courses-test-jwt-secret';
