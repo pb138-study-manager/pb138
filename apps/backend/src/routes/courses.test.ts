@@ -44,6 +44,7 @@ beforeAll(async () => {
     .returning();
   teacherId = teacher.id;
 
+  await db.insert(roles).values({ name: 'TEACHER' }).onConflictDoNothing();
   const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
   await db.insert(userRoles).values({ userId: teacherId, roleId: teacherRole.id });
 
