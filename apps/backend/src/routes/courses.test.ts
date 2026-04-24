@@ -210,6 +210,29 @@ describe('PATCH /courses/:id', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 403 when called by a different TEACHER (not the owner)', async () => {
+    const otherTeacherAuthId = `other-teacher-${Date.now()}`;
+    const [otherTeacher] = await db
+      .insert(users)
+      .values({ email: `other-teacher-${Date.now()}@example.com`, login: `other-teacher-${Date.now()}`, pwdHash: '', authId: otherTeacherAuthId })
+      .returning();
+    const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
+    await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
+    const otherTeacherAuth = `Bearer ${await makeToken(otherTeacherAuthId)}`;
+
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, otherTeacherAuth, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Stolen' }),
+      })
+    );
+    expect(res.status).toBe(403);
+
+    await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
+    await db.delete(users).where(eq(users.id, otherTeacher.id));
+  });
+
   it('returns 404 for unknown course', async () => {
     const res = await testApp.handle(
       req('http://localhost/courses/999999', teacherAuth, {
@@ -238,6 +261,25 @@ describe('DELETE /courses/:id', () => {
       req(`http://localhost/courses/${courseId}`, userAuth, { method: 'DELETE' })
     );
     expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when called by a different TEACHER (not the owner)', async () => {
+    const otherTeacherAuthId = `other-teacher-del-${Date.now()}`;
+    const [otherTeacher] = await db
+      .insert(users)
+      .values({ email: `other-teacher-del-${Date.now()}@example.com`, login: `other-teacher-del-${Date.now()}`, pwdHash: '', authId: otherTeacherAuthId })
+      .returning();
+    const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
+    await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
+    const otherTeacherAuth = `Bearer ${await makeToken(otherTeacherAuthId)}`;
+
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, otherTeacherAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(403);
+
+    await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
+    await db.delete(users).where(eq(users.id, otherTeacher.id));
   });
 
   it('soft-deletes the course and removes it from list', async () => {

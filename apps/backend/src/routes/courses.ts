@@ -28,8 +28,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         lectureTeacherId: courses.lectureTeacherId,
         seminarTeacherId: courses.seminarTeacherId,
         deletedAt: courses.deletedAt,
-        // Cast to boolean: IS NOT NULL means there's a matching enrollment row
-        enrolled: sql<boolean>`${userCourses.userId} IS NOT NULL`,
+        enrolled: sql<boolean>`(${userCourses.userId} IS NOT NULL)::boolean`,
       })
       .from(courses)
       .leftJoin(
@@ -111,11 +110,11 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Course not found' };
     }
-    const enrolledRows = await db
-      .select()
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
       .from(userCourses)
       .where(eq(userCourses.courseId, course.id));
-    return { ...course, enrolledCount: enrolledRows.length };
+    return { ...course, enrolledCount: count };
   })
   .patch(
     '/:id',
@@ -200,6 +199,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .insert(userCourses)
       .values({ userId: (user as AuthUser).id, courseId: course.id })
       .onConflictDoNothing();
+    await logAction(db, (user as AuthUser).id, `Enrolled in course ${course.id}`);
     return { success: true };
   })
   .delete('/:id/enroll', async ({ params, user, set }) => {
@@ -224,6 +224,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Not enrolled in this course' };
     }
+    await logAction(db, (user as AuthUser).id, `Unenrolled from course ${course.id}`);
     return { success: true };
   })
   .get('/:id/progress', async ({ params, user, set }) => {
