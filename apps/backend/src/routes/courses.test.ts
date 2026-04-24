@@ -147,3 +147,226 @@ describe('POST /courses', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('GET /courses/:id', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'DETAIL-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+    await db.insert(userCourses).values({ userId, courseId: course.id });
+  });
+
+  it('returns course with enrolledCount', async () => {
+    const res = await testApp.handle(req(`http://localhost/courses/${courseId}`, userAuth));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(courseId);
+    expect(body.enrolledCount).toBe(1);
+  });
+
+  it('returns 404 for unknown id', async () => {
+    const res = await testApp.handle(req('http://localhost/courses/999999', userAuth));
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('PATCH /courses/:id', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'PATCH-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+  });
+
+  it('updates course fields (lecture teacher)', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, teacherAuth, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Web Dev Principles', lectureSchedule: 'Mon 10:00-12:00' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Web Dev Principles');
+    expect(body.lectureSchedule).toBe('Mon 10:00-12:00');
+  });
+
+  it('returns 403 when called by non-TEACHER user', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, userAuth, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Hacked' }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 404 for unknown course', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/courses/999999', teacherAuth, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Ghost' }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('DELETE /courses/:id', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'DELETE-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+  });
+
+  it('returns 403 for non-TEACHER user', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('soft-deletes the course and removes it from list', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, teacherAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    const listRes = await testApp.handle(req('http://localhost/courses', userAuth));
+    const list = await listRes.json();
+    expect(list.some((c: { id: number }) => c.id === courseId)).toBe(false);
+  });
+
+  it('returns 404 for already-deleted course', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}`, teacherAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /courses/:id/enroll', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'ENROLL-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+  });
+
+  it('enrolls user and course appears in GET /courses/enrolled', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/enroll`, userAuth, { method: 'POST' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    const enrolledRes = await testApp.handle(req('http://localhost/courses/enrolled', userAuth));
+    const list = await enrolledRes.json();
+    expect(list.some((c: { id: number }) => c.id === courseId)).toBe(true);
+  });
+
+  it('is idempotent — second enroll returns 200', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/enroll`, userAuth, { method: 'POST' })
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it('returns 404 for unknown course', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/courses/999999/enroll', userAuth, { method: 'POST' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('DELETE /courses/:id/enroll', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'UNENROLL-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+    await db.insert(userCourses).values({ userId, courseId: course.id });
+  });
+
+  it('unenrolls user and course disappears from GET /courses/enrolled', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/enroll`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    const enrolledRes = await testApp.handle(req('http://localhost/courses/enrolled', userAuth));
+    const list = await enrolledRes.json();
+    expect(list.some((c: { id: number }) => c.id === courseId)).toBe(false);
+  });
+
+  it('returns 404 when not enrolled', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/enroll`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /courses/:id/progress', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'PROGRESS-TEST', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+    await db.insert(tasks).values([
+      { userId, courseId: course.id, title: 'Task 1', dueDate: new Date(), status: 'DONE' },
+      { userId, courseId: course.id, title: 'Task 2', dueDate: new Date(), status: 'TODO' },
+      { userId, courseId: course.id, title: 'Task 3', dueDate: new Date(), status: 'DONE' },
+    ]);
+  });
+
+  it('returns correct progress counts', async () => {
+    const res = await testApp.handle(req(`http://localhost/courses/${courseId}/progress`, userAuth));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.total).toBe(3);
+    expect(body.done).toBe(2);
+    expect(body.percent).toBe(67);
+  });
+
+  it('returns zero progress when no tasks', async () => {
+    const [emptyCourse] = await db
+      .insert(courses)
+      .values({ code: 'PROGRESS-EMPTY', semester: 'Spring 2026', lectureTeacherId: teacherId })
+      .returning();
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${emptyCourse.id}/progress`, userAuth)
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.total).toBe(0);
+    expect(body.done).toBe(0);
+    expect(body.percent).toBe(0);
+  });
+});
