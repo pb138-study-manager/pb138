@@ -16,6 +16,7 @@ import {
 
 export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
+export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -104,6 +105,7 @@ export const groups = pgTable('groups', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
+  type: groupTypeEnum('type').notNull().default('GROUP'),
   deletedAt: timestamp('deleted_at'),
 });
 
