@@ -87,4 +87,9 @@ describe('GET /groups', () => {
     expect(Array.isArray(body)).toBe(true);
     expect(body.length).toBe(0);
   });
+
+  it('returns 401 without auth', async () => {
+    const res = await testApp.handle(new Request('http://localhost/groups'));
+    expect(res.status).toBe(401);
+  });
 });
