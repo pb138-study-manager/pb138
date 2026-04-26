@@ -1,8 +1,9 @@
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import { groups, groupMembers } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, inArray, or } from 'drizzle-orm';
+import { logAction } from '../services/audit';
 
 export const groupsRoutes = new Elysia({ prefix: '/groups' })
   .use(authMiddleware)
@@ -40,4 +41,23 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
             : eq(groups.mentorId, uid)
         )
       );
-  });
+  })
+  .post(
+    '/',
+    async ({ body, user }) => {
+      const uid = (user as AuthUser).id;
+      const isTeacher = (user as AuthUser).roles.includes('TEACHER');
+      const type = isTeacher ? ('SEMINAR' as const) : ('GROUP' as const);
+      const [group] = await db
+        .insert(groups)
+        .values({ name: body.name, mentorId: uid, type })
+        .returning();
+      await logAction(db, uid, `Created group ${group.id}: ${group.name}`);
+      return group;
+    },
+    {
+      body: t.Object({
+        name: t.String({ minLength: 1 }),
+      }),
+    }
+  );

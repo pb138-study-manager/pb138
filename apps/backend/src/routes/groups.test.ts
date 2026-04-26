@@ -93,3 +93,42 @@ describe('GET /groups', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('POST /groups', () => {
+  it('regular user creates a GROUP', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/groups', userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test Group' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.type).toBe('GROUP');
+    expect(body.mentorId).toBe(userId);
+    expect(body.name).toBe('Test Group');
+    userGroupId = body.id;
+  });
+
+  it('TEACHER creates a SEMINAR', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/groups', teacherAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test Seminar' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.type).toBe('SEMINAR');
+    expect(body.mentorId).toBe(teacherId);
+    teacherGroupId = body.id;
+  });
+
+  it('GET /groups returns created group for mentor', async () => {
+    const res = await testApp.handle(req('http://localhost/groups', userAuth));
+    const body = await res.json();
+    expect(body.some((g: { id: number }) => g.id === userGroupId)).toBe(true);
+  });
+});
