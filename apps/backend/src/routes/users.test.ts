@@ -171,3 +171,56 @@ describe('PATCH /users/me/settings', () => {
     expect(body.notificationsEnabled).toBe(false);
   });
 });
+
+describe('GET /users/search', () => {
+  it('returns matching user by login', async () => {
+    const res = await testApp.handle(req('http://localhost/users/search?q=users-test'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.some((u: { id: number }) => u.id === userId)).toBe(true);
+  });
+
+  it('returns empty array when no match', async () => {
+    const res = await testApp.handle(req('http://localhost/users/search?q=zzz-no-match-xyz'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(0);
+  });
+
+  it('returns 400 when query is under 2 chars', async () => {
+    const res = await testApp.handle(req('http://localhost/users/search?q=x'));
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /users/me/integrations/:service', () => {
+  it('marks service as connected and appears in GET /users/me', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/google_calendar', { method: 'POST' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    const meRes = await testApp.handle(req('http://localhost/users/me'));
+    const me = await meRes.json();
+    expect(me.integrations.some((i: { service: string }) => i.service === 'google_calendar')).toBe(true);
+  });
+});
+
+describe('DELETE /users/me/integrations/:service', () => {
+  it('marks service as disconnected', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/google_calendar', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+  });
+
+  it('returns 404 when service was never connected', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/nonexistent_service', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});
