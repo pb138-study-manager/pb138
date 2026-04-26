@@ -235,6 +235,11 @@ describe('POST /groups/:id/members', () => {
 });
 
 describe('DELETE /groups/:id/members/:userId', () => {
+  beforeAll(async () => {
+    // Ensure userId is a member of teacherGroupId for the remove test
+    await db.insert(groupMembers).values({ userId, groupId: teacherGroupId }).onConflictDoNothing();
+  });
+
   it('returns 404 when user is not a member', async () => {
     const res = await testApp.handle(
       req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, { method: 'DELETE' })
@@ -243,7 +248,6 @@ describe('DELETE /groups/:id/members/:userId', () => {
   });
 
   it('mentor can remove a member', async () => {
-    // userId was added to teacherGroupId in the POST members test above
     const res = await testApp.handle(
       req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, { method: 'DELETE' })
     );

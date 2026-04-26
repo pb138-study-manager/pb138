@@ -152,6 +152,18 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
         return { error: 'FORBIDDEN', message: 'Only the group mentor can add members' };
       }
 
+      // Verify all provided users exist and are not soft-deleted
+      if (body.userIds.length > 0) {
+        const existingUsers = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(inArray(users.id, body.userIds), isNull(users.deletedAt)));
+        if (existingUsers.length !== body.userIds.length) {
+          set.status = 400;
+          return { error: 'BAD_REQUEST', message: 'One or more user IDs are invalid' };
+        }
+      }
+
       await db
         .insert(groupMembers)
         .values(body.userIds.map((memberId) => ({ userId: memberId, groupId })))
