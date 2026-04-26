@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
 import {
-  users, userRoles, roles, userProfiles, userSettings,
+  users, userRoles, userProfiles, userSettings,
   userCourses, courses, userIntegrations, auditLogs,
 } from '../db/schema';
 import { usersRoutes } from './users';
