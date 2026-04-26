@@ -155,3 +155,19 @@ describe('POST /groups', () => {
     expect(res.status).toBeLessThan(500);
   });
 });
+
+describe('GET /groups/:id', () => {
+  it('returns group detail with members array for mentor', async () => {
+    const res = await testApp.handle(req(`http://localhost/groups/${userGroupId}`, userAuth));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(userGroupId);
+    expect(body.name).toBe('Test Group');
+    expect(Array.isArray(body.members)).toBe(true);
+  });
+
+  it('returns 403 for user who is neither mentor nor member', async () => {
+    const res = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, userAuth));
+    expect(res.status).toBe(403);
+  });
+});
