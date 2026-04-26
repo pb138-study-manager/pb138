@@ -131,4 +131,27 @@ describe('POST /groups', () => {
     const body = await res.json();
     expect(body.some((g: { id: number }) => g.id === userGroupId)).toBe(true);
   });
+
+  it('returns 401 without auth', async () => {
+    const res = await testApp.handle(
+      new Request('http://localhost/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test' }),
+      })
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 for empty name', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/groups', userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: '' }),
+      })
+    );
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+  });
 });
