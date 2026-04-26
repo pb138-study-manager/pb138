@@ -126,4 +126,82 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
     await db.update(groups).set({ deletedAt: new Date() }).where(eq(groups.id, groupId));
     await logAction(db, uid, `Deleted group ${groupId}`);
     return { success: true };
+  })
+  .post(
+    '/:id/members',
+    async ({ params, body, user, set }) => {
+      const uid = (user as AuthUser).id;
+      const groupId = parseInt(params.id);
+
+      if (isNaN(groupId)) {
+        set.status = 400;
+        return { error: 'BAD_REQUEST', message: 'Invalid group id' };
+      }
+
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)));
+
+      if (!group) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Group not found' };
+      }
+      if (group.mentorId !== uid) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Only the group mentor can add members' };
+      }
+
+      await db
+        .insert(groupMembers)
+        .values(body.userIds.map((memberId) => ({ userId: memberId, groupId })))
+        .onConflictDoNothing();
+      await logAction(db, uid, `Added members to group ${groupId}`);
+      return { success: true };
+    },
+    {
+      body: t.Object({
+        userIds: t.Array(t.Number()),
+      }),
+    }
+  )
+  .delete('/:id/members/:userId', async ({ params, user, set }) => {
+    const uid = (user as AuthUser).id;
+    const groupId = parseInt(params.id);
+    const targetUserId = parseInt(params.userId);
+
+    if (isNaN(groupId) || isNaN(targetUserId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid id' };
+    }
+
+    const [group] = await db
+      .select()
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)));
+
+    if (!group) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Group not found' };
+    }
+    if (group.mentorId !== uid) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Only the group mentor can remove members' };
+    }
+
+    const [membership] = await db
+      .select()
+      .from(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+
+    if (!membership) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'User is not a member of this group' };
+    }
+
+    await db
+      .delete(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
+    await logAction(db, uid, `Removed user ${targetUserId} from group ${groupId}`);
+    return { success: true };
   });

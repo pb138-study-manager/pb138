@@ -203,3 +203,56 @@ describe('DELETE /groups/:id', () => {
     expect(list.some((g: { id: number }) => g.id === throwawayId)).toBe(false);
   });
 });
+
+describe('POST /groups/:id/members', () => {
+  it('mentor can add members', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/members`, teacherAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: [userId] }),
+      })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    // Member now appears in group detail
+    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const body = await detail.json();
+    expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(true);
+  });
+
+  it('non-mentor gets 403 when adding members', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/members`, userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: [userId] }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+});
+
+describe('DELETE /groups/:id/members/:userId', () => {
+  it('returns 404 when user is not a member', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('mentor can remove a member', async () => {
+    // userId was added to teacherGroupId in the POST members test above
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    // Confirm removed
+    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const body = await detail.json();
+    expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(false);
+  });
+});
