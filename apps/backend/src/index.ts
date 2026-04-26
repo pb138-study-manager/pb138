@@ -6,6 +6,7 @@ import { eventsRoutes } from './routes/events';
 import { foldersRoutes } from './routes/folders';
 import { notesRoutes } from './routes/notes';
 import { coursesRoutes } from './routes/courses';
+import { usersRoutes } from './routes/users';
 
 const PORT = process.env.PORT ?? 3001;
 
@@ -21,6 +22,7 @@ const app = new Elysia()
   .use(foldersRoutes)
   .use(notesRoutes)
   .use(coursesRoutes)
+  .use(usersRoutes)
   .listen(PORT);
 
 console.log(`Backend running at http://localhost:${PORT}`);
