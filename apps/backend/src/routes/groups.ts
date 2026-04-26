@@ -65,6 +65,11 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
     const uid = (user as AuthUser).id;
     const groupId = parseInt(params.id);
 
+    if (isNaN(groupId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid group id' };
+    }
+
     const [group] = await db
       .select()
       .from(groups)
@@ -91,7 +96,7 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       .select({ id: users.id, login: users.login, email: users.email })
       .from(groupMembers)
       .innerJoin(users, eq(groupMembers.userId, users.id))
-      .where(eq(groupMembers.groupId, groupId));
+      .where(and(eq(groupMembers.groupId, groupId), isNull(users.deletedAt)));
 
     return { ...group, members };
   });
