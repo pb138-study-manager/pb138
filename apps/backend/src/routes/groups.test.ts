@@ -171,3 +171,35 @@ describe('GET /groups/:id', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('DELETE /groups/:id', () => {
+  it('returns 403 when non-mentor tries to delete', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('mentor can soft-delete own group', async () => {
+    // Create a throwaway group to delete
+    const createRes = await testApp.handle(
+      req('http://localhost/groups', userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Throwaway Group' }),
+      })
+    );
+    const { id: throwawayId } = await createRes.json();
+
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${throwawayId}`, userAuth, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    // Confirm it no longer appears in GET /groups
+    const listRes = await testApp.handle(req('http://localhost/groups', userAuth));
+    const list = await listRes.json();
+    expect(list.some((g: { id: number }) => g.id === throwawayId)).toBe(false);
+  });
+});

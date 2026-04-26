@@ -99,4 +99,31 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       .where(and(eq(groupMembers.groupId, groupId), isNull(users.deletedAt)));
 
     return { ...group, members };
+  })
+  .delete('/:id', async ({ params, user, set }) => {
+    const uid = (user as AuthUser).id;
+    const groupId = parseInt(params.id);
+
+    if (isNaN(groupId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid group id' };
+    }
+
+    const [group] = await db
+      .select()
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)));
+
+    if (!group) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Group not found' };
+    }
+    if (group.mentorId !== uid) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Only the group mentor can delete this group' };
+    }
+
+    await db.update(groups).set({ deletedAt: new Date() }).where(eq(groups.id, groupId));
+    await logAction(db, uid, `Deleted group ${groupId}`);
+    return { success: true };
   });
