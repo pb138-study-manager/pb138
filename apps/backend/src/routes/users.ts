@@ -142,5 +142,40 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         bio: t.Optional(t.String()),
       }),
     }
+  )
+  .get('/me/settings', async ({ user }) => {
+    const uid = (user as AuthUser).id;
+    const [settings] = await db
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, uid));
+    return {
+      notificationsEnabled: settings?.notificationsEnabled ?? true,
+      lightTheme: settings?.lightTheme ?? true,
+    };
+  })
+  .patch(
+    '/me/settings',
+    async ({ body, user }) => {
+      const uid = (user as AuthUser).id;
+      const values = {
+        userId: uid,
+        ...(body.notificationsEnabled !== undefined && { notificationsEnabled: body.notificationsEnabled }),
+        ...(body.lightTheme !== undefined && { lightTheme: body.lightTheme }),
+      };
+      const [updated] = await db
+        .insert(userSettings)
+        .values(values)
+        .onConflictDoUpdate({ target: userSettings.userId, set: values })
+        .returning();
+      await logAction(db, uid, `Updated settings`);
+      return updated;
+    },
+    {
+      body: t.Object({
+        notificationsEnabled: t.Optional(t.Boolean()),
+        lightTheme: t.Optional(t.Boolean()),
+      }),
+    }
   );
 

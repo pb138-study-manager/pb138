@@ -133,3 +133,41 @@ describe('PATCH /users/me/profile', () => {
     expect(body.name).toBe('Updated Name');
   });
 });
+
+describe('GET /users/me/settings', () => {
+  it('returns defaults when no settings row exists', async () => {
+    const freshAuthId = `fresh-settings-${Date.now()}`;
+    const [freshUser] = await db
+      .insert(users)
+      .values({ email: `fresh-${Date.now()}@example.com`, login: `fresh-${Date.now()}`, pwdHash: '', authId: freshAuthId })
+      .returning();
+    const freshAuth = `Bearer ${await makeToken(freshAuthId)}`;
+    const freshApp = new Elysia().use(usersRoutes);
+
+    const res = await freshApp.handle(
+      new Request('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.notificationsEnabled).toBe(true);
+    expect(body.lightTheme).toBe(true);
+
+    await db.delete(users).where(eq(users.id, freshUser.id));
+  });
+});
+
+describe('PATCH /users/me/settings', () => {
+  it('upserts settings and returns updated values', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lightTheme: false, notificationsEnabled: false }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.lightTheme).toBe(false);
+    expect(body.notificationsEnabled).toBe(false);
+  });
+});
