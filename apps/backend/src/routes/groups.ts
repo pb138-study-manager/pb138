@@ -278,6 +278,11 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
         return { error: 'FORBIDDEN', message: 'Only the group mentor can create assignments' };
       }
 
+      if (isNaN(new Date(body.dueDate).getTime())) {
+        set.status = 400;
+        return { error: 'BAD_REQUEST', message: 'Invalid dueDate format' };
+      }
+
       const [assignment] = await db
         .insert(assignments)
         .values({
@@ -291,6 +296,7 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       const memberRows = await db
         .select({ userId: groupMembers.userId })
         .from(groupMembers)
+        .innerJoin(users, and(eq(groupMembers.userId, users.id), isNull(users.deletedAt)))
         .where(eq(groupMembers.groupId, groupId));
 
       if (memberRows.length > 0) {
