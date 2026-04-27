@@ -260,3 +260,55 @@ describe('DELETE /groups/:id/members/:userId', () => {
     expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(false);
   });
 });
+
+describe('GET /groups/:id/assignments', () => {
+  it('returns empty array when group has no assignments', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/assignments`, teacherAuth)
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0);
+  });
+});
+
+describe('POST /groups/:id/assignments', () => {
+  it('non-mentor gets 403', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/assignments`, userAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Lab 1', dueDate: '2026-05-01T23:59:00.000Z' }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('mentor creates assignment and tasks for all members', async () => {
+    // Add userId as member first (userId was removed in DELETE members test)
+    await db.insert(groupMembers).values({ userId, groupId: teacherGroupId }).onConflictDoNothing();
+
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/assignments`, teacherAuth, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Lab 1', dueDate: '2026-05-01T23:59:00.000Z', description: 'First lab' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.assignment.title).toBe('Lab 1');
+    expect(body.tasksCreated).toBe(1); // one member (userId)
+    expect(body.assignment.groupId).toBe(teacherGroupId);
+  });
+
+  it('GET /groups/:id/assignments now shows the created assignment', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}/assignments`, teacherAuth)
+    );
+    const body = await res.json();
+    expect(body.length).toBe(1);
+    expect(body[0].title).toBe('Lab 1');
+  });
+});

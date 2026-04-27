@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
-import { groups, groupMembers, users } from '../db/schema';
+import { groups, groupMembers, users, assignments, tasks } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, inArray, or } from 'drizzle-orm';
 import { logAction } from '../services/audit';
@@ -216,4 +216,103 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, targetUserId)));
     await logAction(db, uid, `Removed user ${targetUserId} from group ${groupId}`);
     return { success: true };
-  });
+  })
+  .get('/:id/assignments', async ({ params, user, set }) => {
+    const uid = (user as AuthUser).id;
+    const groupId = parseInt(params.id);
+
+    if (isNaN(groupId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid group id' };
+    }
+
+    const [group] = await db
+      .select()
+      .from(groups)
+      .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)));
+
+    if (!group) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Group not found' };
+    }
+
+    const isMentor = group.mentorId === uid;
+    if (!isMentor) {
+      const [membership] = await db
+        .select()
+        .from(groupMembers)
+        .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, uid)));
+      if (!membership) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied' };
+      }
+    }
+
+    return db
+      .select()
+      .from(assignments)
+      .where(and(eq(assignments.groupId, groupId), isNull(assignments.deletedAt)));
+  })
+  .post(
+    '/:id/assignments',
+    async ({ params, body, user, set }) => {
+      const uid = (user as AuthUser).id;
+      const groupId = parseInt(params.id);
+
+      if (isNaN(groupId)) {
+        set.status = 400;
+        return { error: 'BAD_REQUEST', message: 'Invalid group id' };
+      }
+
+      const [group] = await db
+        .select()
+        .from(groups)
+        .where(and(eq(groups.id, groupId), isNull(groups.deletedAt)));
+
+      if (!group) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Group not found' };
+      }
+      if (group.mentorId !== uid) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Only the group mentor can create assignments' };
+      }
+
+      const [assignment] = await db
+        .insert(assignments)
+        .values({
+          groupId,
+          title: body.title,
+          description: body.description,
+          dueDate: new Date(body.dueDate),
+        })
+        .returning();
+
+      const memberRows = await db
+        .select({ userId: groupMembers.userId })
+        .from(groupMembers)
+        .where(eq(groupMembers.groupId, groupId));
+
+      if (memberRows.length > 0) {
+        await db.insert(tasks).values(
+          memberRows.map((m) => ({
+            userId: m.userId,
+            assignmentId: assignment.id,
+            title: body.title,
+            description: body.description,
+            dueDate: new Date(body.dueDate),
+          }))
+        );
+      }
+
+      await logAction(db, uid, `Created assignment ${assignment.id} for group ${groupId}`);
+      return { assignment, tasksCreated: memberRows.length };
+    },
+    {
+      body: t.Object({
+        title: t.String({ minLength: 1 }),
+        dueDate: t.String(),
+        description: t.Optional(t.String()),
+      }),
+    }
+  );
