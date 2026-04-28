@@ -83,7 +83,7 @@ describe('POST /folders', () => {
     expect(body.userId).toBe(testUserId);
   });
 
-  it('returns 422 when name is missing', async () => {
+  it('returns 400 when name is missing', async () => {
     const res = await testApp.handle(
       await req('http://localhost/folders', {
         method: 'POST',
@@ -91,7 +91,7 @@ describe('POST /folders', () => {
         body: JSON.stringify({}),
       })
     );
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 });
 

@@ -102,7 +102,7 @@ describe('POST /notes', () => {
     expect(body.description).toBe('Some details here');
   });
 
-  it('returns 422 when title is missing', async () => {
+  it('returns 400 when title is missing', async () => {
     const res = await testApp.handle(
       await req('http://localhost/notes', {
         method: 'POST',
@@ -110,7 +110,7 @@ describe('POST /notes', () => {
         body: JSON.stringify({ description: 'No title here' }),
       })
     );
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 });
 

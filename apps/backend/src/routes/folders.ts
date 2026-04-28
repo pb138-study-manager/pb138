@@ -1,9 +1,19 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { folders, notes } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
+import { zodBody } from '../lib/validation';
+
+const CreateFolderSchema = z.object({
+  name: z.string().min(1),
+});
+
+const UpdateFolderSchema = z.object({
+  name: z.string().min(1),
+});
 
 export const foldersRoutes = new Elysia({ prefix: '/folders' })
   .use(authMiddleware)
@@ -32,11 +42,7 @@ export const foldersRoutes = new Elysia({ prefix: '/folders' })
       await logAction(db, (user as AuthUser).id, `Created folder ${folder.id}: ${folder.name}`);
       return folder;
     },
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1 }),
-      }),
-    }
+    zodBody(CreateFolderSchema)
   )
   .patch(
     '/:id',
@@ -63,11 +69,7 @@ export const foldersRoutes = new Elysia({ prefix: '/folders' })
       await logAction(db, (user as AuthUser).id, `Updated folder ${existing.id}`);
       return updated;
     },
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1 }),
-      }),
-    }
+    zodBody(UpdateFolderSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
     const [existing] = await db

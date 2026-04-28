@@ -1,9 +1,25 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { notes, folders } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
+import { zodBody } from '../lib/validation';
+
+const CreateNoteSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  folderId: z.number().optional(),
+  courseId: z.number().optional(),
+});
+
+const UpdateNoteSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  folderId: z.number().nullable().optional(),
+  courseId: z.number().nullable().optional(),
+});
 
 export const notesRoutes = new Elysia({ prefix: '/notes' })
   .use(authMiddleware)
@@ -51,14 +67,7 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
       await logAction(db, (user as AuthUser).id, `Created note ${note.id}: ${note.title}`);
       return note;
     },
-    {
-      body: t.Object({
-        title: t.String({ minLength: 1 }),
-        description: t.Optional(t.String()),
-        folderId: t.Optional(t.Number()),
-        courseId: t.Optional(t.Number()),
-      }),
-    }
+    zodBody(CreateNoteSchema)
   )
   .get('/:id', async ({ params, user, set }) => {
     const [note] = await db
@@ -123,14 +132,7 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
       await logAction(db, (user as AuthUser).id, `Updated note ${existing.id}`);
       return updated;
     },
-    {
-      body: t.Object({
-        title: t.Optional(t.String({ minLength: 1 })),
-        description: t.Optional(t.String()),
-        folderId: t.Optional(t.Number()),
-        courseId: t.Optional(t.Number()),
-      }),
-    }
+    zodBody(UpdateNoteSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
     const [existing] = await db
