@@ -137,10 +137,10 @@ describe('POST /events', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe('INVALID_DATE_RANGE');
+    expect(body.error).toBe('VALIDATION_ERROR');
   });
 
-  it('returns 422 when title is missing', async () => {
+  it('returns 400 when title is missing', async () => {
     const res = await testApp.handle(
       await req('http://localhost/events', {
         method: 'POST',
@@ -151,7 +151,7 @@ describe('POST /events', () => {
         }),
       })
     );
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 });
 
@@ -227,7 +227,7 @@ describe('PATCH /events/:id', () => {
     );
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe('INVALID_DATE_RANGE');
+    expect(body.error).toBe('VALIDATION_ERROR');
   });
 
   it('returns 404 when event does not belong to user', async () => {

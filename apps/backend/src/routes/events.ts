@@ -1,8 +1,37 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { events } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
+import { zodBody } from '../lib/validation';
+
+const CreateEventSchema = z.object({
+  title: z.string().min(1),
+  startDate: z.string(),
+  endDate: z.string(),
+  description: z.string().optional(),
+  place: z.string().optional(),
+}).refine(
+  (data) => new Date(data.startDate) <= new Date(data.endDate),
+  { message: 'startDate must not be after endDate', path: ['startDate'] }
+);
+
+const UpdateEventSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  place: z.string().optional(),
+}).refine(
+  (data) => {
+    if (data.startDate && data.endDate) {
+      return new Date(data.startDate) <= new Date(data.endDate);
+    }
+    return true;
+  },
+  { message: 'startDate must not be after endDate', path: ['startDate'] }
+);
 import { eq, and, isNull, lt, gt } from 'drizzle-orm';
 
 export const eventsRoutes = new Elysia({ prefix: '/events' })
@@ -48,15 +77,7 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
       await logAction(db, (user as AuthUser).id, `Created event ${event.id}: ${event.title}`);
       return event;
     },
-    {
-      body: t.Object({
-        title: t.String({ minLength: 1 }),
-        startDate: t.String(),
-        endDate: t.String(),
-        description: t.Optional(t.String()),
-        place: t.Optional(t.String()),
-      }),
-    }
+    zodBody(CreateEventSchema)
   )
   .get('/:id', async ({ params, user, set }) => {
     const [event] = await db
@@ -78,10 +99,6 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
   .patch(
     '/:id',
     async ({ params, body, user, set }) => {
-      if (body.startDate && body.endDate && new Date(body.startDate) > new Date(body.endDate)) {
-        set.status = 400;
-        return { error: 'INVALID_DATE_RANGE', message: 'startDate must not be after endDate' };
-      }
       const [existing] = await db
         .select()
         .from(events)
@@ -110,15 +127,7 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
       await logAction(db, (user as AuthUser).id, `Updated event ${existing.id}`);
       return updated;
     },
-    {
-      body: t.Object({
-        title: t.Optional(t.String({ minLength: 1 })),
-        description: t.Optional(t.String()),
-        startDate: t.Optional(t.String()),
-        endDate: t.Optional(t.String()),
-        place: t.Optional(t.String()),
-      }),
-    }
+    zodBody(UpdateEventSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
     const [existing] = await db
