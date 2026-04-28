@@ -6,6 +6,15 @@ export interface User {
   login: string;
   email: string;
   roles: RoleName[];
+  name: string;
+  avatarUrl: string;
+}
+
+export interface Mentor {
+  id: number;
+  name: string;
+  code: string;
+  avatarUrl: string;
 }
 
 export interface Task {
@@ -19,6 +28,15 @@ export interface Task {
   deletedAt: string | null;
   eval?: Eval;
 }
+
+export interface FeaturedTaskItem {
+  id: number;
+  title: string;
+  time: string;
+  location: string;
+  color: 'yellow' | 'green';
+}
+
 
 export interface Event {
   id: number;

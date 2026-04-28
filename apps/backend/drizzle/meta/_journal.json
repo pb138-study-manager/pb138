@@ -8,6 +8,34 @@
       "when": 1776692241457,
       "tag": "0000_tiny_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1776972878078,
+      "tag": "0001_square_killraven",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1776983274247,
+      "tag": "0002_salty_micromax",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777058275830,
+      "tag": "0003_thin_leech",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1777221293102,
+      "tag": "0004_volatile_dracula",
+      "breakpoints": true
     }
   ]
 }

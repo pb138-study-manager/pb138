@@ -7,14 +7,16 @@ import {
   boolean,
   timestamp,
   primaryKey,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
 
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN']);
+export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
+export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -103,6 +105,7 @@ export const groups = pgTable('groups', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
+  type: groupTypeEnum('type').notNull().default('GROUP'),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -133,6 +136,38 @@ export const assignments = pgTable('assignments', {
 });
 
 // ---------------------------------------------------------------------------
+// Courses
+// ---------------------------------------------------------------------------
+
+export const courses = pgTable('courses', {
+  id: serial('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  name: text('name'),
+  semester: text('semester').notNull(),
+  color: text('color'),
+  lectureSchedule: text('lecture_schedule'),
+  seminarSchedule: text('seminar_schedule'),
+  lectureTeacherId: integer('lecture_teacher_id').references(() => users.id),
+  seminarTeacherId: integer('seminar_teacher_id').references(() => users.id),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const userCourses = pgTable(
+  'user_courses',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    courseId: integer('course_id')
+      .notNull()
+      .references(() => courses.id),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.courseId] }),
+  })
+);
+
+// ---------------------------------------------------------------------------
 // Tasks & Evaluations
 // ---------------------------------------------------------------------------
 
@@ -142,6 +177,7 @@ export const tasks = pgTable('tasks', {
     .notNull()
     .references(() => users.id),
   assignmentId: integer('assignment_id').references(() => assignments.id),
+  courseId: integer('course_id').references(() => courses.id),
   title: text('title').notNull(),
   description: text('description'),
   dueDate: timestamp('due_date').notNull(),
@@ -160,7 +196,7 @@ export const evals = pgTable('evals', {
 });
 
 // ---------------------------------------------------------------------------
-// Events & Notes
+// Events, Folders & Notes
 // ---------------------------------------------------------------------------
 
 export const events = pgTable('events', {
@@ -173,6 +209,16 @@ export const events = pgTable('events', {
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
   place: text('place'),
+  courseId: integer('course_id').references(() => courses.id),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const folders = pgTable('folders', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -182,7 +228,9 @@ export const notes = pgTable('notes', {
     .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
-  description: text('description').notNull(),
+  description: text('description'),
+  folderId: integer('folder_id').references(() => folders.id),
+  courseId: integer('course_id').references(() => courses.id),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -218,3 +266,23 @@ export const auditLogs = pgTable('audit_logs', {
   happenedAt: timestamp('happened_at').notNull().defaultNow(),
   description: text('description').notNull(),
 });
+
+// ---------------------------------------------------------------------------
+// User Integrations
+// ---------------------------------------------------------------------------
+
+export const userIntegrations = pgTable(
+  'user_integrations',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    service: text('service').notNull(),
+    connected: boolean('connected').notNull().default(false),
+    connectedAt: timestamp('connected_at'),
+  },
+  (table) => ({
+    userServiceUnique: unique('user_integrations_user_service_unique').on(table.userId, table.service),
+  })
+);
