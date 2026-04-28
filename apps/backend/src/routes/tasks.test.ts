@@ -84,7 +84,7 @@ describe('POST /tasks', () => {
     expect(body.userId).toBe(testUserId);
   });
 
-  it('returns 422 when title is missing', async () => {
+  it('returns 400 when title is missing', async () => {
     const res = await testApp.handle(
       await req('http://localhost/tasks', {
         method: 'POST',
@@ -92,7 +92,7 @@ describe('POST /tasks', () => {
         body: JSON.stringify({ dueDate: '2026-12-31T00:00:00.000Z' }),
       })
     );
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 });
 

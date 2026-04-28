@@ -1,9 +1,25 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { tasks } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
+import { zodBody } from '../lib/validation';
+
+const CreateTaskSchema = z.object({
+  title: z.string().min(1),
+  dueDate: z.string(),
+  description: z.string().optional(),
+  assignmentId: z.number().optional(),
+});
+
+const UpdateTaskSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  dueDate: z.string().optional(),
+  status: z.enum(['TODO', 'IN PROGRESS', 'DONE']).optional(),
+});
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
   .use(authMiddleware)
@@ -35,14 +51,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       await logAction(db, (user as AuthUser).id, `Created task ${task.id}: ${task.title}`);
       return task;
     },
-    {
-      body: t.Object({
-        title: t.String({ minLength: 1 }),
-        dueDate: t.String(),
-        description: t.Optional(t.String()),
-        assignmentId: t.Optional(t.Number()),
-      }),
-    }
+    zodBody(CreateTaskSchema)
   )
   .patch(
     '/:id',
@@ -74,16 +83,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       await logAction(db, (user as AuthUser).id, `Updated task ${existing.id}`);
       return updated;
     },
-    {
-      body: t.Object({
-        title: t.Optional(t.String({ minLength: 1 })),
-        description: t.Optional(t.String()),
-        dueDate: t.Optional(t.String()),
-        status: t.Optional(
-          t.Union([t.Literal('TODO'), t.Literal('IN PROGRESS'), t.Literal('DONE')])
-        ),
-      }),
-    }
+    zodBody(UpdateTaskSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
     const [existing] = await db

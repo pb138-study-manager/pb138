@@ -3,11 +3,12 @@ import { z } from 'zod';
 
 export function zodBody<T extends z.ZodTypeAny>(schema: T) {
   return {
-    body: t.Unsafe<z.infer<T>>({}),
-    beforeHandle: ({ body, set }: { body: unknown; set: { status: number } }) => {
-      const result = schema.safeParse(body);
+    body: t.Any(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    beforeHandle: (ctx: any) => {
+      const result = schema.safeParse(ctx.body);
       if (!result.success) {
-        set.status = 400;
+        ctx.set.status = 400;
         return {
           error: 'VALIDATION_ERROR',
           fields: result.error.flatten().fieldErrors,
