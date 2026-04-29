@@ -1,9 +1,33 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { courses, userCourses, tasks } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, sql } from 'drizzle-orm';
+import { zodBody } from '../lib/validation';
+
+const CreateCourseSchema = z.object({
+  code: z.string().min(1),
+  semester: z.string().min(1),
+  name: z.string().optional(),
+  color: z.string().optional(),
+  lectureSchedule: z.string().optional(),
+  seminarSchedule: z.string().optional(),
+  lectureTeacherId: z.number().optional(),
+  seminarTeacherId: z.number().optional(),
+});
+
+const UpdateCourseSchema = z.object({
+  code: z.string().min(1).optional(),
+  name: z.string().optional(),
+  semester: z.string().min(1).optional(),
+  color: z.string().optional(),
+  lectureSchedule: z.string().optional(),
+  seminarSchedule: z.string().optional(),
+  lectureTeacherId: z.number().optional(),
+  seminarTeacherId: z.number().optional(),
+});
 
 export const coursesRoutes = new Elysia({ prefix: '/courses' })
   .use(authMiddleware)
@@ -88,18 +112,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       await logAction(db, (user as AuthUser).id, `Created course ${course.id}: ${course.code}`);
       return course;
     },
-    {
-      body: t.Object({
-        code: t.String({ minLength: 1 }),
-        semester: t.String({ minLength: 1 }),
-        name: t.Optional(t.String()),
-        color: t.Optional(t.String()),
-        lectureSchedule: t.Optional(t.String()),
-        seminarSchedule: t.Optional(t.String()),
-        lectureTeacherId: t.Optional(t.Number()),
-        seminarTeacherId: t.Optional(t.Number()),
-      }),
-    }
+    zodBody(CreateCourseSchema)
   )
   .get('/:id', async ({ params, set }) => {
     const [course] = await db
@@ -152,18 +165,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       await logAction(db, (user as AuthUser).id, `Updated course ${existing.id}`);
       return updated;
     },
-    {
-      body: t.Object({
-        code: t.Optional(t.String({ minLength: 1 })),
-        name: t.Optional(t.String()),
-        semester: t.Optional(t.String({ minLength: 1 })),
-        color: t.Optional(t.String()),
-        lectureSchedule: t.Optional(t.String()),
-        seminarSchedule: t.Optional(t.String()),
-        lectureTeacherId: t.Optional(t.Number()),
-        seminarTeacherId: t.Optional(t.Number()),
-      }),
-    }
+    zodBody(UpdateCourseSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
     if (!(user as AuthUser).roles.includes('TEACHER')) {
