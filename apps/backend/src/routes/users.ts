@@ -1,4 +1,5 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import {
   users, userProfiles, userSettings,
@@ -8,6 +9,23 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, ilike, or } from 'drizzle-orm';
 import { logAction } from '../services/audit';
 import { alias } from 'drizzle-orm/pg-core';
+import { zodBody } from '../lib/validation';
+
+const UpdateProfileSchema = z.object({
+  name: z.string().optional(),
+  title: z.string().optional(),
+  organization: z.string().optional(),
+  bio: z.string().optional(),
+});
+
+const UpdateSettingsSchema = z.object({
+  notificationsEnabled: z.boolean().optional(),
+  lightTheme: z.boolean().optional(),
+});
+
+const ChangePasswordSchema = z.object({
+  newPassword: z.string().min(8),
+});
 
 export const usersRoutes = new Elysia({ prefix: '/users' })
   .use(authMiddleware)
@@ -134,14 +152,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       await logAction(db, uid, `Updated profile`);
       return updated;
     },
-    {
-      body: t.Object({
-        name: t.Optional(t.String()),
-        title: t.Optional(t.String()),
-        organization: t.Optional(t.String()),
-        bio: t.Optional(t.String()),
-      }),
-    }
+    zodBody(UpdateProfileSchema)
   )
   .get('/me/settings', async ({ user }) => {
     const uid = (user as AuthUser).id;
@@ -171,12 +182,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       await logAction(db, uid, `Updated settings`);
       return updated;
     },
-    {
-      body: t.Object({
-        notificationsEnabled: t.Optional(t.Boolean()),
-        lightTheme: t.Optional(t.Boolean()),
-      }),
-    }
+    zodBody(UpdateSettingsSchema)
   )
   .patch(
     '/me/password',
@@ -221,11 +227,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       await logAction(db, uid, `Changed password`);
       return { success: true };
     },
-    {
-      body: t.Object({
-        newPassword: t.String({ minLength: 8 }),
-      }),
-    }
+    zodBody(ChangePasswordSchema)
   )
   .get('/search', async ({ query, set }) => {
     const q = query.q as string | undefined;
