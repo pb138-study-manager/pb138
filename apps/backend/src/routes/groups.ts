@@ -1,9 +1,25 @@
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { db } from '../db';
 import { groups, groupMembers, users, assignments, tasks } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, inArray, or } from 'drizzle-orm';
 import { logAction } from '../services/audit';
+import { zodBody } from '../lib/validation';
+
+const CreateGroupSchema = z.object({
+  name: z.string().min(1),
+});
+
+const AddMembersSchema = z.object({
+  userIds: z.array(z.number()),
+});
+
+const CreateAssignmentSchema = z.object({
+  title: z.string().min(1),
+  dueDate: z.string(),
+  description: z.string().optional(),
+});
 
 export const groupsRoutes = new Elysia({ prefix: '/groups' })
   .use(authMiddleware)
@@ -55,11 +71,7 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       await logAction(db, uid, `Created group ${group.id}: ${group.name}`);
       return group;
     },
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1 }),
-      }),
-    }
+    zodBody(CreateGroupSchema)
   )
   .get('/:id', async ({ params, user, set }) => {
     const uid = (user as AuthUser).id;
@@ -171,11 +183,7 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       await logAction(db, uid, `Added members to group ${groupId}`);
       return { success: true };
     },
-    {
-      body: t.Object({
-        userIds: t.Array(t.Number()),
-      }),
-    }
+    zodBody(AddMembersSchema)
   )
   .delete('/:id/members/:userId', async ({ params, user, set }) => {
     const uid = (user as AuthUser).id;
@@ -314,11 +322,5 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
       await logAction(db, uid, `Created assignment ${assignment.id} for group ${groupId}`);
       return { assignment, tasksCreated: memberRows.length };
     },
-    {
-      body: t.Object({
-        title: t.String({ minLength: 1 }),
-        dueDate: t.String(),
-        description: t.Optional(t.String()),
-      }),
-    }
+    zodBody(CreateAssignmentSchema)
   );
