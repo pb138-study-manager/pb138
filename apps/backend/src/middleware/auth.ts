@@ -1,18 +1,20 @@
 import { Elysia } from 'elysia';
-import { jwtVerify } from 'jose';
+import { jwtVerify, createRemoteJWKSet } from 'jose';
 import { db } from '../db';
 import { users, userRoles, roles } from '../db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 
 export type AuthUser = { id: number; roles: string[] };
 
+const SUPABASE_URL = process.env.SUPABASE_URL ?? '';
+const JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+
 async function resolveUser(token: string): Promise<AuthUser | null> {
-  const secret = process.env.SUPABASE_JWT_SECRET;
-  if (!secret) return null;
+  if (!SUPABASE_URL) return null;
 
   let sub: string;
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    const { payload } = await jwtVerify(token, JWKS);
     if (!payload.sub) return null;
     sub = payload.sub;
   } catch {
