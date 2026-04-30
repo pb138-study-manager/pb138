@@ -10,11 +10,15 @@ export default function TaskSection({
   count,
   tasks,
   variant = 'default',
+  onTaskCreated,
+  onToggle,
 }: {
   title: string;
   count: number;
   tasks: Task[];
   variant?: 'default' | 'backlog' | 'done';
+  onTaskCreated: (title: string, dueDate: string) => Promise<void>;
+  onToggle: (id: number) => Promise<void>;
 }) {
   const icons = {
     default: <Star height={25} />,
@@ -49,10 +53,14 @@ export default function TaskSection({
       </div>
       <div>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard key={task.id} task={task} onToggle={onToggle} />
         ))}
       </div>
-      <NewTaskDialog isOpen={openCreateTaskDialog} onOpenChange={setOpenCreateTaskDialog} />
+      <NewTaskDialog
+        isOpen={openCreateTaskDialog}
+        onOpenChange={setOpenCreateTaskDialog}
+        onSubmit={onTaskCreated}
+      />
     </div>
   );
 }

@@ -43,6 +43,16 @@ export function TasksPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  async function handleCreate(title: string, dueDate: string) {
+    const newTask = await api.post<Task>('/tasks', { title, dueDate });
+    setTasks(prev => [...prev, newTask]);
+  }
+
+  async function handleToggle(id: number) {
+    const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
+    setTasks(prev => prev.map(t => t.id === id ? updated : t));
+  }
+
   const { today, backlog, done } = splitTasks(tasks);
 
   const counts = {
@@ -77,18 +87,24 @@ export function TasksPage() {
             count={counts.today}
             tasks={today}
             variant="default"
+            onTaskCreated={handleCreate}
+            onToggle={handleToggle}
           />
           <TaskSection
             title="Backlog"
             count={counts.backlog}
             tasks={backlog}
             variant="backlog"
+            onTaskCreated={handleCreate}
+            onToggle={handleToggle}
           />
           <TaskSection
             title="Done"
             count={counts.done}
             tasks={done}
             variant="done"
+            onTaskCreated={handleCreate}
+            onToggle={handleToggle}
           />
         </div>
       </div>

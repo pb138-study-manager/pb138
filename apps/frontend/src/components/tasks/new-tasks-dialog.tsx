@@ -8,15 +8,29 @@ import DatePickerDialog from './date-picker-dialog';
 export default function NewTaskDialog({
   isOpen,
   onOpenChange,
+  onSubmit,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit: (title: string, dueDate: string) => Promise<void>;
 }) {
   const [taskName, setTaskName] = useState('');
   const [isDateOpen, setIsDateOpen] = useState(false);
-
-  // 1. Nový stav pro uložení finálního data
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit() {
+    if (!taskName.trim() || !selectedDate) return;
+    setSaving(true);
+    try {
+      await onSubmit(taskName.trim(), selectedDate.toISOString());
+      setTaskName('');
+      setSelectedDate(null);
+      onOpenChange(false);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const taskOptions = [
     { icon: Calendar, label: 'Date' },
@@ -42,7 +56,6 @@ export default function NewTaskDialog({
           <div className="border-t" />
           <div className="flex flex-wrap gap-2">
             {taskOptions.map((option) => {
-              // Specifické vykreslení pro tlačítko "Date"
               if (option.label === 'Date') {
                 const hasDate = selectedDate !== null;
 
@@ -50,7 +63,6 @@ export default function NewTaskDialog({
                   <Button
                     key={option.label}
                     onClick={() => setIsDateOpen(true)}
-                    // 2. Pokud máme datum, tlačítko zmodrá, jinak je šedé
                     className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm font-medium ${
                       hasDate
                         ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
@@ -58,7 +70,6 @@ export default function NewTaskDialog({
                     }`}
                   >
                     <option.icon className="w-4 h-4" />
-                    {/* 3. Pokud máme datum, vypíšeme ho. Pokud ne, vypíšeme "Date" */}
                     {hasDate ? selectedDate.toLocaleDateString() : option.label}
                   </Button>
                 );
@@ -79,15 +90,15 @@ export default function NewTaskDialog({
         </div>
         <div className="flex justify-end mt-6">
           <Button
-            onClick={() => onOpenChange(false)}
-            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
+            onClick={handleSubmit}
+            disabled={!taskName.trim() || !selectedDate || saving}
+            className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors disabled:opacity-40"
           >
             <ChevronUp className="w-6 h-6" />
           </Button>
         </div>
       </DialogContent>
 
-      {/* 4. Předáváme novou hodnotu a setter do kalendáře */}
       <DatePickerDialog
         isOpen={isDateOpen}
         onOpenChange={setIsDateOpen}
