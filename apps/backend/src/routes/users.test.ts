@@ -32,6 +32,17 @@ function req(url: string, init: RequestInit = {}): Request {
 }
 
 beforeAll(async () => {
+  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.authId, USER_AUTH_ID));
+  if (existing) {
+    await db.delete(auditLogs).where(eq(auditLogs.actorId, existing.id));
+    await db.delete(userIntegrations).where(eq(userIntegrations.userId, existing.id));
+    await db.delete(userCourses).where(eq(userCourses.userId, existing.id));
+    await db.delete(userSettings).where(eq(userSettings.userId, existing.id));
+    await db.delete(userProfiles).where(eq(userProfiles.userId, existing.id));
+    await db.delete(userRoles).where(eq(userRoles.userId, existing.id));
+    await db.delete(users).where(eq(users.id, existing.id));
+  }
+
   const [user] = await db
     .insert(users)
     .values({
