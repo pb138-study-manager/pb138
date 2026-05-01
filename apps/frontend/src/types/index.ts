@@ -80,3 +80,15 @@ export interface Eval {
   score: number;
   evaluatedAt: string;
 }
+
+export interface FolderModel {
+  id: number;
+  name: string;
+}
+
+export interface NoteModel {
+  id: number;
+  title: string;
+  description: string | null;
+  folderId: number | null;
+};

@@ -1,66 +1,56 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { Folder, FileText, ArrowLeft, Plus } from 'lucide-react';
-
-// -------------------- Types --------------------
-
-type Note = {
-  id: string;
-  title: string;
-  content: string;
-};
-
-type FolderType = {
-  id: string;
-  name: string;
-  notes: Note[];
-};
-
-// -------------------- Mock Data --------------------
-
-const initialFolders: FolderType[] = [
-  {
-    id: 'f1',
-    name: 'Hello',
-    notes: [
-      { id: '1', title: 'Hello note', content: 'Hello world content' },
-      { id: '2', title: 'Second note', content: 'More text here' },
-    ],
-  },
-  {
-    id: 'f2',
-    name: 'Nice',
-    notes: [{ id: '3', title: 'Nice note', content: 'Some nice content' }],
-  },
-];
+import { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { api } from '@/lib/api';
+import { FolderModel, NoteModel } from '@/types/index';
+import CreateFolderDialog from '@/components/notes/create-folder-dialog';
+import CreateNoteDialog from '@/components/notes/create-note-dialog';
+import FoldersView from '@/components/notes/folders-view';
+import NotesView from '@/components/notes/notes-view';
+import NoteDetailView from '@/components/notes/note-detail-view';
 
 // -------------------- Route --------------------
 
 export const Route = createFileRoute('/notes/')({
-  component: NotesApp,
+  component: NotesPage,
 });
 
 // -------------------- App --------------------
 
-function NotesApp() {
-  const [folders, setFolders] = useState<FolderType[]>(initialFolders);
+function NotesPage() {
+  const [folders, setFolders] = useState<FolderModel[]>([]);
+  const [notes, setNotes] = useState<NoteModel[]>([]);
 
-  const [activeFolderId, setActiveFolderId] = useState<string>('f1');
+  const [activeFolderId, setActiveFolderId] = useState<number | null>(null);
   const [view, setView] = useState<'notes' | 'folder' | 'detail'>('notes');
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
+  const [forceEditNoteId, setForceEditNoteId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    Promise.all([
+      api.get<FolderModel[]>('/folders').then(setFolders),
+      api.get<NoteModel[]>('/notes').then(setNotes),
+    ])
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const activeFolder = folders.find((f) => f.id === activeFolderId);
-
-  const selectedNote = activeFolder?.notes.find((n) => n.id === selectedNoteId) ?? null;
+  const activeFolderNotes = notes.filter((n) => n.folderId === activeFolderId);
+  const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? null;
 
   // -------------------- Actions --------------------
 
-  function openFolder(folderId: string) {
+  function openFolder(folderId: number) {
     setActiveFolderId(folderId);
     setView('folder');
   }
 
-  function openNote(noteId: string) {
+  function openNote(noteId: number) {
     setSelectedNoteId(noteId);
     setView('detail');
   }
@@ -68,37 +58,94 @@ function NotesApp() {
   function goBack() {
     if (view === 'detail') setView('folder');
     else setView('notes');
+    setForceEditNoteId(null);
   }
 
-  function addFolder() {
-    const newFolder: FolderType = {
-      id: crypto.randomUUID(),
-      name: 'New Folder',
-      notes: [],
-    };
-
-    setFolders((prev) => [newFolder, ...prev]);
-    setActiveFolderId(newFolder.id);
-    setView('folder');
+  async function updateFolder(id: number, name: string) {
+    try {
+      const updated = await api.patch<FolderModel>(`/folders/${id}`, { name });
+      setFolders((prev) => prev.map((f) => (f.id === id ? updated : f)));
+    } catch (error) {
+      console.error('Failed to rename folder:', error);
+      throw error;
+    }
   }
 
-  function addNote() {
+  async function deleteFolder(id: number) {
+    try {
+      // Delete all notes within the folder first
+      const notesToDelete = notes.filter((n) => n.folderId === id);
+      await Promise.all(notesToDelete.map((n) => api.delete(`/notes/${n.id}`)));
+
+      // Then delete the folder
+      await api.delete(`/folders/${id}`);
+      setFolders((prev) => prev.filter((f) => f.id !== id));
+      setNotes((prev) => prev.filter((n) => n.folderId !== id)); // Remove locally
+      if (activeFolderId === id) {
+        setView('notes');
+        setActiveFolderId(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete folder:', error);
+      throw error;
+    }
+  }
+
+  async function handleCreateFolder(name: string) {
+    try {
+      const newFolder = await api.post<FolderModel>('/folders', { name });
+      setFolders((prev) => [newFolder, ...prev]);
+      setActiveFolderId(newFolder.id);
+      setView('folder');
+    } catch (error) {
+      console.error('Failed to create folder:', error);
+      throw error;
+    }
+  }
+
+  async function handleCreateNote(title: string) {
     if (!activeFolder) return;
 
-    const newNote: Note = {
-      id: crypto.randomUUID(),
-      title: 'New Note',
-      content: 'Empty...',
-    };
+    try {
+      const newNote = await api.post<NoteModel>('/notes', {
+        title,
+        description: '',
+        folderId: activeFolder.id,
+      });
+      setNotes((prev) => [newNote, ...prev]);
+      setSelectedNoteId(newNote.id);
+      setForceEditNoteId(newNote.id);
+      setView('detail');
+    } catch (error) {
+      console.error('Failed to create note:', error);
+      throw error;
+    }
+  }
 
-    setFolders((prev) =>
-      prev.map((folder) =>
-        folder.id === activeFolderId ? { ...folder, notes: [newNote, ...folder.notes] } : folder
-      )
-    );
+  async function updateNote(id: number, title: string, description?: string) {
+    try {
+      const payload: Partial<NoteModel> = { title };
+      if (description !== undefined) {
+        payload.description = description;
+      }
+      const updated = await api.patch<NoteModel>(`/notes/${id}`, payload);
+      setNotes((prev) => prev.map((n) => (n.id === id ? updated : n)));
+    } catch (error) {
+      console.error('Failed to save note:', error);
+      throw error;
+    }
+  }
 
-    setSelectedNoteId(newNote.id);
-    setView('detail');
+  async function deleteNote(id: number) {
+    try {
+      await api.delete(`/notes/${id}`);
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setView('folder');
+      setSelectedNoteId(null);
+      setForceEditNoteId(null);
+    } catch (error) {
+      console.error('Failed to delete note:', error);
+    }
   }
 
   // -------------------- UI --------------------
@@ -122,65 +169,58 @@ function NotesApp() {
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-4">
-        {/* FOLDERS VIEW */}
-        {view === 'notes' && (
-          <div className="space-y-3">
-            {folders.map((folder) => (
-              <button
-                key={folder.id}
-                onClick={() => openFolder(folder.id)}
-                className="w-full bg-white rounded-xl p-4 flex items-center justify-between shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <Folder size={18} />
-                  <span>{folder.name}</span>
-                </div>
-              </button>
-            ))}
-
-            {/* ADD FOLDER BUTTON */}
-            <button
-              onClick={addFolder}
-              className="w-full bg-black text-white rounded-xl p-3 flex items-center justify-center gap-2"
-            >
-              <Plus size={18} /> Add folder
-            </button>
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <p className="text-gray-400">Loading notes...</p>
           </div>
-        )}
+        ) : (
+          <>
+            {/* FOLDERS VIEW */}
+            {view === 'notes' && (
+              <FoldersView
+                folders={folders}
+                onOpenFolder={openFolder}
+                onAddFolder={() => setIsCreateFolderOpen(true)}
+                onRenameFolder={updateFolder}
+                onDeleteFolder={deleteFolder}
+              />
+            )}
 
-        {/* NOTES VIEW */}
-        {view === 'folder' && activeFolder && (
-          <div className="space-y-3">
-            {activeFolder.notes.map((note) => (
-              <button
-                key={note.id}
-                onClick={() => openNote(note.id)}
-                className="w-full bg-white rounded-xl p-4 flex items-center justify-between shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <FileText size={18} />
-                  <span>{note.title}</span>
-                </div>
-              </button>
-            ))}
+            {/* NOTES VIEW */}
+            {view === 'folder' && activeFolder && (
+              <NotesView
+                notes={activeFolderNotes}
+                onOpenNote={openNote}
+                onAddNote={() => setIsCreateNoteOpen(true)}
+                onRenameNote={updateNote}
+                onDeleteNote={deleteNote}
+              />
+            )}
 
-            <button
-              onClick={addNote}
-              className="w-full bg-black text-white rounded-xl p-3 flex items-center justify-center gap-2"
-            >
-              <Plus size={18} /> Add note
-            </button>
-          </div>
-        )}
-
-        {/* DETAIL VIEW */}
-        {view === 'detail' && selectedNote && (
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h2 className="text-xl font-bold mb-2">{selectedNote.title}</h2>
-            <p className="text-gray-600 whitespace-pre-wrap">{selectedNote.content}</p>
-          </div>
+            {/* DETAIL VIEW */}
+            {view === 'detail' && selectedNote && (
+              <NoteDetailView
+                key={selectedNote.id}
+                note={selectedNote}
+                autoEdit={forceEditNoteId === selectedNote.id}
+                onSave={updateNote}
+                onDelete={deleteNote}
+              />
+            )}
+          </>
         )}
       </div>
+
+      <CreateFolderDialog
+        isOpen={isCreateFolderOpen}
+        onOpenChange={setIsCreateFolderOpen}
+        onSubmit={handleCreateFolder}
+      />
+      <CreateNoteDialog
+        isOpen={isCreateNoteOpen}
+        onOpenChange={setIsCreateNoteOpen}
+        onSubmit={handleCreateNote}
+      />
     </div>
   );
 }
