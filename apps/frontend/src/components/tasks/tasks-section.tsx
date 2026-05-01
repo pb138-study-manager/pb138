@@ -12,6 +12,7 @@ export default function TaskSection({
   variant = 'default',
   onTaskCreated,
   onToggle,
+  onDelete,
 }: {
   title: string;
   count: number;
@@ -19,6 +20,7 @@ export default function TaskSection({
   variant?: 'default' | 'backlog' | 'done';
   onTaskCreated: (title: string, dueDate: string) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }) {
   const icons = {
     default: <Star height={25} />,
@@ -33,6 +35,8 @@ export default function TaskSection({
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
+
+  
 
   return (
     <div className="mb-8">
@@ -53,7 +57,7 @@ export default function TaskSection({
       </div>
       <div>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onToggle={onToggle} />
+          <TaskCard key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
         ))}
       </div>
       <NewTaskDialog

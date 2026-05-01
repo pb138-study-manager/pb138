@@ -1,19 +1,27 @@
 import { useState } from 'react';
-import { Clock, Users } from 'lucide-react';
+import { Clock, Users, MoreVertical, Trash2 } from 'lucide-react';
 import { Task } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 
 export default function TaskCard({
   task,
   onToggle,
+  onDelete,
 }: {
   task: Task;
   onToggle: (id: number) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
 }) {
   const [isChecked, setIsChecked] = useState(task.status === 'DONE');
   const [toggling, setToggling] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const dueTime = `Due ${new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  const dueTime = task.dueDate
+    ? `Due ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+    : 'No due date';
   const subject = task.description || 'No description';
   const progress = task.status === 'DONE' ? 4 : task.status === 'IN PROGRESS' ? 2 : 1;
   const maxProgress = 4;
@@ -21,15 +29,26 @@ export default function TaskCard({
   const progressPercent = maxProgress > 0 ? (progress / maxProgress) * 100 : 0;
 
   async function handleToggle() {
-    if (toggling) return;
+    if (toggling || deleting) return;
     setToggling(true);
-    setIsChecked(prev => !prev);
+    setIsChecked((prev) => !prev);
     try {
       await onToggle(task.id);
     } catch {
-      setIsChecked(prev => !prev);
+      setIsChecked((prev) => !prev);
     } finally {
       setToggling(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await onDelete(task.id);
+    } catch {
+      setDeleting(false);
+      setPopoverOpen(false);
     }
   }
 
@@ -58,11 +77,35 @@ export default function TaskCard({
           </div>
         )}
       </div>
-      <div className="flex mt-5 items-center">
+      <div className="flex mt-3 flex-col items-center gap-2">
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 focus-visible:ring-0"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-32 p-1" align="end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </Button>
+          </PopoverContent>
+        </Popover>
+
         <Checkbox
           checked={isChecked}
           onCheckedChange={handleToggle}
-          disabled={toggling}
+          disabled={toggling || deleting}
           className={`flex-shrink-0 w-7 h-7 rounded-full transition-all cursor-pointer ${
             isChecked
               ? 'bg-green-500 border-green-500'

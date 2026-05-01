@@ -86,13 +86,15 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
     zodBody(UpdateTaskSchema)
   )
   .delete('/:id', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const isAdmin = authUser.roles.includes('ADMIN');
     const [existing] = await db
       .select()
       .from(tasks)
       .where(
         and(
           eq(tasks.id, Number(params.id)),
-          eq(tasks.userId, (user as AuthUser).id),
+          isAdmin ? undefined : eq(tasks.userId, authUser.id),
           isNull(tasks.deletedAt)
         )
       );
@@ -101,7 +103,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       return { error: 'NOT_FOUND', message: 'Task not found or access denied' };
     }
     await db.update(tasks).set({ deletedAt: new Date() }).where(eq(tasks.id, existing.id));
-    await logAction(db, (user as AuthUser).id, `Deleted task ${existing.id}`);
+    await logAction(db, authUser.id, `Deleted task ${existing.id}`);
     return { success: true };
   })
   .patch('/:id/toggle-done', async ({ params, user, set }) => {

@@ -28,17 +28,32 @@ export default function DatePickerDialog({
   onDateSelect?: (date: Date | null) => void;
 }) {
   const [date, setDate] = useState<Date | null>(new Date(Date.now()));
+  const [time, setTime] = useState<string>('08:30:00');
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setDate(currentDate || null);
+      if (currentDate) {
+        const d = new Date(currentDate);
+        const hours = d.getHours().toString().padStart(2, '0');
+        const minutes = d.getMinutes().toString().padStart(2, '0');
+        const seconds = d.getSeconds().toString().padStart(2, '0');
+        setTime(`${hours}:${minutes}:${seconds}`);
+      }
     }
   }, [isOpen, currentDate]);
 
   const handleSave = () => {
     if (onDateSelect) {
-      onDateSelect(date || null);
+      if (date) {
+        const finalDate = new Date(date);
+        const [hours, minutes, seconds] = time.split(':').map(Number);
+        finalDate.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+        onDateSelect(finalDate);
+      } else {
+        onDateSelect(null);
+      }
     }
     onOpenChange(false);
   };
@@ -157,7 +172,8 @@ export default function DatePickerDialog({
               <Input
                 type="time"
                 step="1"
-                defaultValue="08:30:00"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
                 className="w-auto bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
               />
             </div>

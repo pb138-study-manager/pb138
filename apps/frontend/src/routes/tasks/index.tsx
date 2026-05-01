@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { Task } from '@/types';
-import BottomNav from '@/components/ui/bottom-nav';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskSidebar from '@/components/tasks/tasks-sidebar';
 import { api } from '@/lib/api';
@@ -37,7 +36,8 @@ export function TasksPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<Task[]>('/tasks')
+    api
+      .get<Task[]>('/tasks')
       .then(setTasks)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -45,12 +45,17 @@ export function TasksPage() {
 
   async function handleCreate(title: string, dueDate: string) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    setTasks(prev => [...prev, newTask]);
+    setTasks((prev) => [...prev, newTask]);
   }
 
   async function handleToggle(id: number) {
     const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
-    setTasks(prev => prev.map(t => t.id === id ? updated : t));
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  }
+
+  async function handleDelete(id: number) {
+    await api.delete(`/tasks/${id}`);
+    setTasks((prev) => prev.filter((t) => t.id !== id));
   }
 
   const { today, backlog, done } = splitTasks(tasks);
@@ -89,6 +94,7 @@ export function TasksPage() {
             variant="default"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
           <TaskSection
             title="Backlog"
@@ -97,6 +103,7 @@ export function TasksPage() {
             variant="backlog"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
           <TaskSection
             title="Done"
@@ -105,11 +112,10 @@ export function TasksPage() {
             variant="done"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
         </div>
       </div>
-
-      <BottomNav active="tasks" />
     </div>
   );
 }
