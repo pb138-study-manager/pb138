@@ -1,0 +1,15 @@
+{
+  "profile": {
+    "loading": "Načítání profilu...",
+    "failed": "Nepodařilo se načíst profil.",
+    "title": "Profil",
+    "theme": "Vzhled",
+    "light": "Světlý",
+    "dark": "Tmavý",
+    "language": "Jazyk",
+    "notifications": "Upozornění",
+    "integrations": "Integrace",
+    "teachers": "Vyučující",
+    "logout": "Odhlásit se"
+  }
+}

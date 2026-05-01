@@ -11,6 +11,7 @@ import {
 import { Bell, Palette, Globe, Plus, ChevronRight, ChevronDown } from 'lucide-react';
 import BottomNav from '@/components/ui/bottom-nav';
 import { api } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
@@ -36,8 +37,17 @@ function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const [language, setLanguage] = useState('en');
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState<'en' | 'cs'>(
+    (localStorage.getItem('language') as 'en' | 'cs') || 'en'
+  );
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  const changeLanguage = (lng: 'en' | 'cs') => {
+    setLanguage(lng);
+    i18n.changeLanguage(lng);
+    localStorage.setItem('language', lng);
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -86,7 +96,7 @@ function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex-1 w-full bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
-        <p className="text-gray-400 dark:text-gray-500">Loading profile...</p>
+        <p className="text-gray-400 dark:text-gray-500">{t('profile.loading')}</p>
       </div>
     );
   }
@@ -94,7 +104,7 @@ function ProfilePage() {
   if (!userData) {
     return (
       <div className="flex-1 w-full bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
-        <p className="text-gray-400 dark:text-gray-500">Failed to load profile.</p>
+        <p className="text-gray-400 dark:text-gray-500">{t('profile.failed')}</p>
       </div>
     );
   }
@@ -103,7 +113,7 @@ function ProfilePage() {
     <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 transition-colors">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('profile.title')}</h1>
       </div>
 
       {/* Main Content */}
@@ -135,21 +145,23 @@ function ProfilePage() {
               <div className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
                   <Palette className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">Theme</span>
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    {t('profile.theme')}
+                  </span>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
                     <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors">
-                      {theme === 'light' ? 'Light' : 'Dark'}
+                      {theme === 'light' ? t('profile.light') : t('profile.dark')}
                       <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => updateSettings('lightTheme', true)}>
-                      Light
+                      {t('profile.light')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => updateSettings('lightTheme', false)}>
-                      Dark
+                      {t('profile.dark')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -159,7 +171,9 @@ function ProfilePage() {
               <div className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
                   <Globe className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">Language</span>
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    {t('profile.language')}
+                  </span>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
@@ -169,8 +183,12 @@ function ProfilePage() {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setLanguage('en')}>English</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLanguage('cs')}>Čeština</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => changeLanguage('en')}>
+                      English
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => changeLanguage('cs')}>
+                      Čeština
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -180,7 +198,7 @@ function ProfilePage() {
                 <div className="flex items-center gap-3">
                   <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    Notifications
+                    {t('profile.notifications')}
                   </span>
                 </div>
                 <button
@@ -203,7 +221,9 @@ function ProfilePage() {
               <button className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <div className="flex items-center gap-3">
                   <Plus className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">Integrations</span>
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    {t('profile.integrations')}
+                  </span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               </button>
@@ -220,7 +240,9 @@ function ProfilePage() {
                     <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
                     <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
                   </div>
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">Teachers</span>
+                  <span className="text-gray-600 dark:text-gray-300 font-medium">
+                    {t('profile.teachers')}
+                  </span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               </button>
@@ -233,7 +255,7 @@ function ProfilePage() {
           onClick={handleLogout}
           className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-6 rounded-2xl text-lg"
         >
-          Log Out
+          {t('profile.logout')}
         </Button>
       </div>
       <BottomNav active="profile" />

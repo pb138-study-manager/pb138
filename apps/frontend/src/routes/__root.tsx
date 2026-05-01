@@ -1,6 +1,7 @@
 import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router';
 import BottomNav from '@/components/ui/bottom-nav';
 import Sidebar from '@/components/ui/sidebar';
+import '@/lib/i18n';
 
 const AUTH_ROUTES = ['/login', '/register'];
 
