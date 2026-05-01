@@ -2,6 +2,7 @@ import { Elysia, t } from 'elysia';
 import { db } from '../db';
 import { users, userProfiles } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { authMiddleware, type AuthUser } from '../middleware/auth';
 
 type NewUser = typeof users.$inferInsert;
 
@@ -48,4 +49,13 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         fullName: t.Optional(t.String()),
       }),
     }
-  );
+  )
+  .use(authMiddleware)
+  .post('/logout', async ({ user }) => {
+    await db
+      .update(users)
+      .set({ activeSession: false })
+      .where(eq(users.id, (user as AuthUser).id));
+      
+    return { success: true, message: 'Logged out successfully' };
+  });
