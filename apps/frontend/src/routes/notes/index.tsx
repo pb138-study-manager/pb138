@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Folder, FileText, Home, User, ArrowLeft, Plus } from 'lucide-react';
+import { Folder, FileText, ArrowLeft, Plus } from 'lucide-react';
 
 // -------------------- Types --------------------
 
@@ -49,10 +49,9 @@ function NotesApp() {
   const [view, setView] = useState<'notes' | 'folder' | 'detail'>('notes');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
-  const activeFolder = folders.find(f => f.id === activeFolderId);
+  const activeFolder = folders.find((f) => f.id === activeFolderId);
 
-  const selectedNote =
-    activeFolder?.notes.find(n => n.id === selectedNoteId) ?? null;
+  const selectedNote = activeFolder?.notes.find((n) => n.id === selectedNoteId) ?? null;
 
   // -------------------- Actions --------------------
 
@@ -78,7 +77,7 @@ function NotesApp() {
       notes: [],
     };
 
-    setFolders(prev => [newFolder, ...prev]);
+    setFolders((prev) => [newFolder, ...prev]);
     setActiveFolderId(newFolder.id);
     setView('folder');
   }
@@ -92,11 +91,9 @@ function NotesApp() {
       content: 'Empty...',
     };
 
-    setFolders(prev =>
-      prev.map(folder =>
-        folder.id === activeFolderId
-          ? { ...folder, notes: [newNote, ...folder.notes] }
-          : folder
+    setFolders((prev) =>
+      prev.map((folder) =>
+        folder.id === activeFolderId ? { ...folder, notes: [newNote, ...folder.notes] } : folder
       )
     );
 
@@ -128,7 +125,7 @@ function NotesApp() {
         {/* FOLDERS VIEW */}
         {view === 'notes' && (
           <div className="space-y-3">
-            {folders.map(folder => (
+            {folders.map((folder) => (
               <button
                 key={folder.id}
                 onClick={() => openFolder(folder.id)}
@@ -154,7 +151,7 @@ function NotesApp() {
         {/* NOTES VIEW */}
         {view === 'folder' && activeFolder && (
           <div className="space-y-3">
-            {activeFolder.notes.map(note => (
+            {activeFolder.notes.map((note) => (
               <button
                 key={note.id}
                 onClick={() => openNote(note.id)}
@@ -179,30 +176,10 @@ function NotesApp() {
         {/* DETAIL VIEW */}
         {view === 'detail' && selectedNote && (
           <div className="bg-white rounded-xl p-4 shadow-sm">
-            <h2 className="text-xl font-bold mb-2">
-              {selectedNote.title}
-            </h2>
-            <p className="text-gray-600 whitespace-pre-wrap">
-              {selectedNote.content}
-            </p>
+            <h2 className="text-xl font-bold mb-2">{selectedNote.title}</h2>
+            <p className="text-gray-600 whitespace-pre-wrap">{selectedNote.content}</p>
           </div>
         )}
-      </div>
-
-      {/* Bottom nav */}
-      <div className="bg-white border-t flex justify-around py-2">
-        <button className="flex flex-col items-center text-xs">
-          <Home size={18} /> Tasks
-        </button>
-        <button className="flex flex-col items-center text-xs">
-          <Folder size={18} /> Today
-        </button>
-        <button className="flex flex-col items-center text-xs text-blue-600">
-          <FileText size={18} /> Notes
-        </button>
-        <button className="flex flex-col items-center text-xs">
-          <User size={18} /> Profile
-        </button>
       </div>
     </div>
   );
