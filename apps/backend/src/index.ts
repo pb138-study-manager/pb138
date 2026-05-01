@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { authMiddleware } from './middleware/auth';
+import { authRoutes } from './routes/auth';
 import { tasksRoutes } from './routes/tasks';
 import { eventsRoutes } from './routes/events';
 import { foldersRoutes } from './routes/folders';
@@ -17,6 +18,7 @@ const app = new Elysia()
     status: 'ok',
     timestamp: new Date().toISOString(),
   }))
+  .use(authRoutes)
   .use(authMiddleware)
   .use(tasksRoutes)
   .use(eventsRoutes)
