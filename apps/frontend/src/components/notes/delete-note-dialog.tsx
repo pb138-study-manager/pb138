@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface DeleteNoteDialogProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export default function DeleteNoteDialog({
   onConfirm,
   isDeleting,
 }: DeleteNoteDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -32,10 +35,10 @@ export default function DeleteNoteDialog({
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('dialog.cancel')}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isDeleting}>
-            {isDeleting ? 'Deleting...' : 'Delete'}
+            {isDeleting ? t('dialog.deleting') : t('dialog.delete')}
           </Button>
         </DialogFooter>
       </DialogContent>

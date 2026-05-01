@@ -4,6 +4,7 @@ import { Task } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function TaskCard({
   task,
@@ -18,11 +19,12 @@ export default function TaskCard({
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const { t } = useTranslation();
 
   const dueTime = task.dueDate
-    ? `Due ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-    : 'No due date';
-  const subject = task.description || 'No description';
+    ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+    : t('tasks.noDueDate');
+  const subject = task.description || t('tasks.noDescription');
   const progress = task.status === 'DONE' ? 4 : task.status === 'IN PROGRESS' ? 2 : 1;
   const maxProgress = 4;
   const hasUsers = task.assignmentId !== null;
@@ -99,7 +101,7 @@ export default function TaskCard({
               disabled={deleting}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              {t('tasks.delete')}
             </Button>
           </PopoverContent>
         </Popover>

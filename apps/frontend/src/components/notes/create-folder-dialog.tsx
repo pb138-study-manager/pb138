@@ -3,6 +3,7 @@ import { FolderPlus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateFolderDialog({
   isOpen,
@@ -15,6 +16,7 @@ export default function CreateFolderDialog({
 }) {
   const [folderName, setFolderName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit() {
     if (!folderName.trim()) return;
@@ -36,13 +38,13 @@ export default function CreateFolderDialog({
             <div className="p-2.5 bg-blue-100 rounded-xl">
               <FolderPlus className="w-5 h-5 text-blue-600" />
             </div>
-            New Folder
+            {t('dialog.newFolder')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="py-2">
           <Input
-            placeholder="Enter folder name..."
+            placeholder={t('dialog.folderName')}
             value={folderName}
             onChange={(e) => setFolderName(e.target.value)}
             onKeyDown={(e) => {
@@ -59,14 +61,14 @@ export default function CreateFolderDialog({
             className="rounded-xl px-5 h-11 font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('dialog.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!folderName.trim() || isCreating}
             className="rounded-xl px-6 h-11 font-medium bg-black hover:bg-gray-800 text-white transition-all"
           >
-            {isCreating ? 'Creating...' : 'Create Folder'}
+            {isCreating ? t('dialog.creating') : t('dialog.createFolder')}
           </Button>
         </div>
       </DialogContent>

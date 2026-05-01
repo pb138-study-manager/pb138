@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
+import { useTranslation } from 'react-i18next';
 
 interface NoteDetailViewProps {
   note: NoteModel;
@@ -18,6 +19,7 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -48,7 +50,7 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
             className="text-xl font-bold flex-1 border dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Note title"
+            placeholder={t('dialog.noteTitle')}
             autoFocus
           />
         ) : (
@@ -69,7 +71,7 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
           </Button>
           {isEditing ? (
             <Button onClick={handleSave} size="sm" disabled={isSaving || !title.trim()}>
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? t('notes.saving') : t('notes.save')}
             </Button>
           ) : (
             <Button
@@ -78,7 +80,7 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
               size="sm"
               className="dark:text-gray-200"
             >
-              Edit
+              {t('notes.edit')}
             </Button>
           )}
         </div>
@@ -89,11 +91,11 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
           className="flex-1 w-full p-3 border dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Start writing your note..."
+          placeholder={t('notes.startWriting')}
         />
       ) : (
         <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap flex-1">
-          {note.description || 'Empty...'}
+          {note.description || t('notes.empty')}
         </p>
       )}
 

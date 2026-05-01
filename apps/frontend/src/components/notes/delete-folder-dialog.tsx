@@ -7,6 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface DeleteFolderDialogProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export default function DeleteFolderDialog({
   onOpenChange,
   onConfirm,
 }: DeleteFolderDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -31,10 +34,10 @@ export default function DeleteFolderDialog({
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('dialog.cancel')}
           </Button>
           <Button variant="destructive" onClick={onConfirm}>
-            Delete
+            {t('dialog.delete')}
           </Button>
         </DialogFooter>
       </DialogContent>

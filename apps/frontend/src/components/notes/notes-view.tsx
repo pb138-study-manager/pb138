@@ -4,6 +4,7 @@ import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
+import { useTranslation } from 'react-i18next';
 
 interface NotesViewProps {
   notes: NoteModel[];
@@ -24,6 +25,7 @@ export default function NotesView({
   const [editTitle, setEditTitle] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   async function handleSave(id: number) {
     if (!editTitle.trim()) return;
@@ -114,7 +116,7 @@ export default function NotesView({
                       }}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
-                      Rename
+                      {t('notes.rename')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -126,7 +128,7 @@ export default function NotesView({
                       }}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
+                      {t('notes.delete')}
                     </Button>
                   </PopoverContent>
                 </Popover>
@@ -140,7 +142,7 @@ export default function NotesView({
         onClick={onAddNote}
         className="w-full bg-black dark:bg-gray-100 text-white dark:text-black rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-300 transition-colors"
       >
-        <Plus size={18} /> Add note
+        <Plus size={18} /> {t('notes.addNote')}
       </button>
 
       <DeleteNoteDialog

@@ -8,6 +8,7 @@ import CreateNoteDialog from '@/components/notes/create-note-dialog';
 import FoldersView from '@/components/notes/folders-view';
 import NotesView from '@/components/notes/notes-view';
 import NoteDetailView from '@/components/notes/note-detail-view';
+import { useTranslation } from 'react-i18next';
 
 // -------------------- Route --------------------
 
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/notes/')({
 // -------------------- App --------------------
 
 function NotesPage() {
+  const { t } = useTranslation();
+
   // Synchronously apply theme from local storage to prevent white flash
   if (localStorage.getItem('theme') === 'dark') {
     document.documentElement.classList.add('dark');
@@ -177,7 +180,7 @@ function NotesPage() {
         )}
 
         <h1 className="text-lg font-semibold">
-          {view === 'notes' && 'Notes'}
+          {view === 'notes' && t('notes.title')}
           {view === 'folder' && activeFolder?.name}
           {view === 'detail' && selectedNote?.title}
         </h1>
@@ -187,7 +190,7 @@ function NotesPage() {
       <div className="flex-1 overflow-auto p-4">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-gray-400 dark:text-gray-500">Loading notes...</p>
+            <p className="text-gray-400 dark:text-gray-500">{t('notes.loading')}</p>
           </div>
         ) : (
           <>

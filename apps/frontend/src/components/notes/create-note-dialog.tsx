@@ -3,6 +3,7 @@ import { FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateNoteDialog({
   isOpen,
@@ -15,6 +16,7 @@ export default function CreateNoteDialog({
 }) {
   const [noteName, setNoteName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit() {
     if (!noteName.trim()) return;
@@ -36,13 +38,13 @@ export default function CreateNoteDialog({
             <div className="p-2.5 bg-yellow-100 rounded-xl">
               <FileText className="w-5 h-5 text-yellow-600" />
             </div>
-            New Note
+            {t('dialog.newNote')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="py-2">
           <Input
-            placeholder="Enter note title..."
+            placeholder={t('dialog.noteTitle')}
             value={noteName}
             onChange={(e) => setNoteName(e.target.value)}
             onKeyDown={(e) => {
@@ -59,14 +61,14 @@ export default function CreateNoteDialog({
             className="rounded-xl px-5 h-11 font-medium text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('dialog.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!noteName.trim() || isCreating}
             className="rounded-xl px-6 h-11 font-medium bg-black dark:bg-gray-100 hover:bg-gray-800 dark:hover:bg-gray-300 text-white dark:text-black transition-all"
           >
-            {isCreating ? 'Creating...' : 'Create Note'}
+            {isCreating ? t('dialog.creating') : t('dialog.createNote')}
           </Button>
         </div>
       </DialogContent>

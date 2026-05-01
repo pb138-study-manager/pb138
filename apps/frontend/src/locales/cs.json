@@ -11,5 +11,51 @@
     "integrations": "Integrace",
     "teachers": "Vyučující",
     "logout": "Odhlásit se"
+  },
+  "nav": {
+    "tasks": "Úkoly",
+    "today": "Dnes",
+    "notes": "Poznámky",
+    "profile": "Profil"
+  },
+  "tasks": {
+    "loading": "Načítání úkolů...",
+    "title": "Úkoly",
+    "today": "Dnes",
+    "backlog": "Zásobník",
+    "done": "Hotovo",
+    "due": "Do",
+    "noDueDate": "Bez termínu",
+    "noDescription": "Bez popisu",
+    "delete": "Smazat"
+  },
+  "notes": {
+    "loading": "Načítání poznámek...",
+    "title": "Poznámky",
+    "addFolder": "Přidat složku",
+    "addNote": "Přidat poznámku",
+    "rename": "Přejmenovat",
+    "delete": "Smazat",
+    "empty": "Prázdné...",
+    "startWriting": "Začněte psát...",
+    "save": "Uložit",
+    "saving": "Ukládání...",
+    "edit": "Upravit"
+  },
+  "dialog": {
+    "newFolder": "Nová složka",
+    "folderName": "Zadejte název složky...",
+    "createFolder": "Vytvořit složku",
+    "newNote": "Nová poznámka",
+    "noteTitle": "Zadejte název poznámky...",
+    "createNote": "Vytvořit poznámku",
+    "creating": "Vytváření...",
+    "cancel": "Zrušit",
+    "delete": "Smazat",
+    "deleting": "Mazání...",
+    "deleteFolderTitle": "Smazat složku",
+    "deleteFolderDesc": "Opravdu chcete smazat tuto složku a všechny její poznámky? Tuto akci nelze vrátit zpět.",
+    "deleteNoteTitle": "Smazat poznámku",
+    "deleteNoteDesc": "Opravdu chcete smazat tuto poznámku? Tuto akci nelze vrátit zpět."
   }
 }

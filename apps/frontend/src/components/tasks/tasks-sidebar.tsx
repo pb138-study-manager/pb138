@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 export default function TaskSidebar({
   counts,
 }: {
@@ -5,11 +7,13 @@ export default function TaskSidebar({
   onFilterChange: (filter: string) => void;
   counts: { today: number; backlog: number; done: number };
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="w-32">
       <div className="mb-4">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 transition-colors">
-          Tasks{' '}
+          {t('tasks.title')}{' '}
           <span className="text-2xl text-gray-400 dark:text-gray-500 transition-colors">
             {counts.today + counts.backlog + counts.done}
           </span>
@@ -23,7 +27,7 @@ export default function TaskSidebar({
               {counts.today}
             </span>
             <span className="text-gray-600 dark:text-gray-400 font-medium transition-colors">
-              today
+              {t('tasks.today')}
             </span>
           </div>
         </div>
@@ -34,7 +38,7 @@ export default function TaskSidebar({
               {counts.backlog}
             </span>
             <span className="text-gray-600 dark:text-gray-400 font-medium transition-colors">
-              Back log
+              {t('tasks.backlog')}
             </span>
           </div>
         </div>
@@ -45,7 +49,7 @@ export default function TaskSidebar({
               {counts.done}
             </span>
             <span className="text-gray-600 dark:text-gray-400 font-medium transition-colors">
-              done
+              {t('tasks.done')}
             </span>
           </div>
         </div>

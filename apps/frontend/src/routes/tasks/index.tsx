@@ -4,6 +4,7 @@ import { Task } from '@/types';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskSidebar from '@/components/tasks/tasks-sidebar';
 import { api } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/tasks/')({
   component: TasksPage,
@@ -31,6 +32,8 @@ function splitTasks(tasks: Task[]) {
 }
 
 export function TasksPage() {
+  const { t } = useTranslation();
+
   // Synchronously apply theme from local storage to prevent white flash
   if (localStorage.getItem('theme') === 'dark') {
     document.documentElement.classList.add('dark');
@@ -84,7 +87,7 @@ export function TasksPage() {
   if (loading) {
     return (
       <div className="flex-1 w-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
-        <p className="text-gray-400 dark:text-gray-500">Loading tasks...</p>
+        <p className="text-gray-400 dark:text-gray-500">{t('tasks.loading')}</p>
       </div>
     );
   }
@@ -103,7 +106,7 @@ export function TasksPage() {
 
         <div>
           <TaskSection
-            title="Today"
+            title={t('tasks.today')}
             count={counts.today}
             tasks={today}
             variant="default"
@@ -112,7 +115,7 @@ export function TasksPage() {
             onDelete={handleDelete}
           />
           <TaskSection
-            title="Backlog"
+            title={t('tasks.backlog')}
             count={counts.backlog}
             tasks={backlog}
             variant="backlog"
@@ -121,7 +124,7 @@ export function TasksPage() {
             onDelete={handleDelete}
           />
           <TaskSection
-            title="Done"
+            title={t('tasks.done')}
             count={counts.done}
             tasks={done}
             variant="done"

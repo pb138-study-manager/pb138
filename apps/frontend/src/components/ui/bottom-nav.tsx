@@ -1,12 +1,15 @@
 import { ClipboardCheck, Clock, ClipboardList, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'notes' | 'profile' }) {
+  const { t } = useTranslation();
+
   const items = [
-    { icon: <ClipboardCheck />, label: 'Tasks', href: '/tasks' },
-    { icon: <Clock />, label: 'Today', href: '/today' },
-    { icon: <ClipboardList />, label: 'Notes', href: '/notes' },
-    { icon: <Users />, label: 'Profile', href: '/profile' },
+    { id: 'tasks', icon: <ClipboardCheck />, label: t('nav.tasks'), href: '/tasks' },
+    { id: 'today', icon: <Clock />, label: t('nav.today'), href: '/today' },
+    { id: 'notes', icon: <ClipboardList />, label: t('nav.notes'), href: '/notes' },
+    { id: 'profile', icon: <Users />, label: t('nav.profile'), href: '/profile' },
   ];
 
   return (
@@ -20,7 +23,7 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
           <span
             className={cn(
               'text-xl mb-1',
-              active === item.label.toLowerCase() ? 'text-blue-600 dark:text-blue-400' : ''
+              active === item.id ? 'text-blue-600 dark:text-blue-400' : ''
             )}
           >
             {item.icon}
@@ -28,7 +31,7 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
           <span
             className={cn(
               'text-xs font-medium',
-              active === item.label.toLowerCase() ? 'text-blue-600 dark:text-blue-400' : ''
+              active === item.id ? 'text-blue-600 dark:text-blue-400' : ''
             )}
           >
             {item.label}
