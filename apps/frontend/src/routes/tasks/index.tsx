@@ -31,11 +31,26 @@ function splitTasks(tasks: Task[]) {
 }
 
 export function TasksPage() {
+  // Synchronously apply theme from local storage to prevent white flash
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+
   const [activeFilter, setActiveFilter] = useState('today');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Apply dark mode based on settings on direct page load
+    api
+      .get<{ lightTheme: boolean }>('/users/me/settings')
+      .then((settings) => {
+        const isDark = !settings.lightTheme;
+        document.documentElement.classList.toggle('dark', isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      })
+      .catch(console.error);
+
     api
       .get<Task[]>('/tasks')
       .then(setTasks)
@@ -68,14 +83,14 @@ export function TasksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400">Loading tasks...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
+        <p className="text-gray-400 dark:text-gray-500">Loading tasks...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-2 mb-8">
           <TaskSidebar

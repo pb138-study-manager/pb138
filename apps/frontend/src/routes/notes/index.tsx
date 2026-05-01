@@ -18,6 +18,11 @@ export const Route = createFileRoute('/notes/')({
 // -------------------- App --------------------
 
 function NotesPage() {
+  // Synchronously apply theme from local storage to prevent white flash
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+
   const [folders, setFolders] = useState<FolderModel[]>([]);
   const [notes, setNotes] = useState<NoteModel[]>([]);
 
@@ -31,6 +36,17 @@ function NotesPage() {
 
   useEffect(() => {
     setIsLoading(true);
+
+    // Apply dark mode based on settings on direct page load
+    api
+      .get<{ lightTheme: boolean }>('/users/me/settings')
+      .then((settings) => {
+        const isDark = !settings.lightTheme;
+        document.documentElement.classList.toggle('dark', isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      })
+      .catch(console.error);
+
     Promise.all([
       api.get<FolderModel[]>('/folders').then(setFolders),
       api.get<NoteModel[]>('/notes').then(setNotes),
@@ -151,9 +167,9 @@ function NotesPage() {
   // -------------------- UI --------------------
 
   return (
-    <div className="h-screen w-full bg-gray-100 flex flex-col">
+    <div className="h-screen w-full bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors">
       {/* Top bar */}
-      <div className="bg-white px-4 py-3 flex items-center gap-3 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center gap-3 shadow-sm border-b border-gray-200 dark:border-gray-800 transition-colors text-gray-900 dark:text-white">
         {view !== 'notes' && (
           <button onClick={goBack}>
             <ArrowLeft size={20} />
@@ -171,7 +187,7 @@ function NotesPage() {
       <div className="flex-1 overflow-auto p-4">
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-gray-400">Loading notes...</p>
+            <p className="text-gray-400 dark:text-gray-500">Loading notes...</p>
           </div>
         ) : (
           <>

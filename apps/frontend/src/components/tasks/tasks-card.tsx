@@ -53,25 +53,27 @@ export default function TaskCard({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-2 flex items-start gap-3 hover:shadow-sm transition-shadow">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 flex items-start gap-3 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow">
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm text-gray-900 truncate">{task.title}</h4>
+        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+          {task.title}
+        </h4>
         <div className="flex items-center gap-2 mt-0.5">
           {hasUsers && <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
-          <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-          <p className="text-xs text-gray-500 truncate">
+          <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {dueTime} · {subject}
           </p>
         </div>
         {maxProgress > 0 && (
           <div className="mt-1.5">
-            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-400 transition-all"
+                className="h-full bg-blue-400 dark:bg-blue-500 transition-all"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-xs text-blue-500 font-medium mt-0.5 block">
+            <span className="text-xs text-blue-500 dark:text-blue-400 font-medium mt-0.5 block">
               {progress}/{maxProgress}
             </span>
           </div>
@@ -83,16 +85,16 @@ export default function TaskCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 focus-visible:ring-0"
+              className="h-6 w-6 p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:ring-0"
             >
               <MoreVertical className="w-4 h-4" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-32 p-1" align="end">
+          <PopoverContent className="w-32 p-1 dark:bg-gray-800 dark:border-gray-700" align="end">
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
               onClick={handleDelete}
               disabled={deleting}
             >
@@ -108,8 +110,8 @@ export default function TaskCard({
           disabled={toggling || deleting}
           className={`flex-shrink-0 w-7 h-7 rounded-full transition-all cursor-pointer ${
             isChecked
-              ? 'bg-green-500 border-green-500'
-              : 'bg-white border-gray-300 hover:border-gray-400'
+              ? 'bg-green-500 border-green-500 dark:bg-green-600 dark:border-green-600'
+              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           }`}
         />
       </div>

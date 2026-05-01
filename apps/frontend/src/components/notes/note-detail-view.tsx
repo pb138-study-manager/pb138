@@ -41,18 +41,20 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col min-h-[50vh] h-full">
-      <div className="flex justify-between items-center mb-4 border-b pb-3 gap-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm flex flex-col min-h-[50vh] h-full transition-colors">
+      <div className="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-3 gap-4">
         {isEditing ? (
           <input
-            className="text-xl font-bold flex-1 border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50"
+            className="text-xl font-bold flex-1 border dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title"
             autoFocus
           />
         ) : (
-          <h2 className="text-xl font-bold truncate flex-1">{note.title}</h2>
+          <h2 className="text-xl font-bold truncate flex-1 text-gray-900 dark:text-white">
+            {note.title}
+          </h2>
         )}
 
         <div className="flex items-center gap-2">
@@ -70,7 +72,12 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           ) : (
-            <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="outline"
+              size="sm"
+              className="dark:text-gray-200"
+            >
               Edit
             </Button>
           )}
@@ -79,13 +86,15 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
 
       {isEditing ? (
         <textarea
-          className="flex-1 w-full p-3 border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50"
+          className="flex-1 w-full p-3 border dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Start writing your note..."
         />
       ) : (
-        <p className="text-gray-600 whitespace-pre-wrap flex-1">{note.description || 'Empty...'}</p>
+        <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap flex-1">
+          {note.description || 'Empty...'}
+        </p>
       )}
 
       <DeleteNoteDialog

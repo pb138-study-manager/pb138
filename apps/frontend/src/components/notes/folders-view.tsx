@@ -45,14 +45,14 @@ export default function FoldersView({
       {folders.map((folder) => (
         <div
           key={folder.id}
-          className="flex items-center w-full bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+          className="flex items-center w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           {editingId === folder.id ? (
             <div className="flex items-center gap-3 w-full p-4">
               <Folder size={18} className="text-blue-600 flex-shrink-0" />
               <input
                 autoFocus
-                className="flex-1 border-b border-blue-500 focus:outline-none bg-transparent"
+                className="flex-1 border-b border-blue-500 focus:outline-none bg-transparent text-gray-900 dark:text-white"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 onKeyDown={(e) => {
@@ -87,7 +87,9 @@ export default function FoldersView({
                 className="flex-1 flex items-center gap-3 p-4 text-left min-w-0"
               >
                 <Folder size={18} className="text-blue-600 flex-shrink-0" />
-                <span className="font-medium text-gray-800 truncate">{folder.name}</span>
+                <span className="font-medium text-gray-800 dark:text-gray-200 truncate">
+                  {folder.name}
+                </span>
               </button>
               <div className="pr-2 flex items-center">
                 <Popover>
@@ -104,7 +106,7 @@ export default function FoldersView({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start dark:text-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
                         setEditingId(folder.id);
@@ -136,7 +138,7 @@ export default function FoldersView({
 
       <button
         onClick={onAddFolder}
-        className="w-full bg-black text-white rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
+        className="w-full bg-black dark:bg-gray-100 text-white dark:text-black rounded-xl p-3 flex items-center justify-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-300 transition-colors"
       >
         <Plus size={18} /> Add folder
       </button>

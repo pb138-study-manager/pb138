@@ -29,9 +29,9 @@ export default function TaskSection({
   };
 
   const colors = {
-    default: 'text-gray-900',
-    backlog: 'text-orange-500',
-    done: 'text-green-600',
+    default: 'text-gray-900 dark:text-gray-100',
+    backlog: 'text-orange-500 dark:text-orange-400',
+    done: 'text-green-600 dark:text-green-500',
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
@@ -42,12 +42,14 @@ export default function TaskSection({
         <h3 className={`ml-4 flex items-center gap-2 text-lg font-semibold ${colors[variant]}`}>
           <span className="mr-1">{icons[variant]}</span>
           <span>{title}</span>
-          <span className="ml-1 text-gray-400 py-1 text-base font-medium">{count}</span>
+          <span className="ml-1 text-gray-400 dark:text-gray-500 py-1 text-base font-medium">
+            {count}
+          </span>
         </h3>
         <Button
           variant="outline"
           size="icon"
-          className="rounded-full mr-3"
+          className="rounded-full mr-3 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
           onClick={() => setOpenCreateTaskDialog(true)}
         >
           <Plus className="h-8" />
