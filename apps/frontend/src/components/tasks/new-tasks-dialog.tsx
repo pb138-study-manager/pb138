@@ -3,7 +3,8 @@ import { Calendar, Tag, Flag, BookOpen, CheckSquare, ChevronUp } from 'lucide-re
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import DatePickerDialog from './date-picker-dialog';
+import DatePickerDialog from '@/components/tasks/date-picker-dialog';
+import SubtasksDialog from '@/components/tasks/subtasks-dialog';
 
 export default function NewTaskDialog({
   isOpen,
@@ -12,20 +13,23 @@ export default function NewTaskDialog({
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string, dueDate: string) => Promise<void>;
+  onSubmit: (title: string, dueDate: string, subtasks: string[]) => Promise<void>;
 }) {
   const [taskName, setTaskName] = useState('');
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isSubtasksOpen, setIsSubtasksOpen] = useState(false);
+  const [subtasks, setSubtasks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit() {
     if (!taskName.trim() || !selectedDate) return;
     setSaving(true);
     try {
-      await onSubmit(taskName.trim(), selectedDate.toISOString());
+      await onSubmit(taskName.trim(), selectedDate.toISOString(), subtasks);
       setTaskName('');
       setSelectedDate(null);
+      setSubtasks([]);
       onOpenChange(false);
     } finally {
       setSaving(false);
@@ -76,6 +80,26 @@ export default function NewTaskDialog({
                   );
                 }
 
+                if (option.label === 'Subtasks') {
+                  const hasSubtasks = subtasks.length > 0;
+                  return (
+                    <Button
+                      key={option.label}
+                      onClick={() => setIsSubtasksOpen(true)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm font-medium ${
+                        hasSubtasks
+                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <option.icon className="w-4 h-4" />
+                      {hasSubtasks
+                        ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}`
+                        : option.label}
+                    </Button>
+                  );
+                }
+
                 // Výchozí vykreslení pro ostatní tlačítka
                 return (
                   <Button
@@ -105,6 +129,12 @@ export default function NewTaskDialog({
         onOpenChange={setIsDateOpen}
         currentDate={selectedDate}
         onDateSelect={setSelectedDate}
+      />
+      <SubtasksDialog
+        isOpen={isSubtasksOpen}
+        onOpenChange={setIsSubtasksOpen}
+        subtasks={subtasks}
+        onSubtasksChange={setSubtasks}
       />
     </>
   );

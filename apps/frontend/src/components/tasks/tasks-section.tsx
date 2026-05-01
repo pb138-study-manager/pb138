@@ -18,7 +18,7 @@ export default function TaskSection({
   count: number;
   tasks: Task[];
   variant?: 'default' | 'backlog' | 'done';
-  onTaskCreated: (title: string, dueDate: string) => Promise<void>;
+  onTaskCreated: (title: string, dueDate: string, subtasks: string[]) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
@@ -35,8 +35,6 @@ export default function TaskSection({
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
-
-  
 
   return (
     <div className="mb-8">
