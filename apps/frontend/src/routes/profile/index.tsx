@@ -85,7 +85,7 @@ function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="flex-1 w-full bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
         <p className="text-gray-400 dark:text-gray-500">Loading profile...</p>
       </div>
     );
@@ -93,14 +93,14 @@ function ProfilePage() {
 
   if (!userData) {
     return (
-      <div className="h-screen w-full bg-white dark:bg-gray-900 flex items-center justify-center">
+      <div className="flex-1 w-full bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
         <p className="text-gray-400 dark:text-gray-500">Failed to load profile.</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-y-auto bg-white dark:bg-gray-900 min-h-screen transition-colors">
+    <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900 transition-colors">
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 transition-colors">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile</h1>

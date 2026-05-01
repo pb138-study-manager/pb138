@@ -167,7 +167,7 @@ function NotesPage() {
   // -------------------- UI --------------------
 
   return (
-    <div className="h-screen w-full bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="flex-1 w-full bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors">
       {/* Top bar */}
       <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center gap-3 shadow-sm border-b border-gray-200 dark:border-gray-800 transition-colors text-gray-900 dark:text-white">
         {view !== 'notes' && (

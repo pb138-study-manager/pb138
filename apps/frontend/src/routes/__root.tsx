@@ -1,7 +1,6 @@
 import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router';
 import BottomNav from '@/components/ui/bottom-nav';
 import Sidebar from '@/components/ui/sidebar';
-import MobileNav from '@/components/ui/mobile-nav';
 
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -20,14 +19,13 @@ function RootLayout() {
   ) as 'tasks' | 'today' | 'notes' | 'profile';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
       {!hideNav && (
         <>
-          <MobileNav />
           <Sidebar activeTab={activeTab} />
         </>
       )}
-      <main className="flex-1 min-w-0 pb-16 md:pb-0">
+      <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full">
         <Outlet />
       </main>
       {!hideNav && <BottomNav active={activeTab} />}
