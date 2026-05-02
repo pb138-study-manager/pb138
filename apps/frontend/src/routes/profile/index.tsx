@@ -12,6 +12,7 @@ import { Bell, Palette, Globe, Plus, ChevronRight, ChevronDown } from 'lucide-re
 import BottomNav from '@/components/ui/bottom-nav';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
@@ -33,8 +34,12 @@ type UserProfileResponse = {
 
 function ProfilePage() {
   const navigate = useNavigate();
-  const [userData, setUserData] = useState<UserProfileResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['userMe'],
+    queryFn: () => api.get<UserProfileResponse>('/users/me').catch(() => null),
+  });
 
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const { t, i18n } = useTranslation();
@@ -54,17 +59,12 @@ function ProfilePage() {
   }, [theme]);
 
   useEffect(() => {
-    api
-      .get<UserProfileResponse>('/users/me')
-      .then((data) => {
-        setUserData(data);
-        setTheme(data.settings.lightTheme ? 'light' : 'dark');
-        localStorage.setItem('theme', data.settings.lightTheme ? 'light' : 'dark');
-        setNotificationsEnabled(data.settings.notificationsEnabled);
-      })
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, []);
+    if (userData) {
+      setTheme(userData.settings.lightTheme ? 'light' : 'dark');
+      localStorage.setItem('theme', userData.settings.lightTheme ? 'light' : 'dark');
+      setNotificationsEnabled(userData.settings.notificationsEnabled);
+    }
+  }, [userData]);
 
   const updateSettings = async (key: 'lightTheme' | 'notificationsEnabled', value: boolean) => {
     try {
@@ -74,6 +74,11 @@ function ProfilePage() {
         localStorage.setItem('theme', value ? 'light' : 'dark');
       }
       if (key === 'notificationsEnabled') setNotificationsEnabled(value);
+
+      queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+        if (!prev) return prev;
+        return { ...prev, settings: { ...prev.settings, [key]: value } };
+      });
     } catch (error) {
       console.error('Failed to update settings:', error);
     }

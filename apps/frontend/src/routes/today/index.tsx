@@ -1,43 +1,47 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Task } from '@/types';
 import TaskSection from '@/components/tasks/tasks-section';
 import WeekCalendar from '@/components/today/week-calendar';
 import { api } from '@/lib/api';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/today/')({
   component: TodayPage,
 });
 
 function TodayPage() {
-  const { t } = useTranslation();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  useEffect(() => {
-    api
-      .get<Task[]>('/tasks')
-      .then(setTasks)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  // Synchronously apply theme from local storage to prevent white flash
+  if (typeof document !== 'undefined' && localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
+
+  const { data: tasks = [], isLoading: loading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
+  });
 
   async function handleCreate(title: string, dueDate: string) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    setTasks((prev) => [...prev, newTask]);
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => [...prev, newTask]);
   }
 
   async function handleToggle(id: number) {
     const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
-    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
+      prev.map((t) => (t.id === id ? updated : t))
+    );
   }
 
   async function handleDelete(id: number) {
     await api.delete(`/tasks/${id}`);
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
   const isSameDay = (date1: Date, date2: Date) =>
@@ -60,7 +64,7 @@ function TodayPage() {
     return isSameDay(taskDate, selectedDate);
   });
 
-  const currentDate = new Intl.DateTimeFormat('en-US', {
+  const currentDate = new Intl.DateTimeFormat(i18n.language === 'cs' ? 'cs-CZ' : 'en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -81,7 +85,7 @@ function TodayPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('nav.timeline') || 'Timeline'}
+            {t('nav.today') || 'Today'}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">{currentDate}</p>
         </div>
@@ -90,8 +94,10 @@ function TodayPage() {
         <TaskSection
           title={
             isSameDay(new Date(), selectedDate)
-              ? t('nav.timeline') || 'Timeline'
-              : new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(selectedDate)
+              ? t('nav.today') || 'Today'
+              : new Intl.DateTimeFormat(i18n.language === 'cs' ? 'cs-CZ' : 'en-US', {
+                  weekday: 'long',
+                }).format(selectedDate)
           }
           count={todayTasks.length}
           tasks={todayTasks}

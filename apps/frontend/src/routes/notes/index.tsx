@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { api } from '@/lib/api';
 import { FolderModel, NoteModel } from '@/types/index';
@@ -9,6 +9,7 @@ import FoldersView from '@/components/notes/folders-view';
 import NotesView from '@/components/notes/notes-view';
 import NoteDetailView from '@/components/notes/note-detail-view';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // -------------------- Route --------------------
 
@@ -20,14 +21,22 @@ export const Route = createFileRoute('/notes/')({
 
 function NotesPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   // Synchronously apply theme from local storage to prevent white flash
   if (localStorage.getItem('theme') === 'dark') {
     document.documentElement.classList.add('dark');
   }
 
-  const [folders, setFolders] = useState<FolderModel[]>([]);
-  const [notes, setNotes] = useState<NoteModel[]>([]);
+  const { data: folders = [], isLoading: loadingFolders } = useQuery({
+    queryKey: ['folders'],
+    queryFn: () => api.get<FolderModel[]>('/folders').catch(() => []),
+  });
+
+  const { data: notes = [], isLoading: loadingNotes } = useQuery({
+    queryKey: ['notes'],
+    queryFn: () => api.get<NoteModel[]>('/notes').catch(() => []),
+  });
 
   const [activeFolderId, setActiveFolderId] = useState<number | null>(null);
   const [view, setView] = useState<'notes' | 'folder' | 'detail'>('notes');
@@ -35,28 +44,21 @@ function NotesPage() {
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
   const [forceEditNoteId, setForceEditNoteId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const isLoading = loadingFolders || loadingNotes;
 
-  useEffect(() => {
-    setIsLoading(true);
-
-    // Apply dark mode based on settings on direct page load
-    api
-      .get<{ lightTheme: boolean }>('/users/me/settings')
-      .then((settings) => {
-        const isDark = !settings.lightTheme;
-        document.documentElement.classList.toggle('dark', isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      })
-      .catch(console.error);
-
-    Promise.all([
-      api.get<FolderModel[]>('/folders').then(setFolders),
-      api.get<NoteModel[]>('/notes').then(setNotes),
-    ])
-      .catch(console.error)
-      .finally(() => setIsLoading(false));
-  }, []);
+  useQuery({
+    queryKey: ['settings'],
+    queryFn: () =>
+      api
+        .get<{ lightTheme: boolean }>('/users/me/settings')
+        .then((settings) => {
+          const isDark = !settings.lightTheme;
+          document.documentElement.classList.toggle('dark', isDark);
+          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          return settings;
+        })
+        .catch(console.error),
+  });
 
   const activeFolder = folders.find((f) => f.id === activeFolderId);
   const activeFolderNotes = notes.filter((n) => n.folderId === activeFolderId);
@@ -83,7 +85,9 @@ function NotesPage() {
   async function updateFolder(id: number, name: string) {
     try {
       const updated = await api.patch<FolderModel>(`/folders/${id}`, { name });
-      setFolders((prev) => prev.map((f) => (f.id === id ? updated : f)));
+      queryClient.setQueryData<FolderModel[]>(['folders'], (prev = []) =>
+        prev.map((f) => (f.id === id ? updated : f))
+      );
     } catch (error) {
       console.error('Failed to rename folder:', error);
       throw error;
@@ -98,8 +102,12 @@ function NotesPage() {
 
       // Then delete the folder
       await api.delete(`/folders/${id}`);
-      setFolders((prev) => prev.filter((f) => f.id !== id));
-      setNotes((prev) => prev.filter((n) => n.folderId !== id)); // Remove locally
+      queryClient.setQueryData<FolderModel[]>(['folders'], (prev = []) =>
+        prev.filter((f) => f.id !== id)
+      );
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.filter((n) => n.folderId !== id)
+      );
       if (activeFolderId === id) {
         setView('notes');
         setActiveFolderId(null);
@@ -113,7 +121,7 @@ function NotesPage() {
   async function handleCreateFolder(name: string) {
     try {
       const newFolder = await api.post<FolderModel>('/folders', { name });
-      setFolders((prev) => [newFolder, ...prev]);
+      queryClient.setQueryData<FolderModel[]>(['folders'], (prev = []) => [newFolder, ...prev]);
       setActiveFolderId(newFolder.id);
       setView('folder');
     } catch (error) {
@@ -131,7 +139,7 @@ function NotesPage() {
         description: '',
         folderId: activeFolder.id,
       });
-      setNotes((prev) => [newNote, ...prev]);
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) => [newNote, ...prev]);
       setSelectedNoteId(newNote.id);
       setForceEditNoteId(newNote.id);
       setView('detail');
@@ -148,7 +156,9 @@ function NotesPage() {
         payload.description = description;
       }
       const updated = await api.patch<NoteModel>(`/notes/${id}`, payload);
-      setNotes((prev) => prev.map((n) => (n.id === id ? updated : n)));
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.map((n) => (n.id === id ? updated : n))
+      );
     } catch (error) {
       console.error('Failed to save note:', error);
       throw error;
@@ -158,7 +168,9 @@ function NotesPage() {
   async function deleteNote(id: number) {
     try {
       await api.delete(`/notes/${id}`);
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.filter((n) => n.id !== id)
+      );
       setView('folder');
       setSelectedNoteId(null);
       setForceEditNoteId(null);

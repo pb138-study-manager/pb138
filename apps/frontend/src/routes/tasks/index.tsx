@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Task } from '@/types';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskSidebar from '@/components/tasks/tasks-sidebar';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/tasks/')({
   component: TasksPage,
@@ -33,6 +34,7 @@ function splitTasks(tasks: Task[]) {
 
 export function TasksPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   // Synchronously apply theme from local storage to prevent white flash
   if (localStorage.getItem('theme') === 'dark') {
@@ -40,40 +42,41 @@ export function TasksPage() {
   }
 
   const [activeFilter, setActiveFilter] = useState('today');
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Apply dark mode based on settings on direct page load
-    api
-      .get<{ lightTheme: boolean }>('/users/me/settings')
-      .then((settings) => {
-        const isDark = !settings.lightTheme;
-        document.documentElement.classList.toggle('dark', isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      })
-      .catch(console.error);
+  const { data: tasks = [], isLoading: loading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
+  });
 
-    api
-      .get<Task[]>('/tasks')
-      .then(setTasks)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  useQuery({
+    queryKey: ['settings'],
+    queryFn: () =>
+      api
+        .get<{ lightTheme: boolean }>('/users/me/settings')
+        .then((settings) => {
+          const isDark = !settings.lightTheme;
+          document.documentElement.classList.toggle('dark', isDark);
+          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          return settings;
+        })
+        .catch(console.error),
+  });
 
   async function handleCreate(title: string, dueDate: string) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    setTasks((prev) => [...prev, newTask]);
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => [...prev, newTask]);
   }
 
   async function handleToggle(id: number) {
     const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
-    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
+      prev.map((t) => (t.id === id ? updated : t))
+    );
   }
 
   async function handleDelete(id: number) {
     await api.delete(`/tasks/${id}`);
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
   const { today, backlog, done } = splitTasks(tasks);
