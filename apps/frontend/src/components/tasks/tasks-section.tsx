@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Star, Package, ClipboardCheck, Plus } from 'lucide-react';
 import { Task } from '@/types';
 import { Button } from '@/components/ui/button';
-import NewTaskDialog from './new-tasks-dialog';
-import TaskCard from './tasks-card';
+import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
+import TaskCard from '@/components/tasks/tasks-card';
 
 export default function TaskSection({
   title,

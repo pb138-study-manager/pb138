@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { FileText, Plus, MoreVertical, Pencil, Trash2, Check, X } from 'lucide-react';
 import { NoteModel } from '@/types/index';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
 import { useTranslation } from 'react-i18next';
@@ -95,14 +96,13 @@ export default function NotesView({
               </button>
               <div className="pr-2 flex items-center">
                 <Popover>
-                  <PopoverTrigger>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
+                  <PopoverTrigger
+                    className={cn(
+                      buttonVariants({ variant: 'ghost', size: 'sm' }),
+                      'h-8 w-8 p-0 text-gray-400 hover:text-gray-600'
+                    )}
+                  >
+                    <MoreVertical className="w-4 h-4" />
                   </PopoverTrigger>
                   <PopoverContent className="w-32 p-1" align="end">
                     <Button

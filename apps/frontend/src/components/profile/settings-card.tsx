@@ -40,11 +40,9 @@ export default function SettingsCard({
               </span>
             </div>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors">
-                  {theme === 'light' ? t('profile.light') : t('profile.dark')}
-                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                </button>
+              <DropdownMenuTrigger className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors focus:outline-none">
+                {theme === 'light' ? t('profile.light') : t('profile.dark')}
+                <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onUpdateSettings('lightTheme', true)}>
@@ -66,11 +64,9 @@ export default function SettingsCard({
               </span>
             </div>
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors">
-                  {language === 'en' ? 'English' : 'Čeština'}
-                  <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                </button>
+              <DropdownMenuTrigger className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors focus:outline-none">
+                {language === 'en' ? 'English' : 'Čeština'}
+                <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onChangeLanguage('en')}>English</DropdownMenuItem>

@@ -89,10 +89,6 @@ function ProfilePage() {
     navigate({ to: '/login' });
   };
 
-  const handleTeachersClick = () => {
-    navigate({ to: '/teachers' });
-  };
-
   if (isLoading) {
     return (
       <div className="flex-1 w-full bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
@@ -126,7 +122,7 @@ function ProfilePage() {
           notificationsEnabled={notificationsEnabled}
           onUpdateSettings={updateSettings}
           onChangeLanguage={changeLanguage}
-          onTeachersClick={handleTeachersClick}
+          onTeachersClick={() => navigate({ to: '/teachers' })}
         />
 
         {/* Log Out Button */}

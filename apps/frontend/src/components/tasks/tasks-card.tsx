@@ -3,7 +3,8 @@ import { Clock, Users, MoreVertical, Trash2 } from 'lucide-react';
 import { Task } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 export default function TaskCard({
@@ -83,14 +84,13 @@ export default function TaskCard({
       </div>
       <div className="flex mt-3 flex-col items-center gap-2">
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:ring-0"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+          <PopoverTrigger
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'sm' }),
+              'h-6 w-6 p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:ring-0'
+            )}
+          >
+            <MoreVertical className="w-4 h-4" />
           </PopoverTrigger>
           <PopoverContent className="w-32 p-1 dark:bg-gray-800 dark:border-gray-700" align="end">
             <Button
