@@ -13,7 +13,7 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as TodayIndexRouteImport } from './routes/today/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
@@ -41,9 +41,9 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const TodayIndexRoute = TodayIndexRouteImport.update({
+  id: '/today/',
+  path: '/today/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeachersIndexRoute = TeachersIndexRouteImport.update({
@@ -78,7 +78,6 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -89,9 +88,9 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -102,10 +101,10 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/teachers': typeof TeachersIndexRoute
+  '/today': typeof TodayIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -116,11 +115,11 @@ export interface FileRoutesById {
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -131,9 +130,9 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/today/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -144,9 +143,9 @@ export interface FileRouteTypes {
     | '/profile'
     | '/tasks'
     | '/teachers'
+    | '/today'
   id:
     | '__root__'
-    | '/'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -157,10 +156,10 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/today/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
@@ -171,6 +170,7 @@ export interface RootRouteChildren {
   ProfileIndexRoute: typeof ProfileIndexRoute
   TasksIndexRoute: typeof TasksIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
+  TodayIndexRoute: typeof TodayIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -203,11 +203,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/today/': {
+      id: '/today/'
+      path: '/today'
+      fullPath: '/today/'
+      preLoaderRoute: typeof TodayIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/teachers/': {
@@ -256,7 +256,6 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
@@ -267,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileIndexRoute: ProfileIndexRoute,
   TasksIndexRoute: TasksIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,
+  TodayIndexRoute: TodayIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
