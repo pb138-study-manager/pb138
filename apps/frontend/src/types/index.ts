@@ -92,3 +92,9 @@ export interface NoteModel {
   description: string | null;
   folderId: number | null;
 };
+
+export type UserSettings = {
+  notificationsEnabled: boolean;
+  lightTheme: boolean;
+  language: 'en' | 'cs';
+};

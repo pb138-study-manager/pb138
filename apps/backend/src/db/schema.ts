@@ -49,6 +49,7 @@ export const userSettings = pgTable('user_settings', {
     .references(() => users.id),
   notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
   lightTheme: boolean('light_theme').notNull().default(true),
+  language: text('language').notNull().default('en'),
 });
 
 // ---------------------------------------------------------------------------

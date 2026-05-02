@@ -13,25 +13,11 @@ export const Route = createFileRoute('/today/')({
 
 function TodayPage() {
   const { t } = useTranslation();
-
-  if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-  }
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
-    api
-      .get<{ lightTheme: boolean }>('/users/me/settings')
-      .then((settings) => {
-        const isDark = !settings.lightTheme;
-        document.documentElement.classList.toggle('dark', isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      })
-      .catch(console.error);
-
     api
       .get<Task[]>('/tasks')
       .then(setTasks)
@@ -82,7 +68,7 @@ function TodayPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 w-full min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
+      <div className="flex-1 w-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <p className="text-gray-400 dark:text-gray-500">
           {t('tasks.loading') || 'Loading tasks...'}
         </p>
@@ -91,20 +77,20 @@ function TodayPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto w-full min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors pb-20">
+    <div className="flex-1 overflow-y-auto w-full bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('nav.today') || 'Today'}
+            {t('nav.timeline') || 'Timeline'}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">{currentDate}</p>
         </div>
         <WeekCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-        <Separator className="h-px w-full -mt-4 mb-6 bg-gray-200 dark:bg-gray-700" />
+        <Separator className="-mt-4 mb-6 bg-gray-200 dark:bg-gray-800" />
         <TaskSection
           title={
             isSameDay(new Date(), selectedDate)
-              ? t('nav.today') || 'Today'
+              ? t('nav.timeline') || 'Timeline'
               : new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(selectedDate)
           }
           count={todayTasks.length}
