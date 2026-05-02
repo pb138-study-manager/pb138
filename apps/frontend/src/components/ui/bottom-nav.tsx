@@ -1,6 +1,7 @@
 import { ClipboardCheck, Clock, ClipboardList, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
 
 export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'notes' | 'profile' }) {
   const { t } = useTranslation();
@@ -15,9 +16,9 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around transition-colors">
       {items.map((item) => (
-        <a
+        <Link
           key={item.label}
-          href={item.href}
+          to={item.href}
           className="flex flex-col items-center justify-center py-3 px-4 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
         >
           <span
@@ -36,7 +37,7 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
           >
             {item.label}
           </span>
-        </a>
+        </Link>
       ))}
     </div>
   );
