@@ -122,7 +122,6 @@ function ProfilePage() {
           notificationsEnabled={notificationsEnabled}
           onUpdateSettings={updateSettings}
           onChangeLanguage={changeLanguage}
-          onTeachersClick={() => navigate({ to: '/teachers' })}
         />
 
         {/* Log Out Button */}
