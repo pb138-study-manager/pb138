@@ -23,11 +23,6 @@ function NotesPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  // Synchronously apply theme from local storage to prevent white flash
-  if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-  }
-
   const { data: folders = [], isLoading: loadingFolders } = useQuery({
     queryKey: ['folders'],
     queryFn: () => api.get<FolderModel[]>('/folders').catch(() => []),

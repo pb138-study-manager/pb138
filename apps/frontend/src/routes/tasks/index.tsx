@@ -36,11 +36,6 @@ export function TasksPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  // Synchronously apply theme from local storage to prevent white flash
-  if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-  }
-
   const [activeFilter, setActiveFilter] = useState('today');
 
   const { data: tasks = [], isLoading: loading } = useQuery({

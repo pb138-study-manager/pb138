@@ -17,11 +17,6 @@ function TodayPage() {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Synchronously apply theme from local storage to prevent white flash
-  if (typeof document !== 'undefined' && localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-  }
-
   const { data: tasks = [], isLoading: loading } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
