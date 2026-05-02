@@ -1,18 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Bell, Palette, Globe, Plus, ChevronRight, ChevronDown } from 'lucide-react';
 import BottomNav from '@/components/ui/bottom-nav';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import UserCard from '@/components/profile/user-card';
+import SettingsCard from '@/components/profile/settings-card';
+import { UserSettings } from '@/types';
 
 export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
@@ -29,7 +23,7 @@ type UserProfileResponse = {
     organization: string | null;
     bio: string | null;
   };
-  settings: { notificationsEnabled: boolean; lightTheme: boolean };
+  settings: UserSettings;
 };
 
 function ProfilePage() {
@@ -41,39 +35,40 @@ function ProfilePage() {
     queryFn: () => api.get<UserProfileResponse>('/users/me').catch(() => null),
   });
 
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const { t, i18n } = useTranslation();
-  const [language, setLanguage] = useState<'en' | 'cs'>(
-    (localStorage.getItem('language') as 'en' | 'cs') || 'en'
-  );
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  const changeLanguage = (lng: 'en' | 'cs') => {
-    setLanguage(lng);
+  const theme = userData
+    ? userData.settings.lightTheme
+      ? 'light'
+      : 'dark'
+    : localStorage.getItem('theme') || 'light';
+  const language =
+    (userData?.settings.language as 'en' | 'cs') ||
+    (localStorage.getItem('language') as 'en' | 'cs') ||
+    'en';
+  const notificationsEnabled = userData?.settings.notificationsEnabled ?? false;
+
+  const changeLanguage = async (lng: 'en' | 'cs') => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
-  };
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
-
-  useEffect(() => {
-    if (userData) {
-      setTheme(userData.settings.lightTheme ? 'light' : 'dark');
-      localStorage.setItem('theme', userData.settings.lightTheme ? 'light' : 'dark');
-      setNotificationsEnabled(userData.settings.notificationsEnabled);
+    try {
+      await api.patch('/users/me/settings', { language: lng });
+      queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+        if (!prev) return prev;
+        return { ...prev, settings: { ...prev.settings, language: lng } };
+      });
+    } catch (error) {
+      console.error('Failed to update language:', error);
     }
-  }, [userData]);
+  };
 
   const updateSettings = async (key: 'lightTheme' | 'notificationsEnabled', value: boolean) => {
     try {
       await api.patch('/users/me/settings', { [key]: value });
       if (key === 'lightTheme') {
-        setTheme(value ? 'light' : 'dark');
         localStorage.setItem('theme', value ? 'light' : 'dark');
+        document.documentElement.classList.toggle('dark', !value);
       }
-      if (key === 'notificationsEnabled') setNotificationsEnabled(value);
 
       queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
         if (!prev) return prev;
@@ -123,137 +118,16 @@ function ProfilePage() {
 
       {/* Main Content */}
       <div className="px-4 py-6 space-y-4">
-        {/* User Card */}
-        <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <img
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.login}`}
-                alt={userData.profile.name || userData.login}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {userData.profile.name || userData.login}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300">{userData.email}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <UserCard login={userData.login} name={userData.profile.name} email={userData.email} />
 
-        {/* Settings Card */}
-        <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
-          <CardContent className="p-0">
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {/* Theme */}
-              <div className="flex items-center justify-between px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <Palette className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    {t('profile.theme')}
-                  </span>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors">
-                      {theme === 'light' ? t('profile.light') : t('profile.dark')}
-                      <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => updateSettings('lightTheme', true)}>
-                      {t('profile.light')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => updateSettings('lightTheme', false)}>
-                      {t('profile.dark')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Language */}
-              <div className="flex items-center justify-between px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    {t('profile.language')}
-                  </span>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer text-sm transition-colors">
-                      {language === 'en' ? 'English' : 'Čeština'}
-                      <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => changeLanguage('en')}>
-                      English
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => changeLanguage('cs')}>
-                      Čeština
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Notifications */}
-              <div className="flex items-center justify-between px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    {t('profile.notifications')}
-                  </span>
-                </div>
-                <button
-                  onClick={() => updateSettings('notificationsEnabled', !notificationsEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    notificationsEnabled
-                      ? 'bg-gray-400 dark:bg-gray-500'
-                      : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-200 transition-transform ${
-                      notificationsEnabled ? 'translate-x-5' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Integrations */}
-              <button className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <div className="flex items-center gap-3">
-                  <Plus className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    {t('profile.integrations')}
-                  </span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              </button>
-
-              {/* Teachers */}
-              <button
-                onClick={handleTeachersClick}
-                className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 rounded border-2 border-gray-600 dark:border-gray-300 flex items-center justify-center gap-0.5">
-                    <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
-                    <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
-                    <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
-                    <div className="w-1 h-1 rounded-full bg-gray-600 dark:bg-gray-300" />
-                  </div>
-                  <span className="text-gray-600 dark:text-gray-300 font-medium">
-                    {t('profile.teachers')}
-                  </span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+        <SettingsCard
+          theme={theme}
+          language={language}
+          notificationsEnabled={notificationsEnabled}
+          onUpdateSettings={updateSettings}
+          onChangeLanguage={changeLanguage}
+          onTeachersClick={handleTeachersClick}
+        />
 
         {/* Log Out Button */}
         <Button
