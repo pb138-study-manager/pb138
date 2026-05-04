@@ -13,10 +13,12 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CustomNavRouteImport } from './routes/custom-nav'
 import { Route as TodayIndexRouteImport } from './routes/today/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as OthersIndexRouteImport } from './routes/others/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
 import { Route as TeachersNewRouteImport } from './routes/teachers/new'
 import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
@@ -41,6 +43,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomNavRoute = CustomNavRouteImport.update({
+  id: '/custom-nav',
+  path: '/custom-nav',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TodayIndexRoute = TodayIndexRouteImport.update({
   id: '/today/',
   path: '/today/',
@@ -61,6 +68,11 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OthersIndexRoute = OthersIndexRouteImport.update({
+  id: '/others/',
+  path: '/others/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotesIndexRoute = NotesIndexRouteImport.update({
   id: '/notes/',
   path: '/notes/',
@@ -78,6 +90,7 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -85,12 +98,14 @@ export interface FileRoutesByFullPath {
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
   '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -98,6 +113,7 @@ export interface FileRoutesByTo {
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
   '/notes': typeof NotesIndexRoute
+  '/others': typeof OthersIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/teachers': typeof TeachersIndexRoute
@@ -105,6 +121,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
@@ -112,6 +129,7 @@ export interface FileRoutesById {
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
   '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
@@ -120,6 +138,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/custom-nav'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -127,12 +146,14 @@ export interface FileRouteTypes {
     | '/notes/$noteId'
     | '/teachers/new'
     | '/notes/'
+    | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
     | '/today/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/custom-nav'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -140,12 +161,14 @@ export interface FileRouteTypes {
     | '/notes/$noteId'
     | '/teachers/new'
     | '/notes'
+    | '/others'
     | '/profile'
     | '/tasks'
     | '/teachers'
     | '/today'
   id:
     | '__root__'
+    | '/custom-nav'
     | '/dashboard'
     | '/login'
     | '/register'
@@ -153,6 +176,7 @@ export interface FileRouteTypes {
     | '/notes/$noteId'
     | '/teachers/new'
     | '/notes/'
+    | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
@@ -160,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  CustomNavRoute: typeof CustomNavRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
@@ -167,6 +192,7 @@ export interface RootRouteChildren {
   NotesNoteIdRoute: typeof NotesNoteIdRoute
   TeachersNewRoute: typeof TeachersNewRoute
   NotesIndexRoute: typeof NotesIndexRoute
+  OthersIndexRoute: typeof OthersIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   TasksIndexRoute: typeof TasksIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
@@ -203,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/custom-nav': {
+      id: '/custom-nav'
+      path: '/custom-nav'
+      fullPath: '/custom-nav'
+      preLoaderRoute: typeof CustomNavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/today/': {
       id: '/today/'
       path: '/today'
@@ -231,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/others/': {
+      id: '/others/'
+      path: '/others'
+      fullPath: '/others/'
+      preLoaderRoute: typeof OthersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notes/': {
       id: '/notes/'
       path: '/notes'
@@ -256,6 +296,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  CustomNavRoute: CustomNavRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
@@ -263,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotesNoteIdRoute: NotesNoteIdRoute,
   TeachersNewRoute: TeachersNewRoute,
   NotesIndexRoute: NotesIndexRoute,
+  OthersIndexRoute: OthersIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   TasksIndexRoute: TasksIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,

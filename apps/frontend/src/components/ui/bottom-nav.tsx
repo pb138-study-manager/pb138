@@ -1,22 +1,32 @@
-import { ClipboardCheck, Clock, ClipboardList, Users } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Clock,
+  ClipboardList,
+  Users,
+  Menu,
+  LayoutDashboard,
+  UserSquare,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import { useProfileManager } from '@/hooks/useProfileManager';
 import { NavItem } from '@/types';
 
-export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'notes' | 'profile' }) {
+export default function BottomNav({ active }: { active: string }) {
   const { t } = useTranslation();
   const { customNav } = useProfileManager();
 
+  // Fallback to defaults while fetching to prevent empty white flash
   const defaultItems: NavItem[] = [
-    { id: 'tasks', label: t('nav.tasks'), href: '/tasks' },
-    { id: 'today', label: t('nav.today'), href: '/today' },
-    { id: 'notes', label: t('nav.notes'), href: '/notes' },
-    { id: 'profile', label: t('nav.profile'), href: '/profile' },
+    { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
+    { id: 'today', label: 'nav.today', href: '/today' },
+    { id: 'notes', label: 'nav.notes', href: '/notes' },
+    { id: 'others', label: 'nav.others', href: '/others' },
   ];
 
-  const items: NavItem[] = customNav && Array.isArray(customNav) ? customNav : defaultItems;
+  const items: NavItem[] =
+    customNav && Array.isArray(customNav) && customNav.length > 0 ? customNav : defaultItems;
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around transition-colors">
@@ -24,11 +34,30 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
         // Need to reconstruct icons if customNav provides them as strings/names
         let IconComponent;
         switch (item.id) {
-          case 'tasks': IconComponent = <ClipboardCheck />; break;
-          case 'today': IconComponent = <Clock />; break;
-          case 'notes': IconComponent = <ClipboardList />; break;
-          case 'profile': IconComponent = <Users />; break;
-          default: IconComponent = <ClipboardCheck />; break; // Fallback
+          case 'tasks':
+            IconComponent = <ClipboardCheck />;
+            break;
+          case 'today':
+            IconComponent = <Clock />;
+            break;
+          case 'notes':
+            IconComponent = <ClipboardList />;
+            break;
+          case 'profile':
+            IconComponent = <Users />;
+            break;
+          case 'others':
+            IconComponent = <Menu />;
+            break;
+          case 'dashboard':
+            IconComponent = <LayoutDashboard />;
+            break;
+          case 'teachers':
+            IconComponent = <UserSquare />;
+            break;
+          default:
+            IconComponent = <ClipboardCheck />;
+            break; // Fallback
         }
 
         return (
@@ -51,7 +80,7 @@ export default function BottomNav({ active }: { active: 'tasks' | 'today' | 'not
                 active === item.id ? 'text-blue-600 dark:text-blue-400' : ''
               )}
             >
-              {item.label || t(`nav.${item.id}`)}
+              {t(`nav.${item.id}`)}
             </span>
           </Link>
         );

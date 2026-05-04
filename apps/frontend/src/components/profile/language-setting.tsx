@@ -15,7 +15,8 @@ interface LanguageSettingProps {
 }
 
 export default function LanguageSetting({ language, onChangeLanguage }: LanguageSettingProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || language;
 
   return (
     <div className="flex items-center justify-between px-6 py-4">
@@ -32,7 +33,7 @@ export default function LanguageSetting({ language, onChangeLanguage }: Language
             'flex items-center gap-2 text-gray-600 dark:text-gray-300 cursor-pointer focus:outline-none'
           )}
         >
-          {language === 'en' ? 'English' : 'Čeština'}
+          {currentLang.startsWith('cs') ? 'Čeština' : 'English'}
           <ChevronDown className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

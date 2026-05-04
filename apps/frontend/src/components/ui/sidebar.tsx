@@ -7,16 +7,13 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Menu,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 
-export default function Sidebar({
-  activeTab,
-}: {
-  activeTab: 'tasks' | 'today' | 'notes' | 'profile';
-}) {
+export default function Sidebar({ activeTab }: { activeTab: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useTranslation();
 
@@ -44,6 +41,12 @@ export default function Sidebar({
       icon: <Users className="w-5 h-5 shrink-0" />,
       label: t('nav.profile'),
       href: '/profile',
+    },
+    {
+      id: 'others',
+      icon: <Menu className="w-5 h-5 shrink-0" />,
+      label: t('nav.others'),
+      href: '/others',
     },
   ];
 

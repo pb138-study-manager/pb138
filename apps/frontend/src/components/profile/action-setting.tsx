@@ -17,7 +17,9 @@ export default function ActionSetting({ icon, label, onClick }: ActionSettingPro
     >
       <div className="flex items-center gap-3">
         {icon}
-        <span className="text-gray-600 dark:text-gray-300 font-medium">{label}</span>
+        <span className="text-gray-600 dark:text-gray-300 font-medium">
+          {label === 'Profile' ? label + ' & Settings' : label}
+        </span>
       </div>
       <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
     </Button>

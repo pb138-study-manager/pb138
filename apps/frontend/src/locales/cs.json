@@ -10,13 +10,18 @@
     "notifications": "Upozornění",
     "integrations": "Integrace",
     "teachers": "Vyučující",
-    "logout": "Odhlásit se"
+    "logout": "Odhlásit se",
+    "customizeNav": "Přizpůsobit navigaci"
   },
   "nav": {
     "tasks": "Úkoly",
     "today": "Dnes",
     "notes": "Poznámky",
-    "profile": "Profil"
+    "profile": "Profil",
+    "others": "Ostatní"
+  },
+  "others": {
+    "title": "Ostatní"
   },
   "tasks": {
     "loading": "Načítání úkolů...",

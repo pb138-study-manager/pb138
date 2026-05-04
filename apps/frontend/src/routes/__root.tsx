@@ -19,15 +19,19 @@ function RootLayout() {
   const { pathname } = useLocation();
   const hideNav = AUTH_ROUTES.includes(pathname);
 
-  const activeTab = (
-    pathname.startsWith('/today')
-      ? 'today'
-      : pathname.startsWith('/notes')
-        ? 'notes'
-        : pathname.startsWith('/profile')
-          ? 'profile'
-          : 'tasks'
-  ) as 'tasks' | 'today' | 'notes' | 'profile';
+  const activeTab = pathname.startsWith('/today')
+    ? 'today'
+    : pathname.startsWith('/notes')
+      ? 'notes'
+      : pathname.startsWith('/profile') || pathname.startsWith('/custom-nav')
+        ? 'profile'
+        : pathname.startsWith('/others')
+          ? 'others'
+          : pathname.startsWith('/dashboard')
+            ? 'dashboard'
+            : pathname.startsWith('/teachers')
+              ? 'teachers'
+              : 'tasks';
 
   return (
     <QueryClientProvider client={queryClient}>

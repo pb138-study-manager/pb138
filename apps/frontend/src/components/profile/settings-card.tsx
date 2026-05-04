@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutPanelLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import ThemeSetting from '@/components/profile/theme-setting';
@@ -26,7 +26,7 @@ export default function SettingsCard({
   const navigate = useNavigate();
 
   return (
-    <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
+    <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors overflow-hidden">
       <CardContent className="p-0">
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           <ThemeSetting theme={theme} onUpdateSettings={onUpdateSettings} />
@@ -36,6 +36,12 @@ export default function SettingsCard({
           <NotificationSetting
             notificationsEnabled={notificationsEnabled}
             onUpdateSettings={onUpdateSettings}
+          />
+
+          <ActionSetting
+            icon={<LayoutPanelLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />}
+            label={t('profile.customizeNav') || 'Customize Navigation'}
+            onClick={() => navigate({ to: '/custom-nav' })}
           />
 
           <ActionSetting

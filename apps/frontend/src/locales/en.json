@@ -10,13 +10,18 @@
     "notifications": "Notifications",
     "integrations": "Integrations",
     "teachers": "Teachers",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "customizeNav": "Customize Navigation"
   },
   "nav": {
     "tasks": "Tasks",
     "today": "Today",
     "notes": "Notes",
-    "profile": "Profile"
+    "profile": "Profile",
+    "others": "Others"
+  },
+  "others": {
+    "title": "Others"
   },
   "tasks": {
     "loading": "Loading tasks...",
