@@ -93,8 +93,15 @@ export interface NoteModel {
   folderId: number | null;
 };
 
+export interface NavItem {
+  id: string;
+  href: string;
+  label?: string;
+}
+
 export type UserSettings = {
   notificationsEnabled: boolean;
   lightTheme: boolean;
   language: 'en' | 'cs';
+  customNav?: NavItem[];
 };

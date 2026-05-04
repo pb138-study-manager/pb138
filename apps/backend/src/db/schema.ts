@@ -8,6 +8,7 @@ import {
   timestamp,
   primaryKey,
   unique,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,7 @@ export const userSettings = pgTable('user_settings', {
   notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
   lightTheme: boolean('light_theme').notNull().default(true),
   language: text('language').notNull().default('en'),
+  customNav: jsonb('custom_nav'),
 });
 
 // ---------------------------------------------------------------------------

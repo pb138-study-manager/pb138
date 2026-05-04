@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
-import { UserSettings } from '@/types';
+import { UserSettings, NavItem } from '@/types';
 
 export type UserProfileResponse = {
   id: number;
@@ -70,6 +70,18 @@ export function useProfileManager() {
     }
   };
 
+  const updateCustomNav = async (customNav: NavItem[]) => {
+    try {
+      await api.patch('/users/me/settings', { customNav });
+      queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+        if (!prev) return prev;
+        return { ...prev, settings: { ...prev.settings, customNav } };
+      });
+    } catch (error) {
+      console.error('Failed to update custom nav:', error);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout', {});
@@ -86,8 +98,10 @@ export function useProfileManager() {
     theme,
     language,
     notificationsEnabled,
+    customNav: userData?.settings.customNav,
     changeLanguage,
     updateSettings,
+    updateCustomNav,
     handleLogout,
   };
 }

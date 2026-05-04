@@ -22,6 +22,7 @@ const UpdateSettingsSchema = z.object({
   notificationsEnabled: z.boolean().optional(),
   lightTheme: z.boolean().optional(),
   language: z.enum(['en', 'cs']).optional(),
+  customNav: z.any().optional(),
 });
 
 const ChangePasswordSchema = z.object({
@@ -109,6 +110,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         notificationsEnabled: settings?.notificationsEnabled ?? true,
         lightTheme: settings?.lightTheme ?? true,
         language: settings?.language ?? 'en',
+        customNav: settings?.customNav ?? null,
       },
       enrolledCourses: courseRows.map((row) => ({
         courseId: row.courseId,
@@ -166,6 +168,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       notificationsEnabled: settings?.notificationsEnabled ?? true,
       lightTheme: settings?.lightTheme ?? true,
       language: settings?.language ?? 'en',
+      customNav: settings?.customNav ?? null,
     };
   })
   .patch(
@@ -177,6 +180,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         ...(body.notificationsEnabled !== undefined && { notificationsEnabled: body.notificationsEnabled }),
         ...(body.lightTheme !== undefined && { lightTheme: body.lightTheme }),
         ...(body.language !== undefined && { language: body.language }),
+        ...(body.customNav !== undefined && { customNav: body.customNav }),
       };
       const [updated] = await db
         .insert(userSettings)
