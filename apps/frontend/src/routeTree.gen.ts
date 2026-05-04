@@ -13,7 +13,15 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as CustomNavRouteImport } from './routes/custom-nav'
+import { Route as TodayIndexRouteImport } from './routes/today/index'
+import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
+import { Route as TasksIndexRouteImport } from './routes/tasks/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as OthersIndexRouteImport } from './routes/others/index'
+import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as TeachersNewRouteImport } from './routes/teachers/new'
+import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -35,48 +43,160 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CustomNavRoute = CustomNavRouteImport.update({
+  id: '/custom-nav',
+  path: '/custom-nav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TodayIndexRoute = TodayIndexRouteImport.update({
+  id: '/today/',
+  path: '/today/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersIndexRoute = TeachersIndexRouteImport.update({
+  id: '/teachers/',
+  path: '/teachers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksIndexRoute = TasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OthersIndexRoute = OthersIndexRouteImport.update({
+  id: '/others/',
+  path: '/others/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesIndexRoute = NotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersNewRoute = TeachersNewRouteImport.update({
+  id: '/teachers/new',
+  path: '/teachers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
+  id: '/notes/$noteId',
+  path: '/notes/$noteId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/notes': typeof NotesIndexRoute
+  '/others': typeof OthersIndexRoute
+  '/profile': typeof ProfileIndexRoute
+  '/tasks': typeof TasksIndexRoute
+  '/teachers': typeof TeachersIndexRoute
+  '/today': typeof TodayIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
+  fullPaths:
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/notes/'
+    | '/others/'
+    | '/profile/'
+    | '/tasks/'
+    | '/teachers/'
+    | '/today/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
-  id: '__root__' | '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
+  to:
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/notes'
+    | '/others'
+    | '/profile'
+    | '/tasks'
+    | '/teachers'
+    | '/today'
+  id:
+    | '__root__'
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/notes/'
+    | '/others/'
+    | '/profile/'
+    | '/tasks/'
+    | '/teachers/'
+    | '/today/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  CustomNavRoute: typeof CustomNavRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  NotesNoteIdRoute: typeof NotesNoteIdRoute
+  TeachersNewRoute: typeof TeachersNewRoute
+  NotesIndexRoute: typeof NotesIndexRoute
+  OthersIndexRoute: typeof OthersIndexRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+  TasksIndexRoute: typeof TasksIndexRoute
+  TeachersIndexRoute: typeof TeachersIndexRoute
+  TodayIndexRoute: typeof TodayIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -109,22 +229,86 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/custom-nav': {
+      id: '/custom-nav'
+      path: '/custom-nav'
+      fullPath: '/custom-nav'
+      preLoaderRoute: typeof CustomNavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/today/': {
+      id: '/today/'
+      path: '/today'
+      fullPath: '/today/'
+      preLoaderRoute: typeof TodayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/': {
+      id: '/teachers/'
+      path: '/teachers'
+      fullPath: '/teachers/'
+      preLoaderRoute: typeof TeachersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks/': {
+      id: '/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof TasksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/others/': {
+      id: '/others/'
+      path: '/others'
+      fullPath: '/others/'
+      preLoaderRoute: typeof OthersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/': {
+      id: '/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof NotesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/new': {
+      id: '/teachers/new'
+      path: '/teachers/new'
+      fullPath: '/teachers/new'
+      preLoaderRoute: typeof TeachersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$noteId': {
+      id: '/notes/$noteId'
+      path: '/notes/$noteId'
+      fullPath: '/notes/$noteId'
+      preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  CustomNavRoute: CustomNavRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  NotesNoteIdRoute: NotesNoteIdRoute,
+  TeachersNewRoute: TeachersNewRoute,
+  NotesIndexRoute: NotesIndexRoute,
+  OthersIndexRoute: OthersIndexRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+  TasksIndexRoute: TasksIndexRoute,
+  TeachersIndexRoute: TeachersIndexRoute,
+  TodayIndexRoute: TodayIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

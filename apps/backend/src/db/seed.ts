@@ -17,7 +17,7 @@ async function seed() {
   console.log('  → Inserting roles...');
   const insertedRoles = await db
     .insert(roles)
-    .values([{ name: 'USER' }, { name: 'MENTOR' }, { name: 'ADMIN' }])
+    .values([{ name: 'USER' }, { name: 'MENTOR' }, { name: 'ADMIN' }, { name: 'TEACHER' }])
     .onConflictDoNothing()
     .returning();
 

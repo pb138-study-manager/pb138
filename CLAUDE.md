@@ -17,6 +17,7 @@
 ## Tech Stack (exact versions)
 
 ### Backend
+
 - **Runtime:** Bun (latest)
 - **Framework:** ElysiaJS `^1.0.27`
 - **Language:** TypeScript `^5.4.5`
@@ -27,6 +28,7 @@
 - **CORS:** `@elysiajs/cors ^1.0.2`
 
 ### Frontend
+
 - **Framework:** React `^18.3.0` + TypeScript `^5.4.5`
 - **Build:** Vite `^5.2.12`
 - **Routing:** TanStack Router `^1.32.0` (file-based)
@@ -34,6 +36,7 @@
 - **Testing:** Vitest `^1.6.0` + jsdom, Playwright `^1.44.0`
 
 ### Infrastructure
+
 - **Monorepo:** pnpm workspaces (also npm workspaces in root package.json)
 - **Containerization:** Docker Compose (postgres + backend + frontend/nginx)
 - **CI/CD:** GitHub Actions (lint → test → build → e2e)
@@ -123,19 +126,19 @@ pb138/
 
 ## Current State
 
-| File / Area | Status | Notes |
-|---|---|---|
-| `apps/backend/src/db/schema.ts` | ⚠️ INCOMPLETE | Only a placeholder `users` table — **must be replaced** |
-| `apps/backend/src/index.ts` | ⚠️ INCOMPLETE | Only `/health` route — routes must be added |
-| `apps/backend/src/db/index.ts` | ✅ OK | Drizzle client connected |
-| `apps/frontend/src/routes/__root.tsx` | ✅ OK | Basic layout with navbar |
-| `apps/frontend/src/routes/index.tsx` | ⚠️ INCOMPLETE | Static homepage, no auth |
-| `apps/frontend/src/main.tsx` | ✅ OK | RouterProvider wired |
-| Docker Compose | ✅ OK | postgres + backend + frontend |
-| CI/CD | ✅ OK | lint → test → build → e2e |
-| Auth | ❌ MISSING | JWT not implemented |
-| All CRUD routes | ❌ MISSING | |
-| All frontend pages | ❌ MISSING | |
+| File / Area                           | Status        | Notes                                                   |
+| ------------------------------------- | ------------- | ------------------------------------------------------- |
+| `apps/backend/src/db/schema.ts`       | ⚠️ INCOMPLETE | Only a placeholder `users` table — **must be replaced** |
+| `apps/backend/src/index.ts`           | ⚠️ INCOMPLETE | Only `/health` route — routes must be added             |
+| `apps/backend/src/db/index.ts`        | ✅ OK         | Drizzle client connected                                |
+| `apps/frontend/src/routes/__root.tsx` | ✅ OK         | Basic layout with navbar                                |
+| `apps/frontend/src/routes/index.tsx`  | ⚠️ INCOMPLETE | Static homepage, no auth                                |
+| `apps/frontend/src/main.tsx`          | ✅ OK         | RouterProvider wired                                    |
+| Docker Compose                        | ✅ OK         | postgres + backend + frontend                           |
+| CI/CD                                 | ✅ OK         | lint → test → build → e2e                               |
+| Auth                                  | ❌ MISSING    | JWT not implemented                                     |
+| All CRUD routes                       | ❌ MISSING    |                                                         |
+| All frontend pages                    | ❌ MISSING    |                                                         |
 
 ---
 
@@ -144,13 +147,15 @@ pb138/
 **Replace `apps/backend/src/db/schema.ts` with this exact schema.**
 
 Required imports from `drizzle-orm/pg-core`:
+
 ```
 pgTable, pgEnum, serial, integer, text, boolean, timestamp, primaryKey, unique
 ```
 
 ### Enums
+
 ```typescript
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN']);
+export const roleNameEnum = pgEnum('role_name', ['USER', 'TEACHER', 'ADMIN', '']); // TEACHER added for courses feature
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 ```
 
@@ -271,14 +276,79 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 | place | text | nullable |
 | deleted_at | timestamp | nullable |
 
+**`folders`**
+| Column | Type | Constraints |
+|---|---|---|
+| id | serial | PK |
+| user_id | integer | NOT NULL, FK → users.id |
+| name | text | NOT NULL |
+| deleted_at | timestamp | nullable |
+
+> Folders are flat (no nesting). On folder soft-delete: set `notes.folder_id = NULL` for all notes in that folder first, then soft-delete the folder.
+
 **`notes`**
 | Column | Type | Constraints |
 |---|---|---|
 | id | serial | PK |
 | user_id | integer | NOT NULL, FK → users.id |
 | title | text | NOT NULL |
-| description | text | NOT NULL |
+| description | text | nullable |
+| folder_id | integer | nullable, FK → folders.id |
+| course_id | integer | nullable, FK → courses.id |
 | deleted_at | timestamp | nullable |
+
+> `tasks` and `events` also get an optional `course_id` FK → `courses.id` when courses are implemented.
+
+### Courses (Planned — Shared Model)
+
+> **Implement after Notes API.** Do NOT implement now — this is a spec for future work.
+
+**Design decisions:**
+
+- Courses are **shared** — one record per real course, multiple students enroll
+- Teachers are existing `users` with a new `TEACHER` role (add to `roleNameEnum`)
+- Schedule stored as plain text (e.g. `"Mon 10:00-12:00"`) — no separate schedule table
+- Students link tasks, events, and notes to a course via optional `course_id` FK
+- Course progress = count of DONE tasks linked to that course
+
+**New enum value:** Add `'TEACHER'` to `roleNameEnum`:
+
+```typescript
+export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
+```
+
+**`courses`**
+| Column | Type | Constraints |
+|---|---|---|
+| id | serial | PK |
+| code | text | NOT NULL, UNIQUE (e.g. 'PB138') |
+| name | text | nullable (full name, e.g. 'Web Development Principles') |
+| semester | text | NOT NULL (e.g. 'Spring 2026') |
+| color | text | nullable (hex color chosen by creator) |
+| lecture_schedule | text | nullable (e.g. 'Mon 10:00-12:00') |
+| seminar_schedule | text | nullable (e.g. 'Thu 14:00-16:00') |
+| lecture_teacher_id | integer | nullable, FK → users.id |
+| seminar_teacher_id | integer | nullable, FK → users.id |
+| deleted_at | timestamp | nullable |
+
+**`user_courses`** (junction — enrollment)
+| Column | Type | Constraints |
+|---|---|---|
+| user_id | integer | FK → users.id |
+| course_id | integer | FK → courses.id |
+| PK | (user_id, course_id) | composite |
+
+**Planned API (`/courses`):**
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/courses` | Yes | Courses user is enrolled in |
+| POST | `/courses` | TEACHER | Create course |
+| GET | `/courses/:id` | Yes | Course detail + enrolled count |
+| PATCH | `/courses/:id` | TEACHER (own) | Update course |
+| DELETE | `/courses/:id` | TEACHER (own) | Soft delete |
+| POST | `/courses/:id/enroll` | Yes | Enroll current user |
+| DELETE | `/courses/:id/enroll` | Yes | Unenroll current user |
+| GET | `/courses/:id/progress` | Yes | Task completion stats for this course |
 
 ### Notification & Audit Tables
 
@@ -330,28 +400,38 @@ import { eq, and, isNull } from 'drizzle-orm';
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
   .use(authMiddleware)
   .get('/', async ({ user }) => {
-    return db.select().from(tasks)
+    return db
+      .select()
+      .from(tasks)
       .where(and(eq(tasks.userId, user.id), isNull(tasks.deletedAt)));
   })
-  .post('/', async ({ body, user }) => {
-    const [task] = await db.insert(tasks).values({
-      userId: user.id,
-      title: body.title,
-      dueDate: new Date(body.dueDate),
-      description: body.description,
-    }).returning();
-    await logAction(db, user.id, `Created task ${task.id}: ${task.title}`);
-    return task;
-  }, {
-    body: t.Object({
-      title: t.String({ minLength: 1 }),
-      dueDate: t.String(),
-      description: t.Optional(t.String()),
-    })
-  });
+  .post(
+    '/',
+    async ({ body, user }) => {
+      const [task] = await db
+        .insert(tasks)
+        .values({
+          userId: user.id,
+          title: body.title,
+          dueDate: new Date(body.dueDate),
+          description: body.description,
+        })
+        .returning();
+      await logAction(db, user.id, `Created task ${task.id}: ${task.title}`);
+      return task;
+    },
+    {
+      body: t.Object({
+        title: t.String({ minLength: 1 }),
+        dueDate: t.String(),
+        description: t.Optional(t.String()),
+      }),
+    }
+  );
 ```
 
 Register in `index.ts`:
+
 ```typescript
 import { tasksRoutes } from './routes/tasks';
 app.use(tasksRoutes);
@@ -368,9 +448,15 @@ export const authMiddleware = new Elysia()
   .use(jwt({ name: 'jwt', secret: process.env.JWT_SECRET! }))
   .derive(async ({ jwt, headers, set }) => {
     const token = headers.authorization?.replace('Bearer ', '');
-    if (!token) { set.status = 401; throw new Error('Unauthorized'); }
+    if (!token) {
+      set.status = 401;
+      throw new Error('Unauthorized');
+    }
     const payload = await jwt.verify(token);
-    if (!payload) { set.status = 401; throw new Error('Unauthorized'); }
+    if (!payload) {
+      set.status = 401;
+      throw new Error('Unauthorized');
+    }
     return { user: payload as { id: number; roles: string[] } };
   });
 
@@ -392,11 +478,7 @@ export const requireRole = (role: string) =>
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { auditLogs } from '../db/schema';
 
-export async function logAction(
-  db: PostgresJsDatabase,
-  actorId: number,
-  description: string
-) {
+export async function logAction(db: PostgresJsDatabase, actorId: number, description: string) {
   await db.insert(auditLogs).values({ actorId, description });
 }
 ```
@@ -406,8 +488,10 @@ export async function logAction(
 ### Soft delete pattern
 
 Never use hard DELETE. Always:
+
 ```typescript
-await db.update(tasks)
+await db
+  .update(tasks)
   .set({ deletedAt: new Date() })
   .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)));
 await logAction(db, user.id, `Deleted task ${id}`);
@@ -433,7 +517,9 @@ Every SELECT must filter: `.where(isNull(table.deletedAt))`
 ### Ownership check pattern
 
 ```typescript
-const [task] = await db.select().from(tasks)
+const [task] = await db
+  .select()
+  .from(tasks)
   .where(and(eq(tasks.id, id), eq(tasks.userId, user.id), isNull(tasks.deletedAt)));
 if (!task) {
   set.status = 404;
@@ -444,6 +530,7 @@ if (!task) {
 ### Environment variables (backend)
 
 From `.env.example`:
+
 ```
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pb138
 PORT=3001
@@ -523,7 +610,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 - Files in `src/routes/` become routes automatically
 - `__root.tsx` = root layout wrapping all routes
-- `index.tsx` in a folder = `/folder/` route  
+- `index.tsx` in a folder = `/folder/` route
 - `$paramName.tsx` = dynamic segment `/folder/:paramName`
 - After adding any route file, run: `pnpm --filter @pb138/frontend dev` (the router plugin auto-generates `routeTree.gen.ts`)
 - **Do NOT manually edit `routeTree.gen.ts`**
@@ -533,6 +620,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 Config: `darkMode: 'class'` in `tailwind.config.js` (add if missing).
 
 Apply theme on app load:
+
 ```typescript
 // In main.tsx or auth context:
 const isDark = userSettings?.lightTheme === false;
@@ -555,32 +643,59 @@ export type TaskStatus = 'TODO' | 'IN PROGRESS' | 'DONE';
 export type RoleName = 'USER' | 'MENTOR' | 'ADMIN';
 
 export interface User {
-  id: number; login: string; email: string; roles: RoleName[];
+  id: number;
+  login: string;
+  email: string;
+  roles: RoleName[];
 }
 export interface Task {
-  id: number; userId: number; assignmentId: number | null;
-  title: string; description: string | null;
-  dueDate: string; status: TaskStatus; deletedAt: string | null;
+  id: number;
+  userId: number;
+  assignmentId: number | null;
+  title: string;
+  description: string | null;
+  dueDate: string;
+  status: TaskStatus;
+  deletedAt: string | null;
   eval?: Eval;
 }
 export interface Event {
-  id: number; userId: number; title: string;
-  description: string | null; startDate: string; endDate: string;
-  place: string | null; deletedAt: string | null;
+  id: number;
+  userId: number;
+  title: string;
+  description: string | null;
+  startDate: string;
+  endDate: string;
+  place: string | null;
+  deletedAt: string | null;
 }
 export interface Note {
-  id: number; userId: number; title: string; description: string; deletedAt: string | null;
+  id: number;
+  userId: number;
+  title: string;
+  description: string;
+  deletedAt: string | null;
 }
 export interface Group {
-  id: number; mentorId: number; name: string; deletedAt: string | null;
+  id: number;
+  mentorId: number;
+  name: string;
+  deletedAt: string | null;
   members?: User[];
 }
 export interface Assignment {
-  id: number; groupId: number; title: string;
-  description: string | null; dueDate: string;
+  id: number;
+  groupId: number;
+  title: string;
+  description: string | null;
+  dueDate: string;
 }
 export interface Eval {
-  id: number; taskId: number; feedback: string; score: number; evaluatedAt: string;
+  id: number;
+  taskId: number;
+  feedback: string;
+  score: number;
+  evaluatedAt: string;
 }
 ```
 
@@ -589,77 +704,84 @@ export interface Eval {
 ## API Endpoint Reference
 
 ### Auth (`/auth`)
-| Method | Path | Auth | Body | Description |
-|---|---|---|---|---|
-| POST | `/auth/register` | No | `{ login, email, password, name?, title?, organization? }` | Register |
-| POST | `/auth/verify-email` | No | `{ email, code }` | Verify email code |
-| POST | `/auth/login` | No | `{ login, password }` | Login → JWT |
-| POST | `/auth/logout` | Yes | — | Logout |
+
+| Method | Path                 | Auth | Body                                                       | Description       |
+| ------ | -------------------- | ---- | ---------------------------------------------------------- | ----------------- |
+| POST   | `/auth/register`     | No   | `{ login, email, password, name?, title?, organization? }` | Register          |
+| POST   | `/auth/verify-email` | No   | `{ email, code }`                                          | Verify email code |
+| POST   | `/auth/login`        | No   | `{ login, password }`                                      | Login → JWT       |
+| POST   | `/auth/logout`       | Yes  | —                                                          | Logout            |
 
 ### Tasks (`/tasks`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/tasks` | Yes | List own tasks. Query: `status`, `due_date_from`, `due_date_to`, `sort_by`, `order` |
-| POST | `/tasks` | Yes | Create task. Body: `{ title, dueDate, description? }` |
-| GET | `/tasks/:id` | Yes | Task detail + eval if exists |
-| PATCH | `/tasks/:id` | Yes | Update task. Body: `{ title?, description?, dueDate?, status? }` |
-| DELETE | `/tasks/:id` | Yes | Soft delete (own tasks only) |
-| PATCH | `/tasks/:id/toggle-done` | Yes | Toggle DONE ↔ TODO |
-| POST | `/tasks/:id/eval` | MENTOR | Create eval. Body: `{ score, feedback }` |
-| GET | `/tasks/:id/eval` | Yes | Get eval for task |
+
+| Method | Path                     | Auth   | Description                                                                         |
+| ------ | ------------------------ | ------ | ----------------------------------------------------------------------------------- |
+| GET    | `/tasks`                 | Yes    | List own tasks. Query: `status`, `due_date_from`, `due_date_to`, `sort_by`, `order` |
+| POST   | `/tasks`                 | Yes    | Create task. Body: `{ title, dueDate, description? }`                               |
+| GET    | `/tasks/:id`             | Yes    | Task detail + eval if exists                                                        |
+| PATCH  | `/tasks/:id`             | Yes    | Update task. Body: `{ title?, description?, dueDate?, status? }`                    |
+| DELETE | `/tasks/:id`             | Yes    | Soft delete (own tasks only)                                                        |
+| PATCH  | `/tasks/:id/toggle-done` | Yes    | Toggle DONE ↔ TODO                                                                  |
+| POST   | `/tasks/:id/eval`        | MENTOR | Create eval. Body: `{ score, feedback }`                                            |
+| GET    | `/tasks/:id/eval`        | Yes    | Get eval for task                                                                   |
 
 ### Events (`/events`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/events` | Yes | List own events |
-| POST | `/events` | Yes | Body: `{ title, startDate, endDate, description?, place? }`. Validate: startDate ≤ endDate |
-| GET | `/events/:id` | Yes | Event detail |
-| PATCH | `/events/:id` | Yes | Update event |
-| DELETE | `/events/:id` | Yes | Soft delete |
+
+| Method | Path          | Auth | Description                                                                                |
+| ------ | ------------- | ---- | ------------------------------------------------------------------------------------------ |
+| GET    | `/events`     | Yes  | List own events                                                                            |
+| POST   | `/events`     | Yes  | Body: `{ title, startDate, endDate, description?, place? }`. Validate: startDate ≤ endDate |
+| GET    | `/events/:id` | Yes  | Event detail                                                                               |
+| PATCH  | `/events/:id` | Yes  | Update event                                                                               |
+| DELETE | `/events/:id` | Yes  | Soft delete                                                                                |
 
 ### Notes (`/notes`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/notes` | Yes | List own notes |
-| POST | `/notes` | Yes | Body: `{ title, description }` |
-| GET | `/notes/:id` | Yes | Note detail |
-| PATCH | `/notes/:id` | Yes | Update note |
-| DELETE | `/notes/:id` | Yes | Soft delete |
+
+| Method | Path         | Auth | Description                    |
+| ------ | ------------ | ---- | ------------------------------ |
+| GET    | `/notes`     | Yes  | List own notes                 |
+| POST   | `/notes`     | Yes  | Body: `{ title, description }` |
+| GET    | `/notes/:id` | Yes  | Note detail                    |
+| PATCH  | `/notes/:id` | Yes  | Update note                    |
+| DELETE | `/notes/:id` | Yes  | Soft delete                    |
 
 ### Users (`/users`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/users/me` | Yes | Own profile + settings |
-| PATCH | `/users/me/profile` | Yes | Body: `{ name?, title?, avatar?, organization?, bio? }` |
-| PATCH | `/users/me/password` | Yes | Body: `{ currentPassword, newPassword }` → sends email |
-| GET | `/users/me/settings` | Yes | Get UserSettings |
-| PATCH | `/users/me/settings` | Yes | Body: `{ notificationsEnabled?, lightTheme? }` |
-| GET | `/users/search` | MENTOR | Query: `?q=string`. Search by login/email/name |
+
+| Method | Path                 | Auth   | Description                                             |
+| ------ | -------------------- | ------ | ------------------------------------------------------- |
+| GET    | `/users/me`          | Yes    | Own profile + settings                                  |
+| PATCH  | `/users/me/profile`  | Yes    | Body: `{ name?, title?, avatar?, organization?, bio? }` |
+| PATCH  | `/users/me/password` | Yes    | Body: `{ currentPassword, newPassword }` → sends email  |
+| GET    | `/users/me/settings` | Yes    | Get UserSettings                                        |
+| PATCH  | `/users/me/settings` | Yes    | Body: `{ notificationsEnabled?, lightTheme? }`          |
+| GET    | `/users/search`      | MENTOR | Query: `?q=string`. Search by login/email/name          |
 
 ### Groups (`/groups`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/groups` | Yes | Groups where user is mentor or member |
-| POST | `/groups` | MENTOR | Body: `{ name, memberIds?: number[] }` |
-| GET | `/groups/:id` | Yes | Group detail + members |
-| DELETE | `/groups/:id` | MENTOR | Soft delete (own groups only) |
-| POST | `/groups/:id/members` | MENTOR | Body: `{ userIds: number[] }` → sends emails |
-| DELETE | `/groups/:id/members/:userId` | MENTOR | Remove member → sends email |
-| GET | `/groups/:id/assignments` | Yes | List assignments for group |
-| POST | `/groups/:id/assignments` | MENTOR | Assign task to all members. Body: `{ title, dueDate, description? }` |
+
+| Method | Path                          | Auth   | Description                                                          |
+| ------ | ----------------------------- | ------ | -------------------------------------------------------------------- |
+| GET    | `/groups`                     | Yes    | Groups where user is mentor or member                                |
+| POST   | `/groups`                     | MENTOR | Body: `{ name, memberIds?: number[] }`                               |
+| GET    | `/groups/:id`                 | Yes    | Group detail + members                                               |
+| DELETE | `/groups/:id`                 | MENTOR | Soft delete (own groups only)                                        |
+| POST   | `/groups/:id/members`         | MENTOR | Body: `{ userIds: number[] }` → sends emails                         |
+| DELETE | `/groups/:id/members/:userId` | MENTOR | Remove member → sends email                                          |
+| GET    | `/groups/:id/assignments`     | Yes    | List assignments for group                                           |
+| POST   | `/groups/:id/assignments`     | MENTOR | Assign task to all members. Body: `{ title, dueDate, description? }` |
 
 ### Admin (`/admin`) — requires ADMIN role
-| Method | Path | Description |
-|---|---|---|
-| GET | `/admin/users` | All users (paginated). Query: `page`, `limit`, `q` |
-| POST | `/admin/users` | Create user |
-| PATCH | `/admin/users/:id` | Update user |
-| DELETE | `/admin/users/:id` | Soft delete / deactivate |
-| POST | `/admin/users/:id/roles` | Body: `{ roleId }` — assign role |
-| DELETE | `/admin/users/:id/roles/:roleId` | Remove role |
-| GET | `/admin/audit-logs` | Query: `userId`, `from`, `to`. Paginated |
-| GET | `/admin/settings` | Global system settings |
-| PATCH | `/admin/settings` | Update global settings |
+
+| Method | Path                             | Description                                        |
+| ------ | -------------------------------- | -------------------------------------------------- |
+| GET    | `/admin/users`                   | All users (paginated). Query: `page`, `limit`, `q` |
+| POST   | `/admin/users`                   | Create user                                        |
+| PATCH  | `/admin/users/:id`               | Update user                                        |
+| DELETE | `/admin/users/:id`               | Soft delete / deactivate                           |
+| POST   | `/admin/users/:id/roles`         | Body: `{ roleId }` — assign role                   |
+| DELETE | `/admin/users/:id/roles/:roleId` | Remove role                                        |
+| GET    | `/admin/audit-logs`              | Query: `userId`, `from`, `to`. Paginated           |
+| GET    | `/admin/settings`                | Global system settings                             |
+| PATCH  | `/admin/settings`                | Update global settings                             |
 
 ---
 
@@ -676,6 +798,7 @@ bun run src/db/seed.ts
 ```
 
 **Migration workflow:**
+
 1. Edit `schema.ts`
 2. Run `bun run db:generate` → creates file in `drizzle/`
 3. Run `bun run db:migrate` → applies to DB
@@ -713,6 +836,7 @@ pnpm format
 ## Code Style Rules
 
 From `.eslintrc.json` and `.prettierrc`:
+
 - **Prettier:** `singleQuote: true`, `semi: true`, `tabWidth: 2`, `trailingComma: 'es5'`, `printWidth: 100`
 - **TypeScript:** strict mode, no `any` unless absolutely necessary
 - **React:** `plugin:react/jsx-runtime` (no need to import React in each file)
@@ -724,10 +848,12 @@ From `.eslintrc.json` and `.prettierrc`:
 ## Use Case Summary (what must be implemented)
 
 ### Unregistered User
+
 - `createAccount` → register with email verification
 - `logIn` → JWT auth
 
 ### User (authenticated)
+
 - `manageTask` → CRUD tasks + mark done + filter/sort
 - `manageEvent` → CRUD events
 - `manageNotes` → CRUD notes
@@ -739,18 +865,21 @@ From `.eslintrc.json` and `.prettierrc`:
 - `logOut`
 
 ### Mentor (extends User)
+
 - `manageGroup` → create/delete groups
 - `addUserToGroup` → search users, add/remove from group → email notifications
 - `assignTask` → create task for all group members at once
 - `evaluateTask` → score + feedback on DONE tasks → email notification
 
 ### Admin
+
 - `manageUsers` → CRUD users
 - `manageRoles` → assign/remove roles
 - `manageSystemSettings` → global settings
 - `viewLogs` → audit log viewer
 
 ### System (automated)
+
 - `checkDeadlines` → cron job every hour, find tasks/events within 24h of deadline
 - `sendNotification` → send email via SMTP, log in `emails` table
 

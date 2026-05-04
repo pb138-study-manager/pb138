@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { api } from '../lib/api';
 
 export const Route = createFileRoute('/register')({
   component: RegisterPage,
@@ -23,7 +24,7 @@ function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -31,6 +32,16 @@ function RegisterPage() {
         },
       });
       if (error) throw error;
+
+      // Sync the newly created user to our backend's public.users table
+      if (data?.user && data.user.email) {
+        await api.post('/auth/sync', {
+          email: data.user.email,
+          authId: data.user.id,
+          fullName: fullName,
+        });
+      }
+
       // Supabase sends a verification email — tell the user to check their inbox
       navigate({ to: '/verify-email' });
     } catch (err: unknown) {
