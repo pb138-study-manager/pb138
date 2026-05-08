@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Clock, Users, MoreVertical, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Clock, Users, MoreVertical, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { api } from '@/lib/api';
 import { Task } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,7 +21,17 @@ export default function TaskCard({
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [subtasksOpen, setSubtasksOpen] = useState(false);
+  const [subtasks, setSubtasks] = useState<Task[]>([]);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!subtasksOpen || subtasks.length > 0) return;
+    api.get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`)
+      .then((t) => setSubtasks(t.subtasks ?? []))
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtasksOpen, task.id]);
 
   const dueTime = task.dueDate
     ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
@@ -56,7 +67,8 @@ export default function TaskCard({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 flex items-start gap-3 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow">
+      <div className="flex items-start gap-3">
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
           {task.title}
@@ -116,6 +128,51 @@ export default function TaskCard({
               : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           }`}
         />
+      </div>
+      </div>
+      <div className="mt-1 px-1">
+        <button
+          onClick={() => setSubtasksOpen((o) => !o)}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          {subtasksOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          Subtasks
+        </button>
+        {subtasksOpen && (
+          <div className="mt-2 pl-2 space-y-1 border-t border-gray-100 dark:border-gray-700 pt-2">
+            {subtasks.length === 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500">No subtasks.</p>
+            )}
+            {subtasks.map((sub) => (
+              <div key={sub.id} className="flex items-center gap-2">
+                <Checkbox
+                  checked={sub.status === 'DONE'}
+                  onCheckedChange={() => onToggle(sub.id)}
+                  className={`w-5 h-5 rounded-full cursor-pointer flex-shrink-0 ${
+                    sub.status === 'DONE'
+                      ? 'bg-green-500 border-green-500 dark:bg-green-600 dark:border-green-600'
+                      : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+                  }`}
+                />
+                <span
+                  className={`text-xs flex-1 truncate ${
+                    sub.status === 'DONE'
+                      ? 'line-through text-gray-400 dark:text-gray-500'
+                      : 'text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  {sub.title}
+                </span>
+                <button
+                  onClick={() => onDelete(sub.id)}
+                  className="text-gray-300 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-400 flex-shrink-0"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

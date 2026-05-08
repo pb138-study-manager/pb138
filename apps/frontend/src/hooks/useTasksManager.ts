@@ -47,9 +47,12 @@ export function useTasksManager() {
         .catch(console.error),
   });
 
-  async function handleCreate(title: string, dueDate: string) {
+  async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = []) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => [...prev, newTask]);
+    for (const subTitle of subtaskTitles) {
+      await api.post<Task>('/tasks', { title: subTitle, dueDate, parentId: newTask.id });
+    }
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
   }
 
   async function handleToggle(id: number) {
