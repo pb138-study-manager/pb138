@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { UserSettings, NavItem } from '@/types';
@@ -22,6 +23,7 @@ export function useProfileManager() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { i18n } = useTranslation();
+  const { signOut } = useAuth();
 
   const { data: userData, isPending } = useQuery({
     queryKey: ['userMe'],
@@ -88,7 +90,7 @@ export function useProfileManager() {
     } catch (e) {
       console.error('Failed to logout on backend', e);
     }
-    localStorage.removeItem('token');
+    await signOut();
     navigate({ to: '/login' });
   };
 
