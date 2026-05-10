@@ -28,6 +28,8 @@ export interface Task {
   status: TaskStatus;
   deletedAt: string | null;
   subtasks?: Task[];
+  subtaskCount?: number;
+  doneSubtaskCount?: number;
   eval?: Eval;
 }
 

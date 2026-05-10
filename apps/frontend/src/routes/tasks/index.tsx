@@ -20,6 +20,7 @@ export function TasksPage() {
     counts,
     handleCreate,
     handleToggle,
+    handleEditFull,
     handleDelete,
   } = useTasksManager();
 
@@ -51,6 +52,7 @@ export function TasksPage() {
             variant="default"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onEditFull={handleEditFull}
             onDelete={handleDelete}
           />
           <TaskSection
@@ -60,6 +62,7 @@ export function TasksPage() {
             variant="backlog"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onEditFull={handleEditFull}
             onDelete={handleDelete}
           />
           <TaskSection
@@ -69,6 +72,7 @@ export function TasksPage() {
             variant="done"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
+            onEditFull={handleEditFull}
             onDelete={handleDelete}
           />
         </div>
