@@ -15,13 +15,17 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomNavRouteImport } from './routes/custom-nav'
 import { Route as TodayIndexRouteImport } from './routes/today/index'
+import { Route as TimelineIndexRouteImport } from './routes/timeline/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as OthersIndexRouteImport } from './routes/others/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as CoursesIndexRouteImport } from './routes/courses/index'
 import { Route as TeachersNewRouteImport } from './routes/teachers/new'
 import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
+import { Route as CoursesNewRouteImport } from './routes/courses/new'
+import { Route as CoursesCourseIdRouteImport } from './routes/courses/$courseId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -53,6 +57,11 @@ const TodayIndexRoute = TodayIndexRouteImport.update({
   path: '/today/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimelineIndexRoute = TimelineIndexRouteImport.update({
+  id: '/timeline/',
+  path: '/timeline/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeachersIndexRoute = TeachersIndexRouteImport.update({
   id: '/teachers/',
   path: '/teachers/',
@@ -78,6 +87,11 @@ const NotesIndexRoute = NotesIndexRouteImport.update({
   path: '/notes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeachersNewRoute = TeachersNewRouteImport.update({
   id: '/teachers/new',
   path: '/teachers/new',
@@ -88,6 +102,16 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
   path: '/notes/$noteId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoursesNewRoute = CoursesNewRouteImport.update({
+  id: '/courses/new',
+  path: '/courses/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/custom-nav': typeof CustomNavRoute
@@ -95,13 +119,17 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,13 +138,17 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/courses': typeof CoursesIndexRoute
   '/notes': typeof NotesIndexRoute
   '/others': typeof OthersIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/teachers': typeof TeachersIndexRoute
+  '/timeline': typeof TimelineIndexRoute
   '/today': typeof TodayIndexRoute
 }
 export interface FileRoutesById {
@@ -126,13 +158,17 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,13 +179,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/courses/'
     | '/notes/'
     | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/timeline/'
     | '/today/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -158,13 +198,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/courses'
     | '/notes'
     | '/others'
     | '/profile'
     | '/tasks'
     | '/teachers'
+    | '/timeline'
     | '/today'
   id:
     | '__root__'
@@ -173,13 +217,17 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/courses/'
     | '/notes/'
     | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/timeline/'
     | '/today/'
   fileRoutesById: FileRoutesById
 }
@@ -189,13 +237,17 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  CoursesNewRoute: typeof CoursesNewRoute
   NotesNoteIdRoute: typeof NotesNoteIdRoute
   TeachersNewRoute: typeof TeachersNewRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
   NotesIndexRoute: typeof NotesIndexRoute
   OthersIndexRoute: typeof OthersIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   TasksIndexRoute: typeof TasksIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
+  TimelineIndexRoute: typeof TimelineIndexRoute
   TodayIndexRoute: typeof TodayIndexRoute
 }
 
@@ -243,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TodayIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/timeline/': {
+      id: '/timeline/'
+      path: '/timeline'
+      fullPath: '/timeline/'
+      preLoaderRoute: typeof TimelineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teachers/': {
       id: '/teachers/'
       path: '/teachers'
@@ -278,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teachers/new': {
       id: '/teachers/new'
       path: '/teachers/new'
@@ -292,6 +358,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/courses/new': {
+      id: '/courses/new'
+      path: '/courses/new'
+      fullPath: '/courses/new'
+      preLoaderRoute: typeof CoursesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId': {
+      id: '/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId'
+      preLoaderRoute: typeof CoursesCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -301,13 +381,17 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  CoursesCourseIdRoute: CoursesCourseIdRoute,
+  CoursesNewRoute: CoursesNewRoute,
   NotesNoteIdRoute: NotesNoteIdRoute,
   TeachersNewRoute: TeachersNewRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
   NotesIndexRoute: NotesIndexRoute,
   OthersIndexRoute: OthersIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   TasksIndexRoute: TasksIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,
+  TimelineIndexRoute: TimelineIndexRoute,
   TodayIndexRoute: TodayIndexRoute,
 }
 export const routeTree = rootRouteImport
