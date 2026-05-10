@@ -20,6 +20,7 @@ function TodayPage() {
     isSameDay,
     handleCreate,
     handleToggle,
+    handleEditFull,
     handleDelete,
   } = useTodayManager();
 
@@ -57,6 +58,7 @@ function TodayPage() {
           variant="default"
           onTaskCreated={handleCreate}
           onToggle={handleToggle}
+          onEditFull={handleEditFull}
           onDelete={handleDelete}
         />
       </div>

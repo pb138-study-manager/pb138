@@ -4,7 +4,7 @@ import { db } from '../db';
 import { tasks } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const CreateTaskSchema = z.object({
@@ -32,16 +32,31 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
     }
   })
   .get('/', async ({ user }) => {
-    return db
+    const authUser = user as AuthUser;
+    const parentTasks = await db
       .select()
       .from(tasks)
-      .where(
-        and(
-          eq(tasks.userId, (user as AuthUser).id),
-          isNull(tasks.deletedAt),
-          isNull(tasks.parentId)
-        )
-      );
+      .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNull(tasks.parentId)));
+
+    const allSubtasks = await db
+      .select({ parentId: tasks.parentId, status: tasks.status })
+      .from(tasks)
+      .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNotNull(tasks.parentId)));
+
+    const subtaskMap = new Map<number, { total: number; done: number }>();
+    for (const sub of allSubtasks) {
+      if (sub.parentId === null) continue;
+      const entry = subtaskMap.get(sub.parentId) ?? { total: 0, done: 0 };
+      entry.total++;
+      if (sub.status === 'DONE') entry.done++;
+      subtaskMap.set(sub.parentId, entry);
+    }
+
+    return parentTasks.map((task) => ({
+      ...task,
+      subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
+      doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
+    }));
   })
   .post(
     '/',
