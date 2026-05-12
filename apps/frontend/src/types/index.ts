@@ -81,27 +81,29 @@ export interface Eval {
   evaluatedAt: string;
 }
 
-export interface FolderModel {
+/** Študent v kurze (mock / neskôr z API) */
+export interface CourseStudent {
   id: number;
   name: string;
+  login: string;
 }
 
-export interface NoteModel {
-  id: number;
+/** Položka študijného materiálu v kurze */
+export interface CourseStudyMaterial {
+  id: string;
   title: string;
   description: string | null;
-  folderId: number | null;
-};
-
-export interface NavItem {
-  id: string;
-  href: string;
-  label?: string;
+  /** Voliteľný odkaz (PDF, video, …) */
+  url: string | null;
 }
 
-export type UserSettings = {
-  notificationsEnabled: boolean;
-  lightTheme: boolean;
-  language: 'en' | 'cs';
-  customNav?: NavItem[];
-};
+/** Úloha zobrazená v detaile kurzu */
+export interface CourseTaskListItem {
+  id: string;
+  title: string;
+  dueLabel: string;
+  subject: string | null;
+  /** Komu je úloha určená */
+  target: 'all' | 'one';
+  targetStudentName: string | null;
+}

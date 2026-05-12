@@ -15,13 +15,23 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomNavRouteImport } from './routes/custom-nav'
 import { Route as TodayIndexRouteImport } from './routes/today/index'
+import { Route as TimelineIndexRouteImport } from './routes/timeline/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
 import { Route as TasksIndexRouteImport } from './routes/tasks/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as OthersIndexRouteImport } from './routes/others/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as TeachersNewRouteImport } from './routes/teachers/new'
 import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
+import { Route as CoursesNewRouteImport } from './routes/courses/new'
+import { Route as CoursesCourseIdRouteImport } from './routes/courses/$courseId'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRolesRouteImport } from './routes/admin/roles'
+import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminDatabaseRouteImport } from './routes/admin/database'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -53,6 +63,11 @@ const TodayIndexRoute = TodayIndexRouteImport.update({
   path: '/today/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimelineIndexRoute = TimelineIndexRouteImport.update({
+  id: '/timeline/',
+  path: '/timeline/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeachersIndexRoute = TeachersIndexRouteImport.update({
   id: '/teachers/',
   path: '/teachers/',
@@ -78,6 +93,16 @@ const NotesIndexRoute = NotesIndexRouteImport.update({
   path: '/notes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeachersNewRoute = TeachersNewRouteImport.update({
   id: '/teachers/new',
   path: '/teachers/new',
@@ -88,6 +113,41 @@ const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
   path: '/notes/$noteId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoursesNewRoute = CoursesNewRouteImport.update({
+  id: '/courses/new',
+  path: '/courses/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/admin/roles',
+  path: '/admin/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/admin/logs',
+  path: '/admin/logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
+  id: '/admin/database',
+  path: '/admin/database',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/custom-nav': typeof CustomNavRoute
@@ -95,13 +155,23 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,13 +180,23 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin': typeof AdminIndexRoute
+  '/courses': typeof CoursesIndexRoute
   '/notes': typeof NotesIndexRoute
   '/others': typeof OthersIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/tasks': typeof TasksIndexRoute
   '/teachers': typeof TeachersIndexRoute
+  '/timeline': typeof TimelineIndexRoute
   '/today': typeof TodayIndexRoute
 }
 export interface FileRoutesById {
@@ -126,13 +206,23 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/others/': typeof OthersIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/tasks/': typeof TasksIndexRoute
   '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,13 +233,23 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin/'
+    | '/courses/'
     | '/notes/'
     | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/timeline/'
     | '/today/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -158,13 +258,23 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin'
+    | '/courses'
     | '/notes'
     | '/others'
     | '/profile'
     | '/tasks'
     | '/teachers'
+    | '/timeline'
     | '/today'
   id:
     | '__root__'
@@ -173,13 +283,23 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin/'
+    | '/courses/'
     | '/notes/'
     | '/others/'
     | '/profile/'
     | '/tasks/'
     | '/teachers/'
+    | '/timeline/'
     | '/today/'
   fileRoutesById: FileRoutesById
 }
@@ -189,13 +309,23 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  AdminDatabaseRoute: typeof AdminDatabaseRoute
+  AdminLogsRoute: typeof AdminLogsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  CoursesNewRoute: typeof CoursesNewRoute
   NotesNoteIdRoute: typeof NotesNoteIdRoute
   TeachersNewRoute: typeof TeachersNewRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
   NotesIndexRoute: typeof NotesIndexRoute
   OthersIndexRoute: typeof OthersIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   TasksIndexRoute: typeof TasksIndexRoute
   TeachersIndexRoute: typeof TeachersIndexRoute
+  TimelineIndexRoute: typeof TimelineIndexRoute
   TodayIndexRoute: typeof TodayIndexRoute
 }
 
@@ -243,6 +373,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TodayIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/timeline/': {
+      id: '/timeline/'
+      path: '/timeline'
+      fullPath: '/timeline/'
+      preLoaderRoute: typeof TimelineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teachers/': {
       id: '/teachers/'
       path: '/teachers'
@@ -278,6 +415,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teachers/new': {
       id: '/teachers/new'
       path: '/teachers/new'
@@ -292,6 +443,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesNoteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/courses/new': {
+      id: '/courses/new'
+      path: '/courses/new'
+      fullPath: '/courses/new'
+      preLoaderRoute: typeof CoursesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId': {
+      id: '/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId'
+      preLoaderRoute: typeof CoursesCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/admin/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/admin/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/database': {
+      id: '/admin/database'
+      path: '/admin/database'
+      fullPath: '/admin/database'
+      preLoaderRoute: typeof AdminDatabaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -301,13 +501,23 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  AdminDatabaseRoute: AdminDatabaseRoute,
+  AdminLogsRoute: AdminLogsRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  CoursesCourseIdRoute: CoursesCourseIdRoute,
+  CoursesNewRoute: CoursesNewRoute,
   NotesNoteIdRoute: NotesNoteIdRoute,
   TeachersNewRoute: TeachersNewRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
   NotesIndexRoute: NotesIndexRoute,
   OthersIndexRoute: OthersIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   TasksIndexRoute: TasksIndexRoute,
   TeachersIndexRoute: TeachersIndexRoute,
+  TimelineIndexRoute: TimelineIndexRoute,
   TodayIndexRoute: TodayIndexRoute,
 }
 export const routeTree = rootRouteImport
