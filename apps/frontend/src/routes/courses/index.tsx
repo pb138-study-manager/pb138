@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, Plus, CheckSquare, FileText } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,

@@ -7,17 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  Plus, 
-  ChevronLeft, 
-  ChevronRight, 
-  Users, 
-  LayoutGrid, 
-  Calendar as CalendarIcon, 
-  FileText, 
-  UserCircle,
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Users,
   ArrowUp,
   CalendarDays,
   Clock
@@ -51,11 +46,15 @@ function TimelinePage() {
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-10 w-10">
-              <Plus className="w-6 h-6" />
-            </Button>
-          </DialogTrigger>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            type="button"
+            onClick={() => setIsAddOpen(true)}
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
           <DialogContent 
             className="fixed top-6 right-6 left-auto translate-x-0 translate-y-0 sm:max-w-[320px] w-[85vw] border-none shadow-none p-0 bg-transparent focus:outline-none"
           >
@@ -198,14 +197,5 @@ function LegendBadge({ color, label }: { color: string, label: string }) {
       <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
       {label}
     </Badge>
-  )
-}
-
-function NavIcon({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
-  return (
-    <div className={`flex flex-col items-center gap-1 transition-colors ${active ? 'text-gray-900' : 'text-gray-300'}`}>
-      <div className="w-6 h-6">{icon}</div>
-      <span className="text-[10px] font-bold">{label}</span>
-    </div>
   )
 }

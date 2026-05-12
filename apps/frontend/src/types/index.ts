@@ -80,3 +80,30 @@ export interface Eval {
   score: number;
   evaluatedAt: string;
 }
+
+/** Študent v kurze (mock / neskôr z API) */
+export interface CourseStudent {
+  id: number;
+  name: string;
+  login: string;
+}
+
+/** Položka študijného materiálu v kurze */
+export interface CourseStudyMaterial {
+  id: string;
+  title: string;
+  description: string | null;
+  /** Voliteľný odkaz (PDF, video, …) */
+  url: string | null;
+}
+
+/** Úloha zobrazená v detaile kurzu */
+export interface CourseTaskListItem {
+  id: string;
+  title: string;
+  dueLabel: string;
+  subject: string | null;
+  /** Komu je úloha určená */
+  target: 'all' | 'one';
+  targetStudentName: string | null;
+}

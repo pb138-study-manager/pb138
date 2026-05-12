@@ -13,6 +13,7 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TimelineIndexRouteImport } from './routes/timeline/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
@@ -20,10 +21,16 @@ import { Route as TasksIndexRouteImport } from './routes/tasks/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as NotesIndexRouteImport } from './routes/notes/index'
 import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as TeachersNewRouteImport } from './routes/teachers/new'
 import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
 import { Route as CoursesNewRouteImport } from './routes/courses/new'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses/$courseId'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRolesRouteImport } from './routes/admin/roles'
+import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminDatabaseRouteImport } from './routes/admin/database'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -43,6 +50,11 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -80,6 +92,11 @@ const CoursesIndexRoute = CoursesIndexRouteImport.update({
   path: '/courses/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const TeachersNewRoute = TeachersNewRouteImport.update({
   id: '/teachers/new',
   path: '/teachers/new',
@@ -100,17 +117,49 @@ const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   path: '/courses/$courseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
+  id: '/database',
+  path: '/database',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/profile/': typeof ProfileIndexRoute
@@ -124,10 +173,16 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin': typeof AdminIndexRoute
   '/courses': typeof CoursesIndexRoute
   '/notes': typeof NotesIndexRoute
   '/profile': typeof ProfileIndexRoute
@@ -138,14 +193,21 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/courses/new': typeof CoursesNewRoute
   '/notes/$noteId': typeof NotesNoteIdRoute
   '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
   '/courses/': typeof CoursesIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/profile/': typeof ProfileIndexRoute
@@ -157,14 +219,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/dashboard'
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
     | '/courses/$courseId'
     | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin/'
     | '/courses/'
     | '/notes/'
     | '/profile/'
@@ -178,10 +247,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
     | '/courses/$courseId'
     | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin'
     | '/courses'
     | '/notes'
     | '/profile'
@@ -191,14 +266,21 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/dashboard'
     | '/login'
     | '/register'
     | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
     | '/courses/$courseId'
     | '/courses/new'
     | '/notes/$noteId'
     | '/teachers/new'
+    | '/admin/'
     | '/courses/'
     | '/notes/'
     | '/profile/'
@@ -209,6 +291,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
@@ -253,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -304,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/teachers/new': {
       id: '/teachers/new'
       path: '/teachers/new'
@@ -332,11 +429,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesCourseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/database': {
+      id: '/admin/database'
+      path: '/database'
+      fullPath: '/admin/database'
+      preLoaderRoute: typeof AdminDatabaseRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminDatabaseRoute: typeof AdminDatabaseRoute
+  AdminLogsRoute: typeof AdminLogsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDatabaseRoute: AdminDatabaseRoute,
+  AdminLogsRoute: AdminLogsRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
