@@ -50,7 +50,7 @@ Action examples: feat, change, fix.
 - Valéria Kvaššayová (550435)
 - Jaroslav Svajčík (564578)
 - Peter Perveka (564577)
-- 
+- Martin Boucník (564157)
 
 # Description
 
