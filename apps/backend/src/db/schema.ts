@@ -9,6 +9,7 @@ import {
   primaryKey,
   unique,
   jsonb,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 
 // ---------------------------------------------------------------------------
@@ -181,6 +182,7 @@ export const tasks = pgTable('tasks', {
     .references(() => users.id),
   assignmentId: integer('assignment_id').references(() => assignments.id),
   courseId: integer('course_id').references(() => courses.id),
+  parentId: integer('parent_id').references((): AnyPgColumn => tasks.id),
   title: text('title').notNull(),
   description: text('description'),
   dueDate: timestamp('due_date').notNull(),

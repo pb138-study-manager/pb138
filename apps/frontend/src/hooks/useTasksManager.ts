@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Task } from '@/types';
+import { Task, TaskStatus } from '@/types';
 
 function splitTasks(tasks: Task[]) {
   const todayEnd = new Date();
@@ -47,9 +47,14 @@ export function useTasksManager() {
         .catch(console.error),
   });
 
-  async function handleCreate(title: string, dueDate: string) {
+  async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = []) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => [...prev, newTask]);
+    await Promise.all(
+      subtaskTitles.map((subTitle) =>
+        api.post<Task>('/tasks', { title: subTitle, dueDate, parentId: newTask.id })
+      )
+    );
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
   }
 
   async function handleToggle(id: number) {
@@ -57,6 +62,34 @@ export function useTasksManager() {
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
       prev.map((t) => (t.id === id ? updated : t))
     );
+  }
+
+  async function handleEdit(
+    id: number,
+    data: { title?: string; description?: string; dueDate?: string }
+  ) {
+    const updated = await api.patch<Task>(`/tasks/${id}`, data);
+    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
+    );
+  }
+
+  async function handleEditFull(
+    id: number,
+    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    subtasksToAdd: string[],
+    subtaskIdsToDelete: number[]
+  ) {
+    await Promise.all([
+      api.patch<Task>(`/tasks/${id}`, data),
+      ...subtaskIdsToDelete.map((subId) => api.delete(`/tasks/${subId}`)),
+    ]);
+    await Promise.all(
+      subtasksToAdd.map((title) =>
+        api.post<Task>('/tasks', { title, dueDate: data.dueDate, parentId: id })
+      )
+    );
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
   }
 
   async function handleDelete(id: number) {
@@ -82,6 +115,8 @@ export function useTasksManager() {
     counts,
     handleCreate,
     handleToggle,
+    handleEdit,
+    handleEditFull,
     handleDelete,
   };
 }

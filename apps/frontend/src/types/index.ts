@@ -21,11 +21,15 @@ export interface Task {
   id: number;
   userId: number;
   assignmentId: number | null;
+  parentId: number | null;
   title: string;
   description: string | null;
   dueDate: string;
   status: TaskStatus;
   deletedAt: string | null;
+  subtasks?: Task[];
+  subtaskCount?: number;
+  doneSubtaskCount?: number;
   eval?: Eval;
 }
 

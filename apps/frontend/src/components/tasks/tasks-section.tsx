@@ -12,6 +12,7 @@ export default function TaskSection({
   variant = 'default',
   onTaskCreated,
   onToggle,
+  onEditFull,
   onDelete,
 }: {
   title: string;
@@ -20,6 +21,7 @@ export default function TaskSection({
   variant?: 'default' | 'backlog' | 'done';
   onTaskCreated: (title: string, dueDate: string, subtasks: string[]) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
+  onEditFull: (id: number, data: { title: string; dueDate: string; description?: string; status?: import('@/types').TaskStatus }, subtasksToAdd: string[], subtaskIdsToDelete: number[]) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
   const icons = {
@@ -57,7 +59,7 @@ export default function TaskSection({
       </div>
       <div>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+          <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
         ))}
       </div>
       <NewTaskDialog

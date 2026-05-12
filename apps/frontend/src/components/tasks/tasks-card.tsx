@@ -1,35 +1,76 @@
-import { useState } from 'react';
-import { Clock, Users, MoreVertical, Trash2 } from 'lucide-react';
-import { Task } from '@/types';
+import { useState, useEffect } from 'react';
+import { Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Task, TaskStatus } from '@/types';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import EditTaskDialog from '@/components/tasks/edit-task-dialog';
+
+type EditData = {
+  title: string;
+  dueDate: string;
+  description?: string;
+  status?: TaskStatus;
+  subtasksToAdd: string[];
+  subtaskIdsToDelete: number[];
+};
 
 export default function TaskCard({
   task,
   onToggle,
+  onEditFull,
   onDelete,
+  indent = false,
 }: {
   task: Task;
   onToggle: (id: number) => Promise<void>;
+  onEditFull: (
+    id: number,
+    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    subtasksToAdd: string[],
+    subtaskIdsToDelete: number[]
+  ) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
+  indent?: boolean;
 }) {
   const [isChecked, setIsChecked] = useState(task.status === 'DONE');
   const [toggling, setToggling] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [subtasksOpen, setSubtasksOpen] = useState(false);
+  const [subtasks, setSubtasks] = useState<Task[]>([]);
+  const [subtasksLoaded, setSubtasksLoaded] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    setIsChecked(task.status === 'DONE');
+  }, [task.status]);
+
+  // Load subtasks when expanded
+  useEffect(() => {
+    if (indent || !subtasksOpen || subtasksLoaded) return;
+    api
+      .get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`)
+      .then((data) => {
+        setSubtasks(data.subtasks ?? []);
+        setSubtasksLoaded(true);
+      })
+      .catch(() => { setSubtasksLoaded(true); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtasksOpen, task.id, indent]);
 
   const dueTime = task.dueDate
     ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
     : t('tasks.noDueDate');
   const subject = task.description || t('tasks.noDescription');
-  const progress = task.status === 'DONE' ? 4 : task.status === 'IN PROGRESS' ? 2 : 1;
-  const maxProgress = 4;
   const hasUsers = task.assignmentId !== null;
-  const progressPercent = maxProgress > 0 ? (progress / maxProgress) * 100 : 0;
+
+  const effectiveDone = subtasksLoaded
+    ? subtasks.filter((s) => s.status === 'DONE').length
+    : (task.doneSubtaskCount ?? 0);
+  const effectiveTotal = subtasksLoaded ? subtasks.length : (task.subtaskCount ?? 0);
+  const progressPercent = effectiveTotal > 0 ? (effectiveDone / effectiveTotal) * 100 : 0;
 
   async function handleToggle() {
     if (toggling || deleting) return;
@@ -51,72 +92,132 @@ export default function TaskCard({
       await onDelete(task.id);
     } catch {
       setDeleting(false);
-      setPopoverOpen(false);
     }
   }
 
+  // Handlers passed down to subtask cards
+  async function handleSubToggle(subId: number) {
+    await onToggle(subId);
+    setSubtasks((prev) =>
+      prev.map((s) => (s.id === subId ? { ...s, status: s.status === 'DONE' ? 'TODO' : 'DONE' } : s))
+    );
+  }
+
+  async function handleSubDelete(subId: number) {
+    await onDelete(subId);
+    setSubtasks((prev) => prev.filter((s) => s.id !== subId));
+  }
+
+  async function handleSubEditFull(
+    subId: number,
+    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    _add: string[],
+    _del: number[]
+  ) {
+    await onEditFull(subId, data, [], []);
+    setSubtasks((prev) =>
+      prev.map((s) =>
+        s.id === subId
+          ? { ...s, title: data.title, dueDate: data.dueDate, description: data.description ?? s.description, status: data.status ?? s.status }
+          : s
+      )
+    );
+  }
+
+  async function handleSave(data: EditData) {
+    await onEditFull(
+      task.id,
+      { title: data.title, dueDate: data.dueDate, description: data.description, status: data.status },
+      data.subtasksToAdd,
+      data.subtaskIdsToDelete
+    );
+    setSubtasksLoaded(false);
+    setSubtasks([]);
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 flex items-start gap-3 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow">
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-          {task.title}
-        </h4>
-        <div className="flex items-center gap-2 mt-0.5">
-          {hasUsers && <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
-          <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            {dueTime} · {subject}
-          </p>
-        </div>
-        {maxProgress > 0 && (
-          <div className="mt-1.5">
-            <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-400 dark:bg-blue-500 transition-all"
-                style={{ width: `${progressPercent}%` }}
-              />
+    <>
+      <div className={cn(
+        'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow',
+        indent && 'ml-6 border-l-2 border-l-blue-200 dark:border-l-blue-800'
+      )}>
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <h4
+              onClick={() => setEditOpen(true)}
+              className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              {task.title}
+            </h4>
+            <div className="flex items-center gap-2 mt-0.5">
+              {hasUsers && <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
+              <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {dueTime} · {subject}
+              </p>
             </div>
-            <span className="text-xs text-blue-500 dark:text-blue-400 font-medium mt-0.5 block">
-              {progress}/{maxProgress}
-            </span>
+            {effectiveTotal > 0 && (
+              <div className="mt-1.5">
+                <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-400 dark:bg-blue-500 transition-all"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <span className="text-xs text-blue-500 dark:text-blue-400 font-medium mt-0.5 block">
+                  {effectiveDone}/{effectiveTotal}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex mt-3 flex-col items-center gap-2">
+            <Checkbox
+              checked={isChecked}
+              onCheckedChange={handleToggle}
+              disabled={toggling || deleting}
+              className={`flex-shrink-0 w-7 h-7 rounded-full transition-all cursor-pointer ${
+                isChecked
+                  ? 'bg-green-500 border-green-500 dark:bg-green-600 dark:border-green-600'
+                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Subtasks toggle - only for top-level tasks */}
+        {!indent && (
+          <div className="mt-1 px-1">
+            <button
+              onClick={() => setSubtasksOpen((o) => !o)}
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              {subtasksOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {subtasksLoaded
+                ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}`
+                : 'Subtasks'}
+            </button>
           </div>
         )}
       </div>
-      <div className="flex mt-3 flex-col items-center gap-2">
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger
-            className={cn(
-              buttonVariants({ variant: 'ghost', size: 'sm' }),
-              'h-6 w-6 p-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:ring-0'
-            )}
-          >
-            <MoreVertical className="w-4 h-4" />
-          </PopoverTrigger>
-          <PopoverContent className="w-32 p-1 dark:bg-gray-800 dark:border-gray-700" align="end">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {t('tasks.delete')}
-            </Button>
-          </PopoverContent>
-        </Popover>
 
-        <Checkbox
-          checked={isChecked}
-          onCheckedChange={handleToggle}
-          disabled={toggling || deleting}
-          className={`flex-shrink-0 w-7 h-7 rounded-full transition-all cursor-pointer ${
-            isChecked
-              ? 'bg-green-500 border-green-500 dark:bg-green-600 dark:border-green-600'
-              : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-          }`}
+      {/* Subtask cards rendered outside parent card, at same level but indented */}
+      {!indent && subtasksOpen && subtasks.map((sub) => (
+        <TaskCard
+          key={sub.id}
+          task={sub}
+          indent
+          onToggle={handleSubToggle}
+          onEditFull={handleSubEditFull}
+          onDelete={handleSubDelete}
         />
-      </div>
-    </div>
+      ))}
+
+      <EditTaskDialog
+        task={task}
+        isOpen={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={handleSave}
+      />
+    </>
   );
 }

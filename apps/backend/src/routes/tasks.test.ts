@@ -96,6 +96,70 @@ describe('POST /tasks', () => {
   });
 });
 
+describe('POST /tasks with parentId', () => {
+  let parentTaskId: number;
+
+  beforeAll(async () => {
+    const [parent] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Parent task', dueDate: new Date('2026-12-31') })
+      .returning();
+    parentTaskId = parent.id;
+  });
+
+  it('creates a subtask linked to parent', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Subtask',
+          dueDate: '2026-12-31T00:00:00.000Z',
+          parentId: parentTaskId,
+        }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.parentId).toBe(parentTaskId);
+  });
+
+  it('returns 404 when parentId does not exist', async () => {
+    const res = await testApp.handle(
+      await req('http://localhost/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Bad subtask',
+          dueDate: '2026-12-31T00:00:00.000Z',
+          parentId: 999999,
+        }),
+      })
+    );
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('GET /tasks top-level only', () => {
+  it('does not return subtasks in the list', async () => {
+    const [parent] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Parent for list test', dueDate: new Date('2026-12-31') })
+      .returning();
+    await db.insert(tasks).values({
+      userId: testUserId,
+      title: 'Child for list test',
+      dueDate: new Date('2026-12-31'),
+      parentId: parent.id,
+    });
+
+    const res = await testApp.handle(await req('http://localhost/tasks'));
+    const body = await res.json();
+    const childInList = body.some((t: { title: string }) => t.title === 'Child for list test');
+    expect(childInList).toBe(false);
+  });
+});
+
 describe('PATCH /tasks/:id', () => {
   let taskId: number;
 
