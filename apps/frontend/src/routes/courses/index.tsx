@@ -13,15 +13,25 @@ export const Route = createFileRoute('/courses/')({
 function CoursesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { courses, isLoadingCourses, isError, handleOpenCourse, handleAddCourse } =
-    useCoursesManager();
+  const {
+    courses,
+    isLoadingCourses,
+    isError,
+    handleOpenCourse,
+    handleAddCourse,
+    dbUser,
+    isLoadingUser,
+  } = useCoursesManager();
+
+  console.log('USER:', user);
+  console.log('COURSES:', courses);
 
   const isTeacher =
     !user?.roles || user.roles.some((role) => role === 'TEACHER' || role === 'ADMIN');
-  const myCourses = courses.filter((c) => c.enrolled || c.lectureTeacherId === user?.id);
-  const otherCourses = courses.filter((c) => !c.enrolled && c.lectureTeacherId !== user?.id);
+  const myCourses = courses.filter((c) => c.enrolled || c.lectureTeacherId === dbUser?.id);
+  const otherCourses = courses.filter((c) => !c.enrolled && c.lectureTeacherId !== dbUser?.id);
 
-  if (isLoadingCourses || isError) {
+  if (isLoadingCourses || isLoadingUser || isError) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
         <p className={isError ? 'text-red-500 font-medium' : 'text-gray-400 dark:text-gray-500'}>

@@ -29,6 +29,11 @@ export function useCoursesManager() {
     },
   });
 
+  const { data: dbUser, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['users', 'me'],
+    queryFn: () => api.get<{ id: number }>('/users/me'),
+  });
+
   const createCourseMutation = useMutation({
     mutationFn: async (data: CreateCourseDto) => {
       return api.post<Course>('/courses', data);
@@ -54,5 +59,7 @@ export function useCoursesManager() {
     handleAddCourse,
     createCourse: createCourseMutation.mutateAsync,
     isCreatingCourse: createCourseMutation.isPending,
+    dbUser,
+    isLoadingUser,
   };
 }
