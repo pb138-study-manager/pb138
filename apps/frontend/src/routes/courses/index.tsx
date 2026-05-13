@@ -1,89 +1,98 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, Plus, CheckSquare, FileText } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/lib/auth';
+import { useCoursesManager } from '@/hooks/useCoursesManager';
+import { CourseCard } from '@/components/courses/course-card';
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
-})
-
-interface Course {
-  id: string
-  code: string
-  name: string
-  progress: [number, number]
-  time: string
-}
-
-const mockCourses: Course[] = [
-  { id: '1', code: 'CODE123', name: 'Full name of the course', progress: [1, 4], time: '10:30 AM' },
-  { id: '2', code: 'CODE123', name: 'Full name of the course', progress: [2, 4], time: '10:30 AM' },
-  { id: '3', code: 'CODE123', name: 'Full name of the course', progress: [1, 4], time: '10:30 AM' },
-]
+});
 
 function CoursesPage() {
-  const navigate = useNavigate()
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const { courses, isLoadingCourses, isError, handleOpenCourse, handleAddCourse } =
+    useCoursesManager();
 
-  const handleOpenCourse = (id: string) => {
-    navigate({ to: `/courses/${id}` })
-  }
+  const isTeacher =
+    !user?.roles || user.roles.some((role) => role === 'TEACHER' || role === 'ADMIN');
+  const myCourses = courses.filter((c) => c.enrolled || c.lectureTeacherId === user?.id);
+  const otherCourses = courses.filter((c) => !c.enrolled && c.lectureTeacherId !== user?.id);
 
-  const handleAddCourse = () => {
-    navigate({ to: '/courses/new' })
+  if (isLoadingCourses || isError) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center transition-colors">
+        <p className={isError ? 'text-red-500 font-medium' : 'text-gray-400 dark:text-gray-500'}>
+          {isError
+            ? 'Error: Could not connect to the Courses API.'
+            : t('courses.loading', 'Loading courses...')}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 transition-colors">
       {/* Header */}
-      <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Courses</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleAddCourse}
-          className="p-0 h-auto w-auto"
-        >
-          <Plus className="w-6 h-6 text-gray-900" />
-        </Button>
+      <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between transition-colors">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('nav.courses')}</h1>
+        {isTeacher && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleAddCourse}
+            className="p-0 h-auto w-auto dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            <Plus className="w-6 h-6 text-gray-900 dark:text-gray-300" />
+          </Button>
+        )}
       </div>
 
-      {/* Courses Grid */}
-      <div className="px-4 py-6 grid grid-cols-2 gap-4">
-        {mockCourses.map((course) => {
-          const progressPercent = (course.progress[0] / course.progress[1]) * 100
+      <div className="px-4 py-6 space-y-8">
+        {/* My Courses */}
+        {myCourses.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              {t('courses.myCourses', 'My Courses')}
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {myCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  onClick={() => handleOpenCourse(course.id)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
-          return (
-            <Card
-              key={course.id}
-              onClick={() => handleOpenCourse(course.id)}
-              className="rounded-2xl shadow-sm cursor-pointer active:scale-95 transition"
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{course.code}</h3>
-                    <p className="text-xs text-gray-500">{course.name}</p>
-                  </div>
-                  <Badge variant="secondary">{course.time}</Badge>
-                </div>
+        {/* Other Courses */}
+        {otherCourses.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              {t('courses.availableCourses', 'Available Courses')}
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {otherCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  onClick={() => handleOpenCourse(course.id)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
-                {/* Progress */}
-                <div className="w-full bg-gray-100 h-1 rounded-full">
-                  <div
-                    className="bg-green-500 h-1 rounded-full"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-
-                <div className="text-xs text-gray-400">
-                  {course.progress[0]}/{course.progress[1]} assignments
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {myCourses.length === 0 && otherCourses.length === 0 && (
+          <p className="text-gray-500 dark:text-gray-400 text-center py-10">
+            {t('courses.noCourses', 'No courses found.')}
+          </p>
+        )}
       </div>
     </div>
-  )
+  );
 }

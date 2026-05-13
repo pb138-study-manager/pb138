@@ -10,6 +10,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   UserSquare,
+  GraduationCap,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/others/')({
@@ -41,6 +42,11 @@ function OthersPage() {
                 icon={<UserSquare className="w-5 h-5 text-gray-600 dark:text-gray-300" />}
                 label={t('profile.teachers')}
                 onClick={() => navigate({ to: '/teachers' })}
+              />
+              <ActionSetting
+                icon={<GraduationCap className="w-5 h-5 text-gray-600 dark:text-gray-300" />}
+                label={t('nav.courses')}
+                onClick={() => navigate({ to: '/courses' })}
               />
               <ActionSetting
                 icon={<ClipboardCheck className="w-5 h-5 text-gray-600 dark:text-gray-300" />}

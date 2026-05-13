@@ -18,7 +18,8 @@
     "today": "Dnes",
     "notes": "Poznámky",
     "profile": "Profil",
-    "others": "Ostatní"
+    "others": "Ostatní",
+    "courses": "Předměty"
   },
   "others": {
     "title": "Ostatní"
@@ -62,5 +63,19 @@
     "deleteFolderDesc": "Opravdu chcete smazat tuto složku a všechny její poznámky? Tuto akci nelze vrátit zpět.",
     "deleteNoteTitle": "Smazat poznámku",
     "deleteNoteDesc": "Opravdu chcete smazat tuto poznámku? Tuto akci nelze vrátit zpět."
+  },
+  "courses": {
+    "assignments": "úkolů",
+    "newCourse": "Nový předmět",
+    "detailsTitle": "Detaily předmětu",
+    "detailsDesc": "Zadejte základní informace o novém předmětu.",
+    "courseCode": "Kód předmětu",
+    "courseCodePlaceholder": "např. PB138",
+    "courseName": "Název předmětu",
+    "courseNamePlaceholder": "Celý název předmětu",
+    "createCourse": "Vytvořit předmět",
+    "semester": "Semestr",
+    "semesterPlaceholder": "např. Jaro 2026",
+    "creating": "Vytváření..."
   }
 }

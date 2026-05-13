@@ -10,6 +10,7 @@ export const AVAILABLE_ITEMS = [
   { id: 'others', label: 'nav.others', href: '/others' },
   { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
   { id: 'teachers', label: 'profile.teachers', href: '/teachers' },
+  { id: 'courses', label: 'nav.courses', href: '/courses' },
 ];
 
 export function useCustomNavManager() {
