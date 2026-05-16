@@ -1,29 +1,37 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
+import { api } from '@/lib/api';
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
 })
-
 interface Course {
-  id: string
-  code: string
-  name: string
-  progress: [number, number]
-  time: string
+  id: number;
+  code: string;
+  name: string | null;
+  semester: string;
+  color: string | null;
+  lectureSchedule: string | null;
+  seminarSchedule: string | null;
 }
-
-const mockCourses: Course[] = [
-  { id: '1', code: 'CODE123', name: 'Full name of the course', progress: [1, 4], time: '10:30 AM' },
-  { id: '2', code: 'CODE123', name: 'Full name of the course', progress: [2, 4], time: '10:30 AM' },
-  { id: '3', code: 'CODE123', name: 'Full name of the course', progress: [1, 4], time: '10:30 AM' },
-]
 
 function CoursesPage() {
   const navigate = useNavigate()
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<Course[]>('/courses/enrolled')
+      .then((data) => setCourses(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleOpenCourse = (id: string) => {
     navigate({ to: `/courses/${id}` })
@@ -31,6 +39,14 @@ function CoursesPage() {
 
   const handleAddCourse = () => {
     navigate({ to: '/courses/new' })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -50,39 +66,28 @@ function CoursesPage() {
 
       {/* Courses Grid */}
       <div className="px-4 py-6 grid grid-cols-2 gap-4">
-        {mockCourses.map((course) => {
-          const progressPercent = (course.progress[0] / course.progress[1]) * 100
-
-          return (
-            <Card
-              key={course.id}
-              onClick={() => handleOpenCourse(course.id)}
-              className="rounded-2xl shadow-sm cursor-pointer active:scale-95 transition"
-            >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{course.code}</h3>
-                    <p className="text-xs text-gray-500">{course.name}</p>
-                  </div>
-                  <Badge variant="secondary">{course.time}</Badge>
-                </div>
-
-                {/* Progress */}
-                <div className="w-full bg-gray-100 h-1 rounded-full">
-                  <div
-                    className="bg-green-500 h-1 rounded-full"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-
-                <div className="text-xs text-gray-400">
-                  {course.progress[0]}/{course.progress[1]} assignments
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {courses.length === 0 ? (
+          <div className="col-span-2 text-center text-gray-400 py-12">
+            No courses yet
+          </div>
+        ) : courses.map((course) => (
+          <Card
+            key={course.id}
+            onClick={() => handleOpenCourse(String(course.id))}
+            className="rounded-2xl shadow-sm cursor-pointer active:scale-95 transition"
+          >
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <h3 className="font-bold text-gray-900">{course.code}</h3>
+                <p className="text-xs text-gray-500">{course.name ?? course.code}</p>
+              </div>
+              <Badge variant="secondary">{course.semester}</Badge>
+              {course.lectureSchedule && (
+                <p className="text-xs text-gray-400">{course.lectureSchedule}</p>
+              )}
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   )

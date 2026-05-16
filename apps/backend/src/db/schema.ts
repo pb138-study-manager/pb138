@@ -291,3 +291,21 @@ export const userIntegrations = pgTable(
     userServiceUnique: unique('user_integrations_user_service_unique').on(table.userId, table.service),
   })
 );
+
+// ---------------------------------------------------------------------------
+// Study Materials
+// ---------------------------------------------------------------------------
+
+export const studyMaterials = pgTable('study_materials', {
+  id: serial('id').primaryKey(),
+  courseId: integer('course_id')
+    .notNull()
+    .references(() => courses.id),
+  createdBy: integer('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  url: text('url'),
+  description: text('description'),
+  deletedAt: timestamp('deleted_at'),
+});

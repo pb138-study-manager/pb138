@@ -50,6 +50,13 @@
       "when": 1778280238709,
       "tag": "0006_milky_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778951904832,
+      "tag": "0007_damp_meltdown",
+      "breakpoints": true
     }
   ]
 }
