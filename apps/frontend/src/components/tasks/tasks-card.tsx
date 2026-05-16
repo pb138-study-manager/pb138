@@ -36,7 +36,7 @@ export default function TaskCard({
 }) {
   const [isChecked, setIsChecked] = useState(task.status === 'DONE');
   const [toggling, setToggling] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting] = useState(false);
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [subtasksLoaded, setSubtasksLoaded] = useState(false);
@@ -85,16 +85,6 @@ export default function TaskCard({
     }
   }
 
-  async function handleDelete() {
-    if (deleting) return;
-    setDeleting(true);
-    try {
-      await onDelete(task.id);
-    } catch {
-      setDeleting(false);
-    }
-  }
-
   // Handlers passed down to subtask cards
   async function handleSubToggle(subId: number) {
     await onToggle(subId);
@@ -111,10 +101,10 @@ export default function TaskCard({
   async function handleSubEditFull(
     subId: number,
     data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
-    _add: string[],
-    _del: number[]
+    subtasksToAdd: string[],
+    subtaskIdsToDelete: number[]
   ) {
-    await onEditFull(subId, data, [], []);
+    await onEditFull(subId, data, subtasksToAdd, subtaskIdsToDelete);
     setSubtasks((prev) =>
       prev.map((s) =>
         s.id === subId

@@ -29,7 +29,7 @@ function RootLayout() {
     if (!isLoading && !isAuthenticated && !isPublicRoute) {
       navigate({ to: '/login' });
     }
-  }, [isAuthenticated, isLoading, isPublicRoute]);
+  }, [isAuthenticated, isLoading, isPublicRoute, navigate]);
 
   if (isLoading) {
     return (
