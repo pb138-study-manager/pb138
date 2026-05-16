@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomNavRouteImport } from './routes/custom-nav'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TodayIndexRouteImport } from './routes/today/index'
 import { Route as TimelineIndexRouteImport } from './routes/timeline/index'
 import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
@@ -56,6 +57,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const CustomNavRoute = CustomNavRouteImport.update({
   id: '/custom-nav',
   path: '/custom-nav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TodayIndexRoute = TodayIndexRouteImport.update({
@@ -150,6 +156,7 @@ const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/custom-nav'
     | '/dashboard'
     | '/login'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/today/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/custom-nav'
     | '/dashboard'
     | '/login'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/today'
   id:
     | '__root__'
+    | '/'
     | '/custom-nav'
     | '/dashboard'
     | '/login'
@@ -304,6 +316,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   CustomNavRoute: typeof CustomNavRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/custom-nav'
       fullPath: '/custom-nav'
       preLoaderRoute: typeof CustomNavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/today/': {
@@ -496,6 +516,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   CustomNavRoute: CustomNavRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,

@@ -1,8 +1,10 @@
-import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router';
+import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import BottomNav from '@/components/ui/bottom-nav';
 import Sidebar from '@/components/ui/sidebar';
 import '@/lib/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useAuth } from '@/lib/auth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,11 +15,36 @@ const queryClient = new QueryClient({
   },
 });
 
-const AUTH_ROUTES = ['/login', '/register'];
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/verify-email'];
 
 function RootLayout() {
   const { pathname } = useLocation();
-  const hideNav = AUTH_ROUTES.includes(pathname);
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  const hideNav = isPublicRoute;
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && !isPublicRoute) {
+      navigate({ to: '/login' });
+    }
+  }, [isAuthenticated, isLoading, isPublicRoute]);
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+        <div
+          className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full
+  animate-spin"
+        />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && !isPublicRoute) {
+    return null;
+  }
 
   const activeTab = pathname.startsWith('/today')
     ? 'today'
