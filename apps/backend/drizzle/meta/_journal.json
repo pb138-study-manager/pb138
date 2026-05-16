@@ -57,6 +57,13 @@
       "when": 1778951904832,
       "tag": "0007_damp_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1778963977284,
+      "tag": "0008_bouncy_cerebro",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@
   "nav": {
     "tasks": "Tasks",
     "today": "Today",
+    "courses": "Courses",
     "notes": "Notes",
     "profile": "Profile",
     "others": "Others"

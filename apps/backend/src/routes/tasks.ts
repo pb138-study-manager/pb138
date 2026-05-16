@@ -13,6 +13,7 @@ const CreateTaskSchema = z.object({
   description: z.string().optional(),
   assignmentId: z.number().optional(),
   parentId: z.number().optional(),
+  courseId: z.number().optional(),
 });
 
 const UpdateTaskSchema = z.object({
@@ -87,6 +88,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
           description: body.description,
           assignmentId: body.assignmentId,
           parentId: body.parentId,
+          courseId: body.courseId,
         })
         .returning();
       await logAction(db, (user as AuthUser).id, `Created task ${task.id}: ${task.title}`);

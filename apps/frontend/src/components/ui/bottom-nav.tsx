@@ -6,6 +6,7 @@ import {
   Menu,
   LayoutDashboard,
   UserSquare,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +20,9 @@ export default function BottomNav({ active }: { active: string }) {
 
   // Fallback to defaults while fetching to prevent empty white flash
   const defaultItems: NavItem[] = [
-    { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
     { id: 'today', label: 'nav.today', href: '/today' },
+    { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
+    { id: 'courses', label: 'nav.courses', href: '/courses' },
     { id: 'notes', label: 'nav.notes', href: '/notes' },
     { id: 'others', label: 'nav.others', href: '/others' },
   ];
@@ -51,6 +53,9 @@ export default function BottomNav({ active }: { active: string }) {
             break;
           case 'dashboard':
             IconComponent = <LayoutDashboard />;
+            break;
+          case 'courses':
+            IconComponent = <BookOpen />;
             break;
           case 'teachers':
             IconComponent = <UserSquare />;

@@ -14,8 +14,8 @@ export function useTodayManager() {
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
   });
 
-  async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = []) {
-    const newTask = await api.post<Task>('/tasks', { title, dueDate });
+  async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = [], description?: string, courseId?: number) {
+    const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
     await Promise.all(
       subtaskTitles.map((subTitle) =>
         api.post<Task>('/tasks', { title: subTitle, dueDate, parentId: newTask.id })

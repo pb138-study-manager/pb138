@@ -131,10 +131,10 @@ export const groupMembers = pgTable(
 export const assignments = pgTable('assignments', {
   id: serial('id').primaryKey(),
   groupId: integer('group_id')
-    .notNull()
     .references(() => groups.id),
   title: text('title').notNull(),
   description: text('description'),
+  courseId: integer('course_id').references(() => courses.id),
   dueDate: timestamp('due_date').notNull(),
   deletedAt: timestamp('deleted_at'),
 });

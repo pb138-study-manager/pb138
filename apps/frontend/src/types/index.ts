@@ -21,6 +21,7 @@ export interface Task {
   id: number;
   userId: number;
   assignmentId: number | null;
+  courseId: number | null;
   parentId: number | null;
   title: string;
   description: string | null;

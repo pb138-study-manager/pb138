@@ -1,7 +1,8 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { courses, userCourses, tasks } from '../db/schema';
+import { courses, userCourses, tasks, assignments, userProfiles } from '../db/schema';
+
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, sql } from 'drizzle-orm';
@@ -57,10 +58,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .from(courses)
       .leftJoin(
         userCourses,
-        and(
-          eq(userCourses.courseId, courses.id),
-          eq(userCourses.userId, (user as AuthUser).id)
-        )
+        and(eq(userCourses.courseId, courses.id), eq(userCourses.userId, (user as AuthUser).id))
       )
       .where(isNull(courses.deletedAt));
   })
@@ -82,10 +80,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .from(courses)
       .innerJoin(
         userCourses,
-        and(
-          eq(userCourses.courseId, courses.id),
-          eq(userCourses.userId, (user as AuthUser).id)
-        )
+        and(eq(userCourses.courseId, courses.id), eq(userCourses.userId, (user as AuthUser).id))
       )
       .where(isNull(courses.deletedAt));
   })
@@ -127,7 +122,14 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .select({ count: sql<number>`count(*)::int` })
       .from(userCourses)
       .where(eq(userCourses.courseId, course.id));
-    return { ...course, enrolledCount: count };
+    const teacher = course.lectureTeacherId
+      ? await db
+          .select({ name: userProfiles.name, avatar: userProfiles.avatar })
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, course.lectureTeacherId))
+          .then((r) => r[0] ?? null)
+      : null;
+    return { ...course, enrolledCount: count, teacherName: teacher?.name ?? null, teacherAvatar: teacher?.avatar ?? null };
   })
   .patch(
     '/:id',
@@ -216,10 +218,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     const deleted = await db
       .delete(userCourses)
       .where(
-        and(
-          eq(userCourses.courseId, course.id),
-          eq(userCourses.userId, (user as AuthUser).id)
-        )
+        and(eq(userCourses.courseId, course.id), eq(userCourses.userId, (user as AuthUser).id))
       )
       .returning();
     if (deleted.length === 0) {
@@ -252,4 +251,62 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     const done = userTasks.filter((t) => t.status === 'DONE').length;
     const percent = total === 0 ? 0 : Math.round((done / total) * 100);
     return { total, done, percent };
-  });
+  })
+  .post(
+    '/:id/assignments',
+    async ({ params, body, user, set }) => {
+      if (!(user as AuthUser).roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+      }
+      const [course] = await db
+        .select()
+        .from(courses)
+        .where(and(eq(courses.id, Number(params.id)), isNull(courses.deletedAt)));
+      if (!course) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Course not found' };
+      }
+      const enrolled = await db
+        .select({ userId: userCourses.userId })
+        .from(userCourses)
+        .where(eq(userCourses.courseId, course.id));
+      if (enrolled.length === 0) {
+        set.status = 400;
+        return { error: 'NO_STUDENTS', message: 'No students enrolled in this course' };
+      }
+      const [assignment] = await db
+        .insert(assignments)
+        .values({
+          courseId: course.id,
+          title: body.title,
+          description: body.description,
+          dueDate: new Date(body.dueDate),
+        })
+        .returning();
+      await db.insert(tasks).values(
+        enrolled.map((e) => ({
+          userId: e.userId,
+          assignmentId: assignment.id,
+          courseId: course.id,
+          title: body.title,
+          description: body.description,
+          dueDate: new Date(body.dueDate),
+        }))
+      );
+      await logAction(
+        db,
+        (user as AuthUser).id,
+        `Created assignment ${assignment.id} for course ${course.id}`
+      );
+      return assignment;
+    },
+    zodBody(
+      z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        dueDate: z.string(),
+      })
+    )
+  )
+;

@@ -1,10 +1,14 @@
-import { useState } from 'react';
-import { Calendar, Tag, Flag, BookOpen, CheckSquare, ChevronUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, Tag, Flag, BookOpen, ListChecks, ArrowUp, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import SubtasksDialog from '@/components/tasks/subtasks-dialog';
+import { api } from '@/lib/api';
+
+interface Course { id: number; code: string; name: string | null; }
 
 export default function NewTaskDialog({
   isOpen,
@@ -13,7 +17,7 @@ export default function NewTaskDialog({
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string, dueDate: string, subtasks: string[]) => Promise<void>;
+  onSubmit: (title: string, dueDate: string, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
 }) {
   const [taskName, setTaskName] = useState('');
   const [isDateOpen, setIsDateOpen] = useState(false);
@@ -22,108 +26,125 @@ export default function NewTaskDialog({
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    api.get<Course[]>('/courses/enrolled').then(setCourses).catch(() => {});
+  }, [isOpen]);
+
   async function handleSubmit() {
     if (!taskName.trim() || !selectedDate) return;
     setSaving(true);
     try {
-      await onSubmit(taskName.trim(), selectedDate.toISOString(), subtasks);
+      await onSubmit(taskName.trim(), selectedDate.toISOString(), subtasks, undefined, selectedCourse?.id);
       setTaskName('');
       setSelectedDate(null);
       setSubtasks([]);
+      setSelectedCourse(null);
       onOpenChange(false);
     } finally {
       setSaving(false);
     }
   }
 
-  const taskOptions = [
-    { icon: Calendar, label: 'Date' },
-    { icon: Tag, label: 'Tags' },
-    { icon: Flag, label: 'Priority' },
-    { icon: BookOpen, label: 'Course' },
-    { icon: CheckSquare, label: 'Subtasks' },
+  const simplePills = [
+    {
+      icon: Calendar,
+      label: selectedDate ? selectedDate.toLocaleDateString() : 'Date',
+      active: selectedDate !== null,
+      onClick: () => setIsDateOpen(true),
+    },
+    { icon: Tag, label: 'Tags', active: false, onClick: () => {} },
+    { icon: Flag, label: 'Priority', active: false, onClick: () => {} },
+    {
+      icon: ListChecks,
+      label: subtasks.length > 0 ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}` : 'Subtasks',
+      active: subtasks.length > 0,
+      onClick: () => setIsSubtasksOpen(true),
+    },
   ];
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
           <DialogHeader>
             <DialogTitle className="hidden">Create Task</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 py-2">
+          <div className="px-6 py-6 space-y-0">
             <Input
               placeholder="Task name..."
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
-              className="text-lg font-semibold border-none border-b rounded-none focus-visible:ring-0 focus-visible:border-b focus-visible:border-gray-400"
+              autoFocus
+              className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
+
             <div className="border-t" />
-            <div className="flex flex-wrap gap-2">
-              {taskOptions.map((option) => {
-                if (option.label === 'Date') {
-                  const hasDate = selectedDate !== null;
 
-                  return (
-                    <Button
-                      key={option.label}
-                      onClick={() => setIsDateOpen(true)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm font-medium ${
-                        hasDate
-                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <option.icon className="w-4 h-4" />
-                      {hasDate ? selectedDate.toLocaleDateString() : option.label}
-                    </Button>
-                  );
-                }
+            <div className="flex flex-wrap gap-2 pt-4">
+              {simplePills.map((pill) => (
+                <button
+                  key={pill.label}
+                  onClick={pill.onClick}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    pill.active
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <pill.icon className="w-3.5 h-3.5" />
+                  {pill.label}
+                </button>
+              ))}
 
-                if (option.label === 'Subtasks') {
-                  const hasSubtasks = subtasks.length > 0;
-                  return (
-                    <Button
-                      key={option.label}
-                      onClick={() => setIsSubtasksOpen(true)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-colors text-sm font-medium ${
-                        hasSubtasks
-                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <option.icon className="w-4 h-4" />
-                      {hasSubtasks
-                        ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}`
-                        : option.label}
-                    </Button>
-                  );
-                }
-
-                // Výchozí vykreslení pro ostatní tlačítka
-                return (
-                  <Button
-                    key={option.label}
-                    className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                      selectedCourse
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
                   >
-                    <option.icon className="w-4 h-4" />
-                    {option.label}
-                  </Button>
-                );
-              })}
+                    <BookOpen className="w-3.5 h-3.5" />
+                    {selectedCourse ? selectedCourse.code : 'Course'}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {courses.length === 0 ? (
+                    <DropdownMenuItem disabled>No enrolled courses</DropdownMenuItem>
+                  ) : (
+                    courses.map((c) => (
+                      <DropdownMenuItem
+                        key={c.id}
+                        onClick={() => setSelectedCourse(selectedCourse?.id === c.id ? null : c)}
+                        className="flex items-center justify-between gap-4"
+                      >
+                        {c.code}
+                        {selectedCourse?.id === c.id && <Check className="w-4 h-4 text-indigo-500" />}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </div>
-          <div className="flex justify-end mt-6">
-            <Button
-              onClick={handleSubmit}
-              disabled={!taskName.trim() || !selectedDate || saving}
-              className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors disabled:opacity-40"
-            >
-              <ChevronUp className="w-6 h-6" />
-            </Button>
+
+            <div className="flex justify-end pt-4">
+              <Button
+                onClick={handleSubmit}
+                disabled={!taskName.trim() || !selectedDate || saving}
+                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-40 p-0"
+              >
+                <ArrowUp className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
       <DatePickerDialog
         isOpen={isDateOpen}
         onOpenChange={setIsDateOpen}

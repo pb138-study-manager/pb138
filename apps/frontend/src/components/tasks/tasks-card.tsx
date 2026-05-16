@@ -128,8 +128,8 @@ export default function TaskCard({
   return (
     <>
       <div className={cn(
-        'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-2 hover:shadow-sm dark:hover:shadow-gray-900 transition-shadow',
-        indent && 'ml-6 border-l-2 border-l-blue-200 dark:border-l-blue-800'
+        'bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-2 shadow-md hover:shadow-lg transition-shadow',
+        indent && 'ml-6'
       )}>
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
@@ -154,13 +154,13 @@ export default function TaskCard({
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <span className="text-xs text-blue-500 dark:text-blue-400 font-medium mt-0.5 block">
-                  {effectiveDone}/{effectiveTotal}
+                <span className="text-xs text-blue-500 font-medium mt-0.5 block">
+                  {effectiveDone}/{effectiveTotal} subtasks
                 </span>
               </div>
             )}
           </div>
-          <div className="flex mt-3 flex-col items-center gap-2">
+          <div className="flex self-center flex-col items-center gap-2">
             <Checkbox
               checked={isChecked}
               onCheckedChange={handleToggle}
@@ -174,12 +174,12 @@ export default function TaskCard({
           </div>
         </div>
 
-        {/* Subtasks toggle - only for top-level tasks */}
-        {!indent && (
+        {/* Subtasks toggle - only for top-level tasks that have subtasks */}
+        {!indent && effectiveTotal > 0 && (
           <div className="mt-1 px-1">
             <button
               onClick={() => setSubtasksOpen((o) => !o)}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600"
             >
               {subtasksOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               {subtasksLoaded
