@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { courses, userCourses, tasks, assignments, userProfiles, users } from '../db/schema';
+import { courses, userCourses, tasks, assignments, userProfiles, users, evals } from '../db/schema';
 
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
@@ -478,4 +478,100 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     },
     zodBody(z.object({ userId: z.number().int().positive() }))
   )
+  .patch(
+    '/:id/assignments/:assignmentId',
+    async ({ params, body, user, set }) => {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+      }
+      const courseId = Number(params.id);
+      const assignmentId = Number(params.assignmentId);
+      const [course] = await db
+        .select()
+        .from(courses)
+        .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+      if (!course) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Course not found' };
+      }
+      if (course.lectureTeacherId !== authUser.id) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+      }
+      const [existing] = await db
+        .select()
+        .from(assignments)
+        .where(
+          and(
+            eq(assignments.id, assignmentId),
+            eq(assignments.courseId, courseId),
+            isNull(assignments.deletedAt)
+          )
+        );
+      if (!existing) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Assignment not found' };
+      }
+      const [updated] = await db
+        .update(assignments)
+        .set({
+          ...(body.title && { title: body.title }),
+          ...(body.description !== undefined && { description: body.description }),
+          ...(body.dueDate && { dueDate: new Date(body.dueDate) }),
+          ...(body.evalType && { evalType: body.evalType }),
+        })
+        .where(eq(assignments.id, assignmentId))
+        .returning();
+      await logAction(db, authUser.id, `Updated assignment ${assignmentId}`);
+      return updated;
+    },
+    zodBody(
+      z.object({
+        title: z.string().min(1).optional(),
+        description: z.string().optional(),
+        dueDate: z.string().optional(),
+        evalType: z.enum(['none', 'pass_fail', 'graded']).optional(),
+      })
+    )
+  )
+  .get('/:id/assignments/:assignmentId/students', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const assignmentId = Number(params.assignmentId);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+    }
+    return db
+      .select({
+        taskId: tasks.id,
+        userId: users.id,
+        name: userProfiles.name,
+        email: users.email,
+        avatar: userProfiles.avatar,
+        status: tasks.status,
+        evalScore: evals.score,
+      })
+      .from(tasks)
+      .innerJoin(users, and(eq(tasks.userId, users.id), isNull(users.deletedAt)))
+      .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+      .leftJoin(evals, eq(evals.taskId, tasks.id))
+      .where(
+        and(eq(tasks.assignmentId, assignmentId), eq(tasks.courseId, courseId), isNull(tasks.deletedAt))
+      );
+  })
 ;
