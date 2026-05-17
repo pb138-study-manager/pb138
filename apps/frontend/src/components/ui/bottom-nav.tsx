@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   UserSquare,
   BookOpen,
+  CalendarDays,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,7 @@ export default function BottomNav({ active }: { active: string }) {
   const defaultItems: NavItem[] = [
     { id: 'today', label: 'nav.today', href: '/today' },
     { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
-    { id: 'courses', label: 'nav.courses', href: '/courses' },
+    { id: 'timeline', label: 'nav.timeline', href: '/timeline' },
     { id: 'notes', label: 'nav.notes', href: '/notes' },
     { id: 'others', label: 'nav.others', href: '/others' },
   ];
@@ -59,6 +60,9 @@ export default function BottomNav({ active }: { active: string }) {
             break;
           case 'teachers':
             IconComponent = <UserSquare />;
+            break;
+          case 'timeline':
+            IconComponent = <CalendarDays />;
             break;
           default:
             IconComponent = <ClipboardCheck />;

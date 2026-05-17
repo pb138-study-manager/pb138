@@ -43,6 +43,8 @@ export interface FeaturedTaskItem {
 }
 
 
+export type EventType = 'EVENT' | 'DEADLINE';
+
 export interface Event {
   id: number;
   userId: number;
@@ -51,6 +53,7 @@ export interface Event {
   startDate: string;
   endDate: string;
   place: string | null;
+  type: EventType;
   deletedAt: string | null;
 }
 

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
-import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import EditTaskDialog from '@/components/tasks/edit-task-dialog';
@@ -63,7 +62,6 @@ export default function TaskCard({
   const dueTime = task.dueDate
     ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
     : t('tasks.noDueDate');
-  const subject = task.description || t('tasks.noDescription');
   const hasUsers = task.assignmentId !== null;
 
   const effectiveDone = subtasksLoaded
@@ -128,24 +126,24 @@ export default function TaskCard({
   return (
     <>
       <div className={cn(
-        'bg-white border border-gray-100 rounded-2xl px-4 py-3 mb-2 shadow-md hover:shadow-lg transition-shadow',
+        'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl mb-2 shadow-sm hover:shadow-md transition-shadow',
         indent && 'ml-6'
       )}>
-        <div className="flex items-start gap-3">
-          <div className="flex-1 min-w-0">
-            <h4
-              onClick={() => setEditOpen(true)}
-              className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
+        <div className="p-4 flex items-center gap-3">
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-xl shrink-0">
+            {hasUsers
+              ? <Users className="w-4 h-4 text-blue-500" />
+              : <Clock className="w-4 h-4 text-blue-400" />
+            }
+          </div>
+          <div className="flex-1 min-w-0" onClick={() => setEditOpen(true)}>
+            <p className={cn(
+              'font-bold text-sm truncate cursor-pointer',
+              isChecked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'
+            )}>
               {task.title}
-            </h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              {hasUsers && <Users className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
-              <Clock className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {dueTime} · {subject}
-              </p>
-            </div>
+            </p>
+            <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
             {effectiveTotal > 0 && (
               <div className="mt-1.5">
                 <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -160,23 +158,24 @@ export default function TaskCard({
               </div>
             )}
           </div>
-          <div className="flex self-center flex-col items-center gap-2">
-            <Checkbox
-              checked={isChecked}
-              onCheckedChange={handleToggle}
-              disabled={toggling || deleting}
-              className={`flex-shrink-0 w-7 h-7 rounded-full transition-all cursor-pointer ${
-                isChecked
-                  ? 'bg-green-500 border-green-500 dark:bg-green-600 dark:border-green-600'
-                  : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              }`}
-            />
-          </div>
+          <button
+            onClick={handleToggle}
+            disabled={toggling || deleting}
+            className="shrink-0 ml-1"
+          >
+            {isChecked ? (
+              <div className="w-7 h-7 rounded-full border-2 border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-600 flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-500" />
+              </div>
+            ) : (
+              <div className="w-7 h-7 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+            )}
+          </button>
         </div>
 
-        {/* Subtasks toggle - only for top-level tasks that have subtasks */}
+        {/* Subtasks toggle */}
         {!indent && effectiveTotal > 0 && (
-          <div className="mt-1 px-1">
+          <div className="px-5 pb-3">
             <button
               onClick={() => setSubtasksOpen((o) => !o)}
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600"

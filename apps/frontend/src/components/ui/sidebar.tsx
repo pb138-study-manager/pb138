@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Menu,
   BookOpen,
+  CalendarDays,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,12 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
       icon: <ClipboardList className="w-5 h-5 shrink-0" />,
       label: t('nav.notes'),
       href: '/notes',
+    },
+    {
+      id: 'timeline',
+      icon: <CalendarDays className="w-5 h-5 shrink-0" />,
+      label: t('nav.timeline'),
+      href: '/timeline',
     },
     {
       id: 'profile',

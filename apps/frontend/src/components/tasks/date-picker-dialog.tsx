@@ -21,11 +21,13 @@ export default function DatePickerDialog({
   onOpenChange,
   currentDate,
   onDateSelect,
+  showDuration = true,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   currentDate?: Date | null;
   onDateSelect?: (date: Date | null) => void;
+  showDuration?: boolean;
 }) {
   const [date, setDate] = useState<Date | null>(new Date(Date.now()));
   const [time, setTime] = useState<string>('08:30:00');
@@ -179,7 +181,7 @@ export default function DatePickerDialog({
             </div>
 
             {/* Duration Row */}
-            <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none hover:bg-muted/50 transition-colors group font-normal">
+            {showDuration && <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none hover:bg-muted/50 transition-colors group font-normal">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg dark:bg-purple-900/30 group-hover:scale-105 transition-transform">
                   <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -191,7 +193,7 @@ export default function DatePickerDialog({
                 defaultValue="02:00"
                 className="w-auto bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
               />
-            </div>
+            </div>}
           </div>
         </div>
       </DialogContent>

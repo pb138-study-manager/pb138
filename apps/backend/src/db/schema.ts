@@ -19,6 +19,7 @@ import {
 export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
+export const eventTypeEnum = pgEnum('event_type', ['EVENT', 'DEADLINE']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -214,6 +215,7 @@ export const events = pgTable('events', {
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
   place: text('place'),
+  type: eventTypeEnum('type').notNull().default('EVENT'),
   courseId: integer('course_id').references(() => courses.id),
   deletedAt: timestamp('deleted_at'),
 });

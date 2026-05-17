@@ -12,6 +12,7 @@ const CreateEventSchema = z.object({
   endDate: z.string(),
   description: z.string().optional(),
   place: z.string().optional(),
+  type: z.enum(['EVENT', 'DEADLINE']).optional(),
 }).refine(
   (data) => new Date(data.startDate) <= new Date(data.endDate),
   { message: 'startDate must not be after endDate', path: ['startDate'] }
@@ -23,6 +24,7 @@ const UpdateEventSchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   place: z.string().optional(),
+  type: z.enum(['EVENT', 'DEADLINE']).optional(),
 }).refine(
   (data) => {
     if (data.startDate && data.endDate) {
@@ -72,6 +74,7 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
           endDate: new Date(body.endDate),
           description: body.description,
           place: body.place,
+          type: body.type ?? 'EVENT',
         })
         .returning();
       await logAction(db, (user as AuthUser).id, `Created event ${event.id}: ${event.title}`);
@@ -121,6 +124,7 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
           ...(body.startDate !== undefined && { startDate: new Date(body.startDate) }),
           ...(body.endDate !== undefined && { endDate: new Date(body.endDate) }),
           ...(body.place !== undefined && { place: body.place }),
+          ...(body.type !== undefined && { type: body.type }),
         })
         .where(eq(events.id, existing.id))
         .returning();

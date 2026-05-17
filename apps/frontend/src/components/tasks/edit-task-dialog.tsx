@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Calendar, Tag, Flag, BookOpen, ListChecks, ArrowUp, Plus, X, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -45,13 +45,15 @@ export default function EditTaskDialog({
   const [originalSubIds, setOriginalSubIds] = useState<number[]>([]);
   const [newSubTitles, setNewSubTitles] = useState<string[]>([]);
   const [newSubInput, setNewSubInput] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [saving] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) { initializedRef.current = false; return; }
     setTitle(task.title);
     setDescription(task.description ?? '');
     setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
@@ -73,10 +75,27 @@ export default function EditTaskDialog({
         })
         .catch(() => {});
     }
+    setTimeout(() => { initializedRef.current = true; }, 100);
   }, [isOpen, task, isSubtask]);
 
   const deletedSubIds = originalSubIds.filter((id) => !existingSubs.some((s) => s.id === id));
   const totalSubtasks = existingSubs.length + newSubTitles.length;
+
+  useEffect(() => {
+    if (!initializedRef.current || !title.trim() || !selectedDate) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onSave({
+        title: title.trim(),
+        dueDate: selectedDate.toISOString(),
+        description: description.trim() || undefined,
+        status,
+        subtasksToAdd: [],
+        subtaskIdsToDelete: [],
+      });
+    }, 800);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [title, description, selectedDate]);
 
   function addNewSub() {
     if (!newSubInput.trim()) return;
@@ -84,22 +103,17 @@ export default function EditTaskDialog({
     setNewSubInput('');
   }
 
-  async function handleSubmit() {
-    if (!title.trim() || !selectedDate) return;
-    setSaving(true);
-    try {
-      await onSave({
-        title: title.trim(),
-        dueDate: selectedDate.toISOString(),
-        description: description.trim() || undefined,
-        status,
-        subtasksToAdd: newSubTitles,
-        subtaskIdsToDelete: deletedSubIds,
-      });
-      onOpenChange(false);
-    } finally {
-      setSaving(false);
-    }
+  async function saveSubtasks() {
+    if (!title.trim() || !selectedDate || saving) return;
+    await onSave({
+      title: title.trim(),
+      dueDate: selectedDate.toISOString(),
+      description: description.trim() || undefined,
+      status,
+      subtasksToAdd: newSubTitles,
+      subtaskIdsToDelete: deletedSubIds,
+    });
+    setNewSubTitles([]);
   }
 
   const pills = [
@@ -201,7 +215,7 @@ export default function EditTaskDialog({
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewSub(); } }}
                       className="text-sm"
                     />
-                    <Button onClick={addNewSub} size="icon" variant="outline" className="flex-shrink-0">
+                    <Button onClick={() => { addNewSub(); setTimeout(saveSubtasks, 0); }} size="icon" variant="outline" className="flex-shrink-0">
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
@@ -230,15 +244,6 @@ export default function EditTaskDialog({
               </>
             )}
 
-            <div className="flex justify-end pt-4">
-              <Button
-                onClick={handleSubmit}
-                disabled={!title.trim() || !selectedDate || saving}
-                className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-40 p-0"
-              >
-                <ArrowUp className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

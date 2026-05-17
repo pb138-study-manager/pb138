@@ -1,197 +1,163 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog"
-import {
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  ArrowUp,
-  CalendarDays,
-  Clock
-} from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTimelineManager } from '@/hooks/useTimelineManager'
+import { EventCard } from '@/components/timeline/EventCard'
+import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard'
+import NewEventDialog from '@/components/timeline/NewEventDialog'
 
 export const Route = createFileRoute('/timeline/')({
   component: TimelinePage,
 })
 
-function TimelinePage() {
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [eventName, setEventName] = useState('')
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
-  const days = [
-    { day: 'M', date: '23', dot: true },
-    { day: 'T', date: '24', dot: false },
-    { day: 'W', date: '25', dot: true },
-    { day: 'T', date: '26', active: true },
-    { day: 'F', date: '27', dot: false },
-    { day: 'S', date: '28', dot: true },
-    { day: 'S', date: '29', dot: true },
-  ]
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+}
+
+function formatMonthYear(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+}
+
+function formatDayHeader(date: Date): string {
+  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+}
+
+function TimelinePage() {
+  const {
+    selectedDate,
+    weekStart,
+    weekDates,
+    eventsForSelectedDate,
+    tasksForSelectedDate,
+    isPending,
+    selectDate,
+    prevWeek,
+    nextWeek,
+    createEvent,
+    deleteEvent,
+    toggleTask,
+    editTaskFull,
+    editEvent,
+  } = useTimelineManager()
+
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const today = new Date()
+
+  type TimelineItem =
+    | { kind: 'event'; time: number; data: (typeof eventsForSelectedDate)[0] }
+    | { kind: 'task'; time: number; data: (typeof tasksForSelectedDate)[0] }
+
+  const timelineItems: TimelineItem[] = [
+    ...eventsForSelectedDate.map((e) => ({ kind: 'event' as const, time: new Date(e.startDate).getTime(), data: e })),
+    ...tasksForSelectedDate.map((t) => ({ kind: 'task' as const, time: new Date(t.dueDate).getTime(), data: t })),
+  ].sort((a, b) => a.time - b.time)
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* --- HEADER & DIALOG --- */}
+    <div className="min-h-screen bg-white dark:bg-gray-900 pb-24">
+      {/* HEADER */}
       <div className="px-6 pt-8 pb-4 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Timeline</h1>
-          <p className="text-sm text-gray-400">Tuesday, Mar 26</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Timeline</h1>
+          <p className="text-sm text-gray-400">{formatDayHeader(selectedDate)}</p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
-            type="button"
-            onClick={() => setIsAddOpen(true)}
-          >
-            <Plus className="w-6 h-6" />
-          </Button>
-          <DialogContent 
-            className="fixed top-6 right-6 left-auto translate-x-0 translate-y-0 sm:max-w-[320px] w-[85vw] border-none shadow-none p-0 bg-transparent focus:outline-none"
-          >
-            <div className="bg-white rounded-3xl p-4 space-y-4 shadow-2xl border border-gray-100">
-              <Input
-                placeholder="Event name..."
-                value={eventName}
-                onChange={(e) => setEventName(e.target.value)}
-                className="border-none text-base focus-visible:ring-0 px-1 placeholder:text-gray-300 shadow-none h-auto"
-              />
-              
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex gap-2">
-                  <Button variant="secondary" size="sm" className="h-7 px-2 text-[10px] gap-1 bg-gray-100 rounded-md border-none text-gray-600">
-                    <Clock className="w-3.5 h-3.5" /> Date
-                  </Button>
-                  <Button variant="secondary" size="sm" className="h-7 px-2 text-[10px] gap-1 bg-gray-100 rounded-md border-none text-gray-600">
-                    <CalendarDays className="w-3.5 h-3.5" /> Calendar
-                  </Button>
-                </div>
-            
-                <Button 
-                  size="icon" 
-                  className="h-8 w-8 rounded-full bg-black hover:bg-gray-800 transition-transform active:scale-90"
-                  onClick={() => {
-                    setIsAddOpen(false)
-                    setEventName('')
-                  }}
-                >
-                  <ArrowUp className="w-4 h-4 text-white" />
-                </Button>
-              </div>
-            </div>
-                
-            {/* The Selector Tooltip - Adjusted for smaller width */}
-            <div className="absolute -bottom-20 right-0 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden min-w-[80px]">
-              <div className="px-4 py-2 text-xs font-bold border-b border-gray-50 bg-gray-50/50 text-gray-900">Event</div>
-              <div className="px-4 py-2 text-xs font-medium text-gray-400 hover:bg-gray-50 cursor-pointer transition-colors">Task</div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10"
+          type="button"
+          onClick={() => setIsAddOpen(true)}
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
       </div>
 
-      {/* --- CALENDAR STRIP --- */}
+      <NewEventDialog
+        isOpen={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onSave={(data) => createEvent(data).then(() => {})}
+      />
+
+      {/* CALENDAR STRIP */}
       <div className="px-4 mb-6">
         <div className="flex items-center justify-between mb-4 px-2">
-          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-50 border-none">
+          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-50 dark:bg-gray-800 border-none" onClick={prevWeek}>
             <ChevronLeft className="w-4 h-4 text-gray-400" />
           </Button>
-          <span className="font-bold text-sm">Mar 2026</span>
-          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-50 border-none">
+          <span className="font-bold text-sm dark:text-white">{formatMonthYear(weekStart)}</span>
+          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-50 dark:bg-gray-800 border-none" onClick={nextWeek}>
             <ChevronRight className="w-4 h-4 text-gray-400" />
           </Button>
         </div>
 
         <div className="flex justify-between gap-1">
-          {days.map((d, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
-              <span className="text-xs font-semibold text-gray-400">{d.day}</span>
-              <div className={`
-                w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border
-                ${d.active ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : 'bg-white border-gray-100 text-gray-900'}
-              `}>
-                <span className="font-bold">{d.date}</span>
-                {d.dot && !d.active && <div className="w-1 h-1 rounded-full bg-red-500" />}
-              </div>
-            </div>
-          ))}
+          {weekDates.map((date, i) => {
+            const isActive = date.toDateString() === selectedDate.toDateString()
+            const isToday = date.toDateString() === today.toDateString()
+            return (
+              <button key={i} onClick={() => selectDate(date)} className="flex flex-col items-center gap-2">
+                <span className="text-xs font-semibold text-gray-400">{DAY_LABELS[i]}</span>
+                <div className={`
+                  w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
+                  ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
+                `}>
+                  <span className="font-bold">{date.getDate()}</span>
+                  {isToday && !isActive && <div className="w-1 h-1 rounded-full bg-red-500" />}
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* --- LEGEND --- */}
+      {/* LEGEND */}
       <div className="px-4 flex gap-2 overflow-x-auto no-scrollbar mb-8">
+        <LegendBadge color="bg-green-500" label="Event" />
         <LegendBadge color="bg-red-500" label="Deadline" />
-        <LegendBadge color="bg-orange-400" label="Tasks" />
-        <LegendBadge color="bg-green-500" label="Events" />
-        <LegendBadge color="bg-blue-500" label="Calendar" />
+        <LegendBadge color="bg-blue-500" label="Tasks" />
       </div>
 
-      {/* --- TIMELINE CONTENT --- */}
-      <div className="px-4 space-y-6">
-        {/* Single Event */}
-        <div className="flex gap-4">
-          <span className="text-[10px] font-bold text-gray-300 w-12 pt-2">10:30 AM</span>
-          <div className="flex-1 relative pl-4 border-l-4 border-green-500 rounded-sm py-1">
-            <Card className="border-gray-100 shadow-sm rounded-2xl">
-              <CardContent className="p-4">
-                <p className="font-bold text-sm">Call mom</p>
-                <p className="text-[10px] text-gray-400">10:30 AM · 15m</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      {/* TIMELINE CONTENT */}
+      <div className="px-4 space-y-4">
+        {isPending && (
+          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
+        )}
 
-        {/* Task with Duration Block */}
-        <div className="flex gap-4">
-          <div className="flex flex-col justify-between py-2">
-            <span className="text-[10px] font-bold text-gray-300 w-12">10:30 AM</span>
-            <span className="text-[10px] font-bold text-gray-300 w-12">4:15 PM</span>
+        {!isPending && timelineItems.length === 0 && (
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center">
+            <p className="text-sm text-gray-400">No events for this day</p>
+            <p className="text-xs text-gray-300 mt-1">Tap + to add one</p>
           </div>
-          <div className="flex-1 space-y-3">
-             <Card className="border-gray-100 shadow-sm rounded-2xl">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-50 p-1.5 rounded-lg">
-                    <Users className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">Task...</p>
-                    <p className="text-[10px] text-gray-400">9:30 AM · 1h</p>
-                  </div>
-                </div>
-                <div className="w-6 h-6 rounded-full border-2 border-gray-200" />
-              </CardContent>
-            </Card>
+        )}
 
-            <div className="bg-gray-50 rounded-2xl border border-dashed border-gray-200 p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-px bg-gray-300 relative mx-1">
-                   <div className="absolute -top-1 -left-[1.5px] w-1 h-1 rounded-full bg-gray-400" />
-                   <div className="absolute -bottom-1 -left-[1.5px] w-1 h-1 rounded-full bg-gray-400" />
-                </div>
-                <span className="text-xs font-bold text-gray-400">8h <span className="font-normal ml-2">→ No plans</span></span>
-              </div>
-              <Plus className="w-4 h-4 text-gray-300" />
-            </div>
-          </div>
-        </div>
+        {timelineItems.map((item) =>
+          item.kind === 'event' ? (
+            <EventCard
+              key={`event-${item.data.id}`}
+              event={item.data}
+              onDelete={() => deleteEvent(item.data.id)}
+              onEdit={(data) => editEvent(item.data.id, data)}
+            />
+          ) : (
+            <TaskTimelineCard
+              key={`task-${item.data.id}`}
+              task={item.data}
+              timeLabel={formatTime(item.data.dueDate)}
+              onToggle={() => toggleTask(item.data.id)}
+              onEditFull={editTaskFull}
+            />
+          )
+        )}
       </div>
-
-      
     </div>
   )
 }
 
-// Sub-components
-function LegendBadge({ color, label }: { color: string, label: string }) {
+function LegendBadge({ color, label }: { color: string; label: string }) {
   return (
     <Badge variant="secondary" className="bg-gray-50 text-gray-500 border-none px-3 py-1 flex gap-2 items-center rounded-full whitespace-nowrap font-medium text-[10px]">
       <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
