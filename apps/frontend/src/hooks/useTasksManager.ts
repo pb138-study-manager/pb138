@@ -4,24 +4,27 @@ import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
 
 function splitTasks(tasks: Task[]) {
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
+  const weekEnd = new Date(todayEnd); weekEnd.setDate(weekEnd.getDate() + 6);
 
+  const overdue: Task[] = [];
   const today: Task[] = [];
-  const backlog: Task[] = [];
+  const thisWeek: Task[] = [];
+  const later: Task[] = [];
   const done: Task[] = [];
 
   for (const task of tasks) {
-    if (task.status === 'DONE') {
-      done.push(task);
-    } else if (new Date(task.dueDate) <= todayEnd) {
-      today.push(task);
-    } else {
-      backlog.push(task);
-    }
+    if (task.status === 'DONE') { done.push(task); continue; }
+    const due = new Date(task.dueDate);
+    if (due < todayStart) overdue.push(task);
+    else if (due <= todayEnd) today.push(task);
+    else if (due <= weekEnd) thisWeek.push(task);
+    else later.push(task);
   }
 
-  return { today, backlog, done };
+  return { overdue, today, thisWeek, later, done };
 }
 
 export function useTasksManager() {
@@ -64,16 +67,6 @@ export function useTasksManager() {
     );
   }
 
-  async function handleEdit(
-    id: number,
-    data: { title?: string; description?: string; dueDate?: string }
-  ) {
-    const updated = await api.patch<Task>(`/tasks/${id}`, data);
-    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
-    );
-  }
-
   async function handleEditFull(
     id: number,
     data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
@@ -97,11 +90,13 @@ export function useTasksManager() {
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
-  const { today, backlog, done } = splitTasks(tasks);
+  const { overdue, today, thisWeek, later, done } = splitTasks(tasks);
 
   const counts = {
+    overdue: overdue.length,
     today: today.length,
-    backlog: backlog.length,
+    thisWeek: thisWeek.length,
+    later: later.length,
     done: done.length,
   };
 
@@ -109,13 +104,14 @@ export function useTasksManager() {
     activeFilter,
     setActiveFilter,
     isPending,
+    overdue,
     today,
-    backlog,
+    thisWeek,
+    later,
     done,
     counts,
     handleCreate,
     handleToggle,
-    handleEdit,
     handleEditFull,
     handleDelete,
   };

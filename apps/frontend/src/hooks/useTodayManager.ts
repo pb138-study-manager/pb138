@@ -1,18 +1,56 @@
-import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { Task, TaskStatus } from '@/types';
-import { useTranslation } from 'react-i18next';
+import { Event, EventType, Task, TaskStatus } from '@/types';
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+}
 
 export function useTodayManager() {
-  const { i18n } = useTranslation();
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const { data: tasks = [], isPending } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
   });
+
+  const now = new Date();
+  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
+
+  const weekEnd = new Date(todayEnd);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+
+  const { data: events = [] } = useQuery({
+    queryKey: ['events-today', todayStart.toISOString()],
+    queryFn: () =>
+      api.get<Event[]>(`/events?from=${todayStart.toISOString()}&to=${weekEnd.toISOString()}`).catch(() => []),
+  });
+
+  const todayEvents = events
+    .filter((e) => isSameDay(new Date(e.startDate), now))
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+  const todayTasks = tasks.filter((t) => {
+    if (t.status === 'DONE') return false;
+    return isSameDay(new Date(t.dueDate), now);
+  });
+
+  const backlogTasks = tasks.filter((t) => {
+    if (t.status === 'DONE') return false;
+    const due = new Date(t.dueDate);
+    return due < todayStart;
+  });
+
+  const doneTasks = tasks.filter((t) => t.status === 'DONE');
+
+  const counts = {
+    today: todayTasks.length,
+    backlog: backlogTasks.length,
+    done: doneTasks.length,
+  };
 
   async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = [], description?: string, courseId?: number) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
@@ -28,16 +66,6 @@ export function useTodayManager() {
     const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
       prev.map((t) => (t.id === id ? updated : t))
-    );
-  }
-
-  async function handleEdit(
-    id: number,
-    data: { title?: string; description?: string; dueDate?: string }
-  ) {
-    const updated = await api.patch<Task>(`/tasks/${id}`, data);
-    queryClient.setQueryData<Task[]>(['tasks'], (prev = []) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
     );
   }
 
@@ -59,46 +87,32 @@ export function useTodayManager() {
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
   }
 
+  async function editEvent(
+    id: number,
+    data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type?: EventType }
+  ) {
+    const updated = await api.patch<Event>(`/events/${id}`, data);
+    queryClient.setQueryData<Event[]>(['events-today', todayStart.toISOString()], (prev = []) =>
+      prev.map((e) => (e.id === id ? updated : e))
+    );
+  }
+
   async function handleDelete(id: number) {
     await api.delete(`/tasks/${id}`);
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
-  const isSameDay = (date1: Date, date2: Date) =>
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate();
-
-  const todayTasks = tasks.filter((task) => {
-    if (task.status === 'DONE') return false;
-    const taskDate = new Date(task.dueDate);
-
-    if (isSameDay(new Date(), selectedDate)) {
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-      return taskDate <= todayEnd;
-    }
-
-    return isSameDay(taskDate, selectedDate);
-  });
-
-  const currentDate = new Intl.DateTimeFormat(i18n.language === 'cs' ? 'cs-CZ' : 'en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  }).format(selectedDate);
-
   return {
-    selectedDate,
-    setSelectedDate,
     isPending,
     todayTasks,
-    currentDate,
-    isSameDay,
+    backlogTasks,
+    doneTasks,
+    todayEvents,
+    counts,
     handleCreate,
     handleToggle,
-    handleEdit,
     handleEditFull,
     handleDelete,
+    editEvent,
   };
 }

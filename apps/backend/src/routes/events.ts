@@ -20,7 +20,7 @@ const CreateEventSchema = z.object({
 
 const UpdateEventSchema = z.object({
   title: z.string().min(1).optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   place: z.string().optional(),
@@ -120,7 +120,7 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
         .update(events)
         .set({
           ...(body.title !== undefined && { title: body.title }),
-          ...(body.description !== undefined && { description: body.description }),
+          ...(body.description !== undefined && { description: body.description ?? null }),
           ...(body.startDate !== undefined && { startDate: new Date(body.startDate) }),
           ...(body.endDate !== undefined && { endDate: new Date(body.endDate) }),
           ...(body.place !== undefined && { place: body.place }),

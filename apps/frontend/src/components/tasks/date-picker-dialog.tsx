@@ -14,23 +14,27 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 export default function DatePickerDialog({
   isOpen,
   onOpenChange,
   currentDate,
+  currentEndDate,
   onDateSelect,
+  onEndDateSelect,
   showDuration = true,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   currentDate?: Date | null;
+  currentEndDate?: Date | null;
   onDateSelect?: (date: Date | null) => void;
+  onEndDateSelect?: (date: Date) => void;
   showDuration?: boolean;
 }) {
   const [date, setDate] = useState<Date | null>(new Date(Date.now()));
-  const [time, setTime] = useState<string>('08:30:00');
+  const [time, setTime] = useState<string>('08:30');
+  const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -38,21 +42,28 @@ export default function DatePickerDialog({
       setDate(currentDate || null);
       if (currentDate) {
         const d = new Date(currentDate);
-        const hours = d.getHours().toString().padStart(2, '0');
-        const minutes = d.getMinutes().toString().padStart(2, '0');
-        const seconds = d.getSeconds().toString().padStart(2, '0');
-        setTime(`${hours}:${minutes}:${seconds}`);
+        setTime(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
+      }
+      if (currentDate && currentEndDate) {
+        const diffMs = new Date(currentEndDate).getTime() - new Date(currentDate).getTime();
+        setDurationMinutes(Math.max(15, Math.round(diffMs / 60000)));
+      } else {
+        setDurationMinutes(60);
       }
     }
-  }, [isOpen, currentDate]);
+  }, [isOpen, currentDate, currentEndDate]);
 
   const handleSave = () => {
     if (onDateSelect) {
       if (date) {
         const finalDate = new Date(date);
-        const [hours, minutes, seconds] = time.split(':').map(Number);
-        finalDate.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+        const [hours, minutes] = time.split(':').map(Number);
+        finalDate.setHours(hours || 0, minutes || 0, 0, 0);
         onDateSelect(finalDate);
+        if (onEndDateSelect) {
+          const endDate = new Date(finalDate.getTime() + durationMinutes * 60000);
+          onEndDateSelect(endDate);
+        }
       } else {
         onDateSelect(null);
       }
@@ -171,12 +182,11 @@ export default function DatePickerDialog({
                 </div>
                 <span className="text-sm font-medium text-foreground">Time</span>
               </div>
-              <Input
+              <input
                 type="time"
-                step="1"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-auto bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                value={time.slice(0, 5)}
+                onChange={(e) => setTime(e.target.value + ':00')}
+                className="w-32 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
@@ -188,11 +198,17 @@ export default function DatePickerDialog({
                 </div>
                 <span className="text-sm font-medium text-foreground">Duration</span>
               </div>
-              <Input
-                type="time"
-                defaultValue="02:00"
-                className="w-auto bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-              />
+              <div className="flex items-center gap-1">
+                {[15, 30, 60, 90, 120].map((min) => (
+                  <button
+                    key={min}
+                    onClick={() => setDurationMinutes(min)}
+                    className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                  >
+                    {min < 60 ? `${min}m` : `${min / 60}h`}
+                  </button>
+                ))}
+              </div>
             </div>}
           </div>
         </div>

@@ -31,6 +31,7 @@ function TimelinePage() {
     selectedDate,
     weekStart,
     weekDates,
+    events,
     eventsForSelectedDate,
     tasksForSelectedDate,
     isPending,
@@ -98,6 +99,9 @@ function TimelinePage() {
           {weekDates.map((date, i) => {
             const isActive = date.toDateString() === selectedDate.toDateString()
             const isToday = date.toDateString() === today.toDateString()
+            const dayEvents = events.filter((e) => e.startDate && new Date(e.startDate).toDateString() === date.toDateString())
+            const hasEvent = dayEvents.some((e) => e.type === 'EVENT')
+            const hasDeadline = dayEvents.some((e) => e.type === 'DEADLINE')
             return (
               <button key={i} onClick={() => selectDate(date)} className="flex flex-col items-center gap-2">
                 <span className="text-xs font-semibold text-gray-400">{DAY_LABELS[i]}</span>
@@ -106,7 +110,13 @@ function TimelinePage() {
                   ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
                 `}>
                   <span className="font-bold">{date.getDate()}</span>
-                  {isToday && !isActive && <div className="w-1 h-1 rounded-full bg-red-500" />}
+                  {isToday && !isActive && !hasEvent && !hasDeadline && <div className="w-1 h-1 rounded-full bg-red-500" />}
+                  {(hasEvent || hasDeadline) && !isActive && (
+                    <div className="flex gap-0.5">
+                      {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                      {hasDeadline && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                    </div>
+                  )}
                 </div>
               </button>
             )

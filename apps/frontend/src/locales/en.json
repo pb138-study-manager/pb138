@@ -34,7 +34,11 @@
     "due": "Due",
     "noDueDate": "No due date",
     "noDescription": "No description",
-    "delete": "Delete"
+    "delete": "Delete",
+    "overdue": "Overdue",
+    "thisWeek": "This Week",
+    "later": "Later",
+    "total": "total"
   },
   "notes": {
     "loading": "Loading notes...",

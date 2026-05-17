@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api';
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
 })
+
 interface Course {
   id: number;
   code: string;
@@ -22,16 +23,10 @@ interface Course {
 function CoursesPage() {
   const navigate = useNavigate()
 
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api
-      .get<Course[]>('/courses/enrolled')
-      .then((data) => setCourses(data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: courses = [], isPending } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => api.get<Course[]>('/courses').catch(() => []),
+  });
 
   const handleOpenCourse = (id: string) => {
     navigate({ to: `/courses/${id}` })
@@ -41,7 +36,7 @@ function CoursesPage() {
     navigate({ to: '/courses/new' })
   }
 
-  if (loading) {
+  if (isPending) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />

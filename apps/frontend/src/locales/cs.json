@@ -34,7 +34,11 @@
     "due": "Do",
     "noDueDate": "Bez termínu",
     "noDescription": "Bez popisu",
-    "delete": "Smazat"
+    "delete": "Smazat",
+    "overdue": "Po termíne",
+    "thisWeek": "Tento týždeň",
+    "later": "Neskôr",
+    "total": "celkom"
   },
   "notes": {
     "loading": "Načítání poznámek...",

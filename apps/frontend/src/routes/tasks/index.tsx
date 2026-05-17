@@ -14,8 +14,10 @@ export function TasksPage() {
     activeFilter,
     setActiveFilter,
     isPending,
+    overdue,
     today,
-    backlog,
+    thisWeek,
+    later,
     done,
     counts,
     handleCreate,
@@ -35,16 +37,24 @@ export function TasksPage() {
   return (
     <div className="flex-1 overflow-y-auto w-full bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-2 mb-8">
-          <TaskSidebar
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            counts={counts}
-          />
+        <div className="flex gap-6 mb-8">
+          <TaskSidebar counts={counts} />
           <div className="flex-1" />
         </div>
 
         <div>
+          {counts.overdue > 0 && (
+            <TaskSection
+              title={t('tasks.overdue')}
+              count={counts.overdue}
+              tasks={overdue}
+              variant="overdue"
+              onTaskCreated={handleCreate}
+              onToggle={handleToggle}
+              onEditFull={handleEditFull}
+              onDelete={handleDelete}
+            />
+          )}
           <TaskSection
             title={t('tasks.today')}
             count={counts.today}
@@ -56,10 +66,20 @@ export function TasksPage() {
             onDelete={handleDelete}
           />
           <TaskSection
-            title={t('tasks.backlog')}
-            count={counts.backlog}
-            tasks={backlog}
-            variant="backlog"
+            title={t('tasks.thisWeek')}
+            count={counts.thisWeek}
+            tasks={thisWeek}
+            variant="thisWeek"
+            onTaskCreated={handleCreate}
+            onToggle={handleToggle}
+            onEditFull={handleEditFull}
+            onDelete={handleDelete}
+          />
+          <TaskSection
+            title={t('tasks.later')}
+            count={counts.later}
+            tasks={later}
+            variant="later"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
             onEditFull={handleEditFull}

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Star, Package, ClipboardCheck, Plus } from 'lucide-react';
+import { Star, Package, ClipboardCheck, Plus, AlertCircle, CalendarDays, Clock } from 'lucide-react';
 import { Task } from '@/types';
 import { Button } from '@/components/ui/button';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
 import TaskCard from '@/components/tasks/tasks-card';
+
+type SectionVariant = 'default' | 'backlog' | 'done' | 'overdue' | 'thisWeek' | 'later';
 
 export default function TaskSection({
   title,
   count,
   tasks,
   variant = 'default',
+  showBorder = false,
   onTaskCreated,
   onToggle,
   onEditFull,
@@ -18,28 +21,41 @@ export default function TaskSection({
   title: string;
   count: number;
   tasks: Task[];
-  variant?: 'default' | 'backlog' | 'done';
+  variant?: SectionVariant;
+  showBorder?: boolean;
   onTaskCreated: (title: string, dueDate: string, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
   onEditFull: (id: number, data: { title: string; dueDate: string; description?: string; status?: import('@/types').TaskStatus }, subtasksToAdd: string[], subtaskIdsToDelete: number[]) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
-  const icons = {
+  const icons: Record<SectionVariant, React.ReactNode> = {
     default: <Star height={25} />,
     backlog: <Package height={25} />,
     done: <ClipboardCheck height={25} />,
+    overdue: <AlertCircle height={25} />,
+    thisWeek: <CalendarDays height={25} />,
+    later: <Clock height={25} />,
   };
 
-  const colors = {
-    default: 'text-gray-900 dark:text-gray-100',
+  const colors: Record<SectionVariant, string> = {
+    default: 'text-blue-600 dark:text-blue-400',
     backlog: 'text-orange-500 dark:text-orange-400',
     done: 'text-green-600 dark:text-green-500',
+    overdue: 'text-red-500 dark:text-red-400',
+    thisWeek: 'text-purple-600 dark:text-purple-400',
+    later: 'text-gray-500 dark:text-gray-400',
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
 
+  const borderClass = showBorder
+    ? variant === 'backlog'
+      ? 'border-2 border-dashed border-orange-200 dark:border-orange-900 rounded-2xl p-3'
+      : 'border-2 border-dashed border-blue-200 dark:border-blue-900 rounded-2xl p-3'
+    : '';
+
   return (
-    <div className="mb-8">
+    <div className={`mb-6 ${borderClass}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className={`ml-4 flex items-center gap-2 text-lg font-semibold ${colors[variant]}`}>
           <span className="mr-1">{icons[variant]}</span>
