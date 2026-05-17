@@ -63,8 +63,12 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .where(isNull(courses.deletedAt));
   })
   // MUST be declared before /:id so Elysia doesn't capture these as dynamic segments
-  .get('/teaching', async ({ user }) => {
+  .get('/teaching', async ({ user, set }) => {
     const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
     const courseList = await db
       .select()
       .from(courses)
@@ -284,7 +288,8 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     return { total, done, percent };
   })
   .get('/:id/assignments', async ({ params, user, set }) => {
-    if (!(user as AuthUser).roles.includes('TEACHER')) {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
       set.status = 403;
       return { error: 'FORBIDDEN', message: 'TEACHER role required' };
     }
@@ -296,6 +301,10 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     if (!course) {
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
     }
     return db
       .select({

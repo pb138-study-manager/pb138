@@ -471,4 +471,30 @@ describe('GET /courses/:id/assignments', () => {
     expect(Number(body[0].total)).toBe(1);
     expect(Number(body[0].done)).toBe(0);
   });
+
+  it('returns 403 if teacher does not teach the course', async () => {
+    // Create a second teacher user
+    const OTHER_TEACHER_AUTH_ID = 'other-teacher-uuid-asgn';
+    const [otherTeacher] = await db
+      .insert(users)
+      .values({ email: 'other-teacher-asgn@example.com', login: 'other-teacher-asgn', pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
+      .returning();
+    const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
+    await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
+
+    const secret = new TextEncoder().encode('courses-test-jwt-secret');
+    const otherToken = await new SignJWT({ sub: OTHER_TEACHER_AUTH_ID })
+      .setProtectedHeader({ alg: 'HS256' })
+      .sign(secret);
+    const otherAuth = `Bearer ${otherToken}`;
+
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/assignments`, otherAuth)
+    );
+    expect(res.status).toBe(403);
+
+    // Cleanup
+    await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
+    await db.delete(users).where(eq(users.id, otherTeacher.id));
+  });
 });
