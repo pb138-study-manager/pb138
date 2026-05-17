@@ -432,4 +432,47 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       })
     )
   )
+  .post(
+    '/:id/students',
+    async ({ params, body, user, set }) => {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+      }
+      const courseId = Number(params.id);
+      const [course] = await db
+        .select()
+        .from(courses)
+        .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+      if (!course) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Course not found' };
+      }
+      if (course.lectureTeacherId !== authUser.id) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+      }
+      const [targetUser] = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.id, body.userId), isNull(users.deletedAt)));
+      if (!targetUser) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'User not found' };
+      }
+      const [existing] = await db
+        .select()
+        .from(userCourses)
+        .where(and(eq(userCourses.userId, body.userId), eq(userCourses.courseId, courseId)));
+      if (existing) {
+        set.status = 409;
+        return { error: 'ALREADY_ENROLLED', message: 'User is already enrolled' };
+      }
+      await db.insert(userCourses).values({ userId: body.userId, courseId });
+      await logAction(db, authUser.id, `Enrolled user ${body.userId} in course ${courseId}`);
+      return { success: true };
+    },
+    zodBody(z.object({ userId: z.number().int().positive() }))
+  )
 ;

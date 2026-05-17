@@ -557,3 +557,55 @@ describe('GET /courses/:id/students', () => {
     expect(Number(body[0].done)).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('POST /courses/:id/students (teacher enroll)', () => {
+  let enrollCourseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: `ENROLL-TEST-${Date.now()}`, semester: 'S2026', lectureTeacherId: teacherId })
+      .returning();
+    enrollCourseId = course.id;
+  });
+
+  afterAll(async () => {
+    await db.delete(userCourses).where(eq(userCourses.courseId, enrollCourseId));
+    await db.delete(courses).where(eq(courses.id, enrollCourseId));
+  });
+
+  it('returns 403 for non-teacher', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${enrollCourseId}/students`, userAuth, {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('teacher can enroll a student', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${enrollCourseId}/students`, teacherAuth, {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+  });
+
+  it('returns 409 if already enrolled', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${enrollCourseId}/students`, teacherAuth, {
+        method: 'POST',
+        body: JSON.stringify({ userId }),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+    expect(res.status).toBe(409);
+  });
+});
