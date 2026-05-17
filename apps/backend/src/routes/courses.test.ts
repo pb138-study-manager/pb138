@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
-import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments } from '../db/schema';
+import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments, userProfiles } from '../db/schema';
 import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
@@ -496,5 +496,64 @@ describe('GET /courses/:id/assignments', () => {
     // Cleanup
     await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
     await db.delete(users).where(eq(users.id, otherTeacher.id));
+  });
+});
+
+describe('GET /courses/:id/students', () => {
+  let courseId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'STU-TEST', semester: 'S2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+    await db.insert(userCourses).values({ userId, courseId });
+  });
+
+  afterAll(async () => {
+    await db.delete(userCourses).where(eq(userCourses.courseId, courseId));
+    await db.delete(courses).where(eq(courses.id, courseId));
+  });
+
+  it('returns 403 for non-teacher', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/students`, userAuth)
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 if teacher does not teach the course', async () => {
+    const OTHER_AUTH_ID = `other-teacher-uuid-stu-${Date.now()}`;
+    const [otherTeacher] = await db
+      .insert(users)
+      .values({ email: `other-teacher-stu-${Date.now()}@example.com`, login: `other-teacher-stu-${Date.now()}`, pwdHash: '', authId: OTHER_AUTH_ID })
+      .returning();
+    const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
+    await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
+    const secret = new TextEncoder().encode('courses-test-jwt-secret');
+    const token = await new SignJWT({ sub: OTHER_AUTH_ID }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
+
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/students`, `Bearer ${token}`)
+    );
+    expect(res.status).toBe(403);
+
+    await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
+    await db.delete(users).where(eq(users.id, otherTeacher.id));
+  });
+
+  it('returns enrolled students with completion stats', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/students`, teacherAuth)
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(1);
+    expect(body[0].id).toBe(userId);
+    expect(typeof body[0].email).toBe('string');
+    expect(Number(body[0].total)).toBeGreaterThanOrEqual(0);
+    expect(Number(body[0].done)).toBeGreaterThanOrEqual(0);
   });
 });

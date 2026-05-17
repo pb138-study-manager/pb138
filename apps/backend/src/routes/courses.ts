@@ -1,11 +1,11 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { courses, userCourses, tasks, assignments, userProfiles } from '../db/schema';
+import { courses, userCourses, tasks, assignments, userProfiles, users } from '../db/schema';
 
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, sql, count } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull, sql, count } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const CreateCourseSchema = z.object({
@@ -319,6 +319,57 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .leftJoin(tasks, and(eq(tasks.assignmentId, assignments.id), isNull(tasks.deletedAt)))
       .where(and(eq(assignments.courseId, courseId), isNull(assignments.deletedAt)))
       .groupBy(assignments.id);
+  })
+  .get('/:id/students', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+    }
+    const enrolled = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: userProfiles.name,
+        avatar: userProfiles.avatar,
+      })
+      .from(userCourses)
+      .innerJoin(users, and(eq(userCourses.userId, users.id), isNull(users.deletedAt)))
+      .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+      .where(eq(userCourses.courseId, courseId));
+
+    return Promise.all(
+      enrolled.map(async (student) => {
+        const [stats] = await db
+          .select({
+            total: count(tasks.id),
+            done: sql<number>`count(case when ${tasks.status} = 'DONE' then 1 end)`,
+          })
+          .from(tasks)
+          .where(
+            and(
+              eq(tasks.userId, student.id),
+              eq(tasks.courseId, courseId),
+              isNotNull(tasks.assignmentId),
+              isNull(tasks.deletedAt)
+            )
+          );
+        return { ...student, total: stats.total, done: stats.done };
+      })
+    );
   })
   .post(
     '/:id/assignments',
