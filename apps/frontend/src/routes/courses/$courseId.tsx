@@ -158,6 +158,7 @@ function CourseDetailPage() {
     description?: string;
     dueDate: string;
     evalType: 'none' | 'pass_fail' | 'graded';
+    targetUserId?: number;
   }) {
     await api.post(`/courses/${courseId}/assignments`, data);
     queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });

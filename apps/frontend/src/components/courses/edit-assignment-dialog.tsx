@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
+import { Calendar, ClipboardCheck, Users, Check, CheckCircle, Circle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import { api } from '@/lib/api';
-import { X, CheckCircle, Circle } from 'lucide-react';
 
 interface AssignmentStudent {
   taskId: number;
@@ -26,11 +28,16 @@ interface Props {
   onEval: (taskId: number, evalScore: number | null, evalType: 'pass_fail' | 'graded') => void;
 }
 
+const EVAL_LABELS: Record<string, string> = {
+  none: 'No eval',
+  pass_fail: 'Pass/Fail',
+  graded: 'Graded',
+};
+
 export default function EditAssignmentDialog({
   assignmentId,
   courseId,
   initialTitle,
-  initialDescription,
   initialDueDate,
   initialEvalType,
   onClose,
@@ -38,33 +45,32 @@ export default function EditAssignmentDialog({
 }: Props) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(initialTitle);
-  const [description, setDescription] = useState(initialDescription ?? '');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(initialDueDate));
   const [evalType, setEvalType] = useState(initialEvalType);
   const [isDateOpen, setIsDateOpen] = useState(false);
+  const [studentsExpanded, setStudentsExpanded] = useState(false);
   const initializedRef = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      return;
-    }
-    if (!title.trim() || !selectedDate) return;
-    const timer = setTimeout(async () => {
+    setTimeout(() => { initializedRef.current = true; }, 100);
+  }, []);
+
+  useEffect(() => {
+    if (!initializedRef.current || !title.trim() || !selectedDate) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
       try {
         await api.patch(`/courses/${courseId}/assignments/${assignmentId}`, {
           title: title.trim(),
-          description: description.trim() || undefined,
           dueDate: selectedDate.toISOString(),
           evalType,
         });
         queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
-      } catch {
-        // silently ignore — will retry on next change
-      }
+      } catch { /* silently ignore */ }
     }, 600);
-    return () => clearTimeout(timer);
-  }, [title, description, selectedDate, evalType]);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [title, selectedDate, evalType]);
 
   const { data: students = [] } = useQuery({
     queryKey: ['assignmentStudents', assignmentId],
@@ -72,115 +78,151 @@ export default function EditAssignmentDialog({
       api
         .get<AssignmentStudent[]>(`/courses/${courseId}/assignments/${assignmentId}/students`)
         .catch(() => []),
+    enabled: studentsExpanded,
   });
+
+  const totalStudents = students.length;
+  const doneCount = students.filter((s) => s.status === 'DONE').length;
+
+  const pills = [
+    {
+      icon: Calendar,
+      label: selectedDate ? selectedDate.toLocaleDateString() : 'Date',
+      active: selectedDate !== null,
+      onClick: () => setIsDateOpen(true),
+    },
+  ];
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
-        <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4 max-h-[80vh] overflow-y-auto">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Edit Assignment</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="hidden">Edit Assignment</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 py-6 space-y-0">
+            <Input
+              placeholder="Assignment name..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              autoFocus
+              className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
+            />
 
-          <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+            <div className="border-t" />
 
-          <textarea
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none"
-            placeholder="Description (optional)"
-            rows={2}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <button
-            onClick={() => setIsDateOpen(true)}
-            className="w-full text-left border border-indigo-300 rounded-xl px-3 py-2 text-sm text-gray-900"
-          >
-            {selectedDate ? selectedDate.toLocaleDateString() : 'Due date'}
-          </button>
-
-          <div className="space-y-1">
-            <p className="text-xs text-gray-500 font-medium">Evaluation type</p>
-            <div className="flex gap-2">
-              {(['none', 'pass_fail', 'graded'] as const).map((type) => (
+            <div className="flex flex-wrap gap-2 pt-4">
+              {/* Date pill */}
+              {pills.map((pill) => (
                 <button
-                  key={type}
-                  onClick={() => setEvalType(type)}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    evalType === type
-                      ? 'bg-gray-900 text-white border-gray-900'
-                      : 'bg-white text-gray-500 border-gray-200'
+                  key={pill.label}
+                  onClick={pill.onClick}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    pill.active
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {type === 'none' ? 'None' : type === 'pass_fail' ? 'Pass/Fail' : 'Graded'}
+                  <pill.icon className="w-3.5 h-3.5" />
+                  {pill.label}
                 </button>
               ))}
-            </div>
-          </div>
 
-          {students.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Students
-              </p>
-              {students.map((s) => {
-                const initials = (s.name ?? s.email)
-                  .split(' ')
-                  .map((w: string) => w[0])
-                  .slice(0, 2)
-                  .join('')
-                  .toUpperCase();
-                return (
-                  <div
-                    key={s.taskId}
-                    className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2"
+              {/* Eval type dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                      evalType !== 'none'
+                        ? 'bg-indigo-100 text-indigo-700'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
                   >
-                    {s.avatar ? (
-                      <img
-                        src={s.avatar}
-                        className="w-7 h-7 rounded-full object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-indigo-600">{initials}</span>
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">
-                        {s.name ?? s.email}
-                      </p>
-                    </div>
-                    {s.status === 'DONE' ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-gray-300 shrink-0" />
-                    )}
-                    {s.status === 'DONE' && evalType !== 'none' && (
-                      <button
-                        onClick={() => onEval(s.taskId, s.evalScore, evalType as 'pass_fail' | 'graded')}
-                        className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0"
-                      >
-                        {s.evalScore !== null ? 'Edit eval' : 'Evaluate'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                    <ClipboardCheck className="w-3.5 h-3.5" />
+                    {EVAL_LABELS[evalType]}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {(['none', 'pass_fail', 'graded'] as const).map((type) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => setEvalType(type)}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      {EVAL_LABELS[type]}
+                      {evalType === type && <Check className="w-4 h-4 text-indigo-500" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <Button variant="ghost" className="w-full" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-      </div>
+              {/* Students pill — toggles expanded section */}
+              <button
+                onClick={() => setStudentsExpanded((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                  studentsExpanded
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                {totalStudents > 0 ? `${doneCount}/${totalStudents} done` : 'Students'}
+              </button>
+            </div>
+
+            {/* Students expanded section — like subtasks in edit-task-dialog */}
+            {studentsExpanded && (
+              <>
+                <div className="border-t my-3" />
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {students.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-2">No students assigned.</p>
+                  ) : (
+                    students.map((s) => {
+                      const initials = (s.name ?? s.email)
+                        .split(' ')
+                        .map((w: string) => w[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase();
+                      return (
+                        <div
+                          key={s.taskId}
+                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-xl text-sm"
+                        >
+                          {s.avatar ? (
+                            <img src={s.avatar} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                              <span className="text-[10px] font-bold text-indigo-600">{initials}</span>
+                            </div>
+                          )}
+                          <span className="flex-1 truncate text-gray-700">
+                            {s.name ?? s.email}
+                          </span>
+                          {s.status === 'DONE' ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-gray-300 shrink-0" />
+                          )}
+                          {s.status === 'DONE' && evalType !== 'none' && (
+                            <button
+                              onClick={() => onEval(s.taskId, s.evalScore, evalType as 'pass_fail' | 'graded')}
+                              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0"
+                            >
+                              {s.evalScore !== null ? 'Edit' : 'Eval'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <DatePickerDialog
         isOpen={isDateOpen}

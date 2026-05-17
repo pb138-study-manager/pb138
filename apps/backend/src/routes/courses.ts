@@ -392,13 +392,16 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         set.status = 403;
         return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
       }
-      const enrolled = await db
+      const allEnrolled = await db
         .select({ userId: userCourses.userId })
         .from(userCourses)
         .where(eq(userCourses.courseId, course.id));
-      if (enrolled.length === 0) {
+      const recipients = body.targetUserId
+        ? allEnrolled.filter((e) => e.userId === body.targetUserId)
+        : allEnrolled;
+      if (recipients.length === 0) {
         set.status = 400;
-        return { error: 'NO_STUDENTS', message: 'No students enrolled in this course' };
+        return { error: 'NO_STUDENTS', message: 'No eligible students found' };
       }
       const assignment = await db.transaction(async (tx) => {
         const [created] = await tx
@@ -412,7 +415,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
           })
           .returning();
         await tx.insert(tasks).values(
-          enrolled.map((e) => ({
+          recipients.map((e) => ({
             userId: e.userId,
             assignmentId: created.id,
             courseId: course.id,
@@ -432,6 +435,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         description: z.string().optional(),
         dueDate: z.string(),
         evalType: z.enum(['none', 'pass_fail', 'graded']).optional().default('none'),
+        targetUserId: z.number().int().positive().optional(),
       })
     )
   )
