@@ -5,6 +5,7 @@ import Sidebar from '@/components/ui/sidebar';
 import '@/lib/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
+import { RoleModeProvider } from '@/lib/roleMode';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,12 +61,13 @@ function RootLayout() {
               ? 'others'
               : pathname.startsWith('/dashboard')
                 ? 'dashboard'
-                : pathname.startsWith('/teachers')
+                : pathname === '/teachers' || pathname.startsWith('/teachers/')
                   ? 'teachers'
                   : 'tasks';
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RoleModeProvider>
       <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
         {!hideNav && (
           <>
@@ -77,6 +79,7 @@ function RootLayout() {
         </main>
         {!hideNav && <BottomNav active={activeTab} />}
       </div>
+      </RoleModeProvider>
     </QueryClientProvider>
   );
 }
