@@ -20,6 +20,7 @@ export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEA
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
 export const eventTypeEnum = pgEnum('event_type', ['EVENT', 'DEADLINE']);
+export const evalTypeEnum = pgEnum('eval_type', ['none', 'pass_fail', 'graded']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -137,6 +138,7 @@ export const assignments = pgTable('assignments', {
   description: text('description'),
   courseId: integer('course_id').references(() => courses.id),
   dueDate: timestamp('due_date').notNull(),
+  evalType: evalTypeEnum('eval_type').notNull().default('none'),
   deletedAt: timestamp('deleted_at'),
 });
 

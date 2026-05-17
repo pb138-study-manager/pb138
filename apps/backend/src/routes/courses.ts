@@ -312,6 +312,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         title: assignments.title,
         description: assignments.description,
         dueDate: assignments.dueDate,
+        evalType: assignments.evalType,
         total: count(tasks.id),
         done: sql<number>`count(case when ${tasks.status} = 'DONE' then 1 end)`,
       })
@@ -407,6 +408,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
             title: body.title,
             description: body.description,
             dueDate: new Date(body.dueDate),
+            evalType: body.evalType ?? 'none',
           })
           .returning();
         await tx.insert(tasks).values(
@@ -429,6 +431,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         title: z.string().min(1),
         description: z.string().optional(),
         dueDate: z.string(),
+        evalType: z.enum(['none', 'pass_fail', 'graded']).optional().default('none'),
       })
     )
   )
