@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
-import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments, userProfiles } from '../db/schema';
+import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments } from '../db/schema';
 import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';

@@ -126,6 +126,8 @@ function CourseDetailPage() {
       setMatUrl('');
       setMatDesc('');
       setShowAddMaterial(false);
+    } catch {
+      // silently ignore — dialog stays open so teacher can retry
     } finally {
       setSavingMat(false);
     }
@@ -160,6 +162,8 @@ function CourseDetailPage() {
       setAsgDesc('');
       setAsgDate('');
       setShowAddAssignment(false);
+    } catch {
+      // silently ignore — dialog stays open so teacher can retry
     } finally {
       setSavingAsg(false);
     }
@@ -265,15 +269,17 @@ function CourseDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">{course.code}</h1>
             <p className="text-sm text-gray-500">{course.name ?? course.code}</p>
           </div>
-          <Button
-            size="sm"
-            variant={course.enrolled ? 'outline' : 'default'}
-            onClick={handleEnroll}
-            disabled={enrolling}
-            className={course.enrolled ? 'text-red-500 border-red-200 hover:bg-red-50' : ''}
-          >
-            {enrolling ? '...' : course.enrolled ? 'Unenroll' : 'Enroll'}
-          </Button>
+          {!isTeacher && (
+            <Button
+              size="sm"
+              variant={course.enrolled ? 'outline' : 'default'}
+              onClick={handleEnroll}
+              disabled={enrolling}
+              className={course.enrolled ? 'text-red-500 border-red-200 hover:bg-red-50' : ''}
+            >
+              {enrolling ? '...' : course.enrolled ? 'Unenroll' : 'Enroll'}
+            </Button>
+          )}
         </div>
 
         {/* Teacher */}

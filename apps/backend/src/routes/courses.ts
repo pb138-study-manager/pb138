@@ -374,7 +374,8 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
   .post(
     '/:id/assignments',
     async ({ params, body, user, set }) => {
-      if (!(user as AuthUser).roles.includes('TEACHER')) {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
         set.status = 403;
         return { error: 'FORBIDDEN', message: 'TEACHER role required' };
       }
@@ -386,6 +387,10 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         set.status = 404;
         return { error: 'NOT_FOUND', message: 'Course not found' };
       }
+      if (course.lectureTeacherId !== authUser.id) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+      }
       const enrolled = await db
         .select({ userId: userCourses.userId })
         .from(userCourses)
@@ -394,30 +399,29 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         set.status = 400;
         return { error: 'NO_STUDENTS', message: 'No students enrolled in this course' };
       }
-      const [assignment] = await db
-        .insert(assignments)
-        .values({
-          courseId: course.id,
-          title: body.title,
-          description: body.description,
-          dueDate: new Date(body.dueDate),
-        })
-        .returning();
-      await db.insert(tasks).values(
-        enrolled.map((e) => ({
-          userId: e.userId,
-          assignmentId: assignment.id,
-          courseId: course.id,
-          title: body.title,
-          description: body.description,
-          dueDate: new Date(body.dueDate),
-        }))
-      );
-      await logAction(
-        db,
-        (user as AuthUser).id,
-        `Created assignment ${assignment.id} for course ${course.id}`
-      );
+      const assignment = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(assignments)
+          .values({
+            courseId: course.id,
+            title: body.title,
+            description: body.description,
+            dueDate: new Date(body.dueDate),
+          })
+          .returning();
+        await tx.insert(tasks).values(
+          enrolled.map((e) => ({
+            userId: e.userId,
+            assignmentId: created.id,
+            courseId: course.id,
+            title: body.title,
+            description: body.description,
+            dueDate: new Date(body.dueDate),
+          }))
+        );
+        return created;
+      });
+      await logAction(db, authUser.id, `Created assignment ${assignment.id} for course ${course.id}`);
       return assignment;
     },
     zodBody(

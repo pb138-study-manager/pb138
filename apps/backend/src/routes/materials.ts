@@ -50,6 +50,10 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
         set.status = 404;
         return { error: 'NOT_FOUND', message: 'Course not found' };
       }
+      if (course.lectureTeacherId !== (user as AuthUser).id) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+      }
       const [material] = await db
         .insert(studyMaterials)
         .values({
@@ -70,9 +74,22 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
     zodBody(CreateMaterialSchema)
   )
   .delete('/:id/materials/:matId', async ({ params, user, set }) => {
-    if (!(user as AuthUser).roles.includes('TEACHER')) {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
       set.status = 403;
       return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, Number(params.id)), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
     }
     const [material] = await db
       .select()
@@ -86,6 +103,6 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
       .update(studyMaterials)
       .set({ deletedAt: new Date() })
       .where(eq(studyMaterials.id, material.id));
-    await logAction(db, (user as AuthUser).id, `Deleted material ${material.id}`);
+    await logAction(db, authUser.id, `Deleted material ${material.id}`);
     return { success: true };
   });
