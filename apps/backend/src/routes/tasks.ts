@@ -1,11 +1,16 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { tasks } from '../db/schema';
+import { tasks, evals } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
+
+const EvalSchema = z.object({
+  score: z.number().int().min(0),
+  feedback: z.string(),
+});
 
 const CreateTaskSchema = z.object({
   title: z.string().min(1),
@@ -219,4 +224,67 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       .returning();
     await logAction(db, (user as AuthUser).id, `Toggled task ${existing.id} to ${newStatus}`);
     return updated;
+  })
+  .post(
+    '/:id/eval',
+    async ({ params, body, user, set }) => {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Only teachers can evaluate tasks' };
+      }
+      const [task] = await db
+        .select()
+        .from(tasks)
+        .where(and(eq(tasks.id, Number(params.id)), isNull(tasks.deletedAt)));
+      if (!task) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Task not found' };
+      }
+      if (task.status !== 'DONE') {
+        set.status = 400;
+        return { error: 'NOT_DONE', message: 'Task must be DONE before evaluating' };
+      }
+      const [existing] = await db.select().from(evals).where(eq(evals.taskId, task.id));
+      let evalRow;
+      if (existing) {
+        const [updated] = await db
+          .update(evals)
+          .set({ score: body.score, feedback: body.feedback, evaluatedAt: new Date() })
+          .where(eq(evals.id, existing.id))
+          .returning();
+        evalRow = updated;
+        await logAction(db, authUser.id, `Updated eval for task ${task.id}`);
+      } else {
+        const [created] = await db
+          .insert(evals)
+          .values({ taskId: task.id, score: body.score, feedback: body.feedback, evaluatedAt: new Date() })
+          .returning();
+        evalRow = created;
+        await logAction(db, authUser.id, `Created eval for task ${task.id}`);
+      }
+      return evalRow;
+    },
+    zodBody(EvalSchema)
+  )
+  .get('/:id/eval', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const [task] = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.id, Number(params.id)), isNull(tasks.deletedAt)));
+    if (!task) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Task not found' };
+    }
+    if (task.userId !== authUser.id && !authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied' };
+    }
+    const [evalRow] = await db.select().from(evals).where(eq(evals.taskId, task.id));
+    if (!evalRow) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'No evaluation yet' };
+    }
+    return evalRow;
   });
