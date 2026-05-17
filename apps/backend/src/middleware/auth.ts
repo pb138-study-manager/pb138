@@ -10,13 +10,23 @@ const SUPABASE_URL = process.env.SUPABASE_URL ?? '';
 const JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
 
 async function resolveUser(token: string): Promise<AuthUser | null> {
-  if (!SUPABASE_URL) return null;
-
+  // Read at call time so test overrides (process.env.SUPABASE_JWT_SECRET) are respected
+  const jwtSecret = process.env.SUPABASE_JWT_SECRET ?? '';
   let sub: string;
   try {
-    const { payload } = await jwtVerify(token, JWKS);
-    if (!payload.sub) return null;
-    sub = payload.sub;
+    if (jwtSecret) {
+      // Test mode: verify with symmetric HS256 secret
+      const secret = new TextEncoder().encode(jwtSecret);
+      const { payload } = await jwtVerify(token, secret);
+      if (!payload.sub) return null;
+      sub = payload.sub;
+    } else if (SUPABASE_URL) {
+      const { payload } = await jwtVerify(token, JWKS);
+      if (!payload.sub) return null;
+      sub = payload.sub;
+    } else {
+      return null;
+    }
   } catch {
     return null;
   }

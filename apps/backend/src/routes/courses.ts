@@ -5,7 +5,7 @@ import { courses, userCourses, tasks, assignments, userProfiles } from '../db/sc
 
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, sql } from 'drizzle-orm';
+import { eq, and, isNull, sql, count } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const CreateCourseSchema = z.object({
@@ -62,7 +62,27 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       )
       .where(isNull(courses.deletedAt));
   })
-  // MUST be declared before /:id so Elysia doesn't capture "enrolled" as a dynamic segment
+  // MUST be declared before /:id so Elysia doesn't capture these as dynamic segments
+  .get('/teaching', async ({ user }) => {
+    const authUser = user as AuthUser;
+    const courseList = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.lectureTeacherId, authUser.id), isNull(courses.deletedAt)));
+    const counts = await Promise.all(
+      courseList.map(async (c) => {
+        const [{ count }] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(userCourses)
+          .where(eq(userCourses.courseId, c.id));
+        return { courseId: c.id, count };
+      })
+    );
+    return courseList.map((c) => ({
+      ...c,
+      studentCount: counts.find((ct) => ct.courseId === c.id)?.count ?? 0,
+    }));
+  })
   .get('/enrolled', async ({ user }) => {
     return db
       .select({
@@ -109,7 +129,8 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     },
     zodBody(CreateCourseSchema)
   )
-  .get('/:id', async ({ params, set }) => {
+  .get('/:id', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
     const [course] = await db
       .select()
       .from(courses)
@@ -129,7 +150,17 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
           .where(eq(userProfiles.userId, course.lectureTeacherId))
           .then((r) => r[0] ?? null)
       : null;
-    return { ...course, enrolledCount: count, teacherName: teacher?.name ?? null, teacherAvatar: teacher?.avatar ?? null };
+    const [enrollment] = await db
+      .select({ userId: userCourses.userId })
+      .from(userCourses)
+      .where(and(eq(userCourses.courseId, course.id), eq(userCourses.userId, authUser.id)));
+    return {
+      ...course,
+      enrolledCount: count,
+      teacherName: teacher?.name ?? null,
+      teacherAvatar: teacher?.avatar ?? null,
+      enrolled: !!enrollment,
+    };
   })
   .patch(
     '/:id',
@@ -251,6 +282,34 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     const done = userTasks.filter((t) => t.status === 'DONE').length;
     const percent = total === 0 ? 0 : Math.round((done / total) * 100);
     return { total, done, percent };
+  })
+  .get('/:id/assignments', async ({ params, user, set }) => {
+    if (!(user as AuthUser).roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    return db
+      .select({
+        id: assignments.id,
+        title: assignments.title,
+        description: assignments.description,
+        dueDate: assignments.dueDate,
+        total: count(tasks.id),
+        done: sql<number>`count(case when ${tasks.status} = 'DONE' then 1 end)`,
+      })
+      .from(assignments)
+      .leftJoin(tasks, and(eq(tasks.assignmentId, assignments.id), isNull(tasks.deletedAt)))
+      .where(and(eq(assignments.courseId, courseId), isNull(assignments.deletedAt)))
+      .groupBy(assignments.id);
   })
   .post(
     '/:id/assignments',

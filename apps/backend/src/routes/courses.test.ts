@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
-import { courses, userCourses, users, userRoles, roles, auditLogs, tasks } from '../db/schema';
+import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments } from '../db/schema';
 import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
@@ -411,5 +411,64 @@ describe('GET /courses/:id/progress', () => {
     expect(body.total).toBe(0);
     expect(body.done).toBe(0);
     expect(body.percent).toBe(0);
+  });
+});
+
+describe('GET /courses/:id/assignments', () => {
+  let courseId: number;
+  let assignmentId: number;
+
+  beforeAll(async () => {
+    const [course] = await db
+      .insert(courses)
+      .values({ code: 'ASGN-TEST', semester: 'S2026', lectureTeacherId: teacherId })
+      .returning();
+    courseId = course.id;
+
+    // Enroll the regular user
+    await db.insert(userCourses).values({ userId, courseId });
+
+    // Create assignment + task for enrolled user
+    const [assignment] = await db
+      .insert(assignments)
+      .values({ courseId, title: 'Test Assignment', dueDate: new Date('2026-06-01') })
+      .returning();
+    assignmentId = assignment.id;
+
+    await db.insert(tasks).values({
+      userId,
+      assignmentId,
+      courseId,
+      title: 'Test Assignment',
+      dueDate: new Date('2026-06-01'),
+    });
+  });
+
+  afterAll(async () => {
+    await db.delete(tasks).where(eq(tasks.assignmentId, assignmentId));
+    await db.delete(assignments).where(eq(assignments.id, assignmentId));
+    await db.delete(userCourses).where(eq(userCourses.courseId, courseId));
+    await db.delete(courses).where(eq(courses.id, courseId));
+  });
+
+  it('returns 403 for non-teacher', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/assignments`, userAuth)
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('returns assignments with done/total counts', async () => {
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/assignments`, teacherAuth)
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(1);
+    expect(body[0].id).toBe(assignmentId);
+    expect(body[0].title).toBe('Test Assignment');
+    expect(Number(body[0].total)).toBe(1);
+    expect(Number(body[0].done)).toBe(0);
   });
 });
