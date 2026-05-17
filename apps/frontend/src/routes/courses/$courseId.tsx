@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2 } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
@@ -7,6 +7,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/tasks/tasks-card';
+import NewAssignmentDialog from '@/components/courses/new-assignment-dialog';
+import EditAssignmentDialog from '@/components/courses/edit-assignment-dialog';
+import EvalDialog from '@/components/courses/eval-dialog';
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: CourseDetailPage,
@@ -44,6 +47,7 @@ interface CourseAssignment {
   title: string;
   description: string | null;
   dueDate: string;
+  evalType: 'none' | 'pass_fail' | 'graded';
   total: number;
   done: number;
 }
@@ -67,7 +71,6 @@ function CourseDetailPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
   const [saving, setSaving] = useState(false);
-  const [enrolling, setEnrolling] = useState(false);
 
   const { data: course, isPending: courseLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -92,11 +95,14 @@ function CourseDetailPage() {
   const { mode } = useRoleMode();
   const isTeacher = mode === 'teacher';
 
-  const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students'>('assignments');
+  const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students'>(
+    'assignments'
+  );
 
   const { data: courseAssignments = [] } = useQuery({
     queryKey: ['courseAssignments', courseId],
-    queryFn: () => api.get<CourseAssignment[]>(`/courses/${courseId}/assignments`).catch(() => []),
+    queryFn: () =>
+      api.get<CourseAssignment[]>(`/courses/${courseId}/assignments`).catch(() => []),
     enabled: isTeacher,
   });
 
@@ -106,6 +112,7 @@ function CourseDetailPage() {
     enabled: isTeacher,
   });
 
+  // Materials state
   const [showAddMaterial, setShowAddMaterial] = useState(false);
   const [matTitle, setMatTitle] = useState('');
   const [matUrl, setMatUrl] = useState('');
@@ -138,55 +145,79 @@ function CourseDetailPage() {
       await api.delete(`/courses/${courseId}/materials/${materialId}`);
       queryClient.invalidateQueries({ queryKey: ['courseMaterials', courseId] });
     } catch {
-      // silently ignore — list will remain unchanged
+      // silently ignore
     }
   }
 
+  // Assignment state
   const [showAddAssignment, setShowAddAssignment] = useState(false);
-  const [asgTitle, setAsgTitle] = useState('');
-  const [asgDesc, setAsgDesc] = useState('');
-  const [asgDate, setAsgDate] = useState('');
-  const [savingAsg, setSavingAsg] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<CourseAssignment | null>(null);
 
-  async function handleAddAssignment() {
-    if (!asgTitle.trim() || !asgDate) return;
-    setSavingAsg(true);
+  async function handleAddAssignment(data: {
+    title: string;
+    description?: string;
+    dueDate: string;
+    evalType: 'none' | 'pass_fail' | 'graded';
+  }) {
+    await api.post(`/courses/${courseId}/assignments`, data);
+    queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
+  }
+
+  // Eval dialog state
+  const [evalDialogState, setEvalDialogState] = useState<{
+    taskId: number;
+    evalType: 'pass_fail' | 'graded';
+    currentScore: number | null;
+  } | null>(null);
+
+  async function handleSubmitEval(taskId: number, score: number, feedback: string) {
+    await api.post(`/tasks/${taskId}/eval`, { score, feedback });
+    queryClient.invalidateQueries({
+      queryKey: ['assignmentStudents', editingAssignment?.id],
+    });
+  }
+
+  // Student search state
+  const [showAddStudent, setShowAddStudent] = useState(false);
+  const [studentQuery, setStudentQuery] = useState('');
+  const [studentResults, setStudentResults] = useState<
+    { id: number; name: string | null; email: string }[]
+  >([]);
+  const [addingStudent, setAddingStudent] = useState(false);
+
+  useEffect(() => {
+    if (studentQuery.length < 2) {
+      setStudentResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      const results = await api
+        .get<{ id: number; name: string | null; email: string }[]>(
+          `/users/search?q=${encodeURIComponent(studentQuery)}`
+        )
+        .catch(() => []);
+      setStudentResults(results);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [studentQuery]);
+
+  async function handleAddStudent(userId: number) {
+    setAddingStudent(true);
     try {
-      await api.post(`/courses/${courseId}/assignments`, {
-        title: asgTitle.trim(),
-        description: asgDesc.trim() || undefined,
-        dueDate: asgDate,
-      });
-      queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
-      setAsgTitle('');
-      setAsgDesc('');
-      setAsgDate('');
-      setShowAddAssignment(false);
+      await api.post(`/courses/${courseId}/students`, { userId });
+      queryClient.invalidateQueries({ queryKey: ['courseStudents', courseId] });
+      setShowAddStudent(false);
+      setStudentQuery('');
+      setStudentResults([]);
     } catch {
-      // silently ignore — dialog stays open so teacher can retry
+      // silently ignore
     } finally {
-      setSavingAsg(false);
+      setAddingStudent(false);
     }
   }
 
   const tasks = allTasks.filter((t) => t.courseId === Number(courseId));
   const notes = allNotes.filter((n) => n.courseId === Number(courseId));
-
-  async function handleEnroll() {
-    if (!course) return;
-    setEnrolling(true);
-    try {
-      if (course.enrolled) {
-        await api.delete(`/courses/${courseId}/enroll`);
-      } else {
-        await api.post(`/courses/${courseId}/enroll`, {});
-      }
-      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
-      queryClient.invalidateQueries({ queryKey: ['courses'] });
-    } finally {
-      setEnrolling(false);
-    }
-  }
 
   async function handleToggle(id: number) {
     const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
@@ -269,30 +300,21 @@ function CourseDetailPage() {
             <h1 className="text-2xl font-bold text-gray-900">{course.code}</h1>
             <p className="text-sm text-gray-500">{course.name ?? course.code}</p>
           </div>
-          {!isTeacher && (
-            <Button
-              size="sm"
-              variant={course.enrolled ? 'outline' : 'default'}
-              onClick={handleEnroll}
-              disabled={enrolling}
-              className={course.enrolled ? 'text-red-500 border-red-200 hover:bg-red-50' : ''}
-            >
-              {enrolling ? '...' : course.enrolled ? 'Unenroll' : 'Enroll'}
-            </Button>
-          )}
         </div>
 
-        {/* Teacher */}
-        <div className="flex items-center gap-3 mb-4">
-          {course.teacherAvatar ? (
-            <img src={course.teacherAvatar} className="w-9 h-9 rounded-full object-cover shrink-0" />
-          ) : (
-            <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
-          )}
-          <span className="text-sm font-medium text-gray-700">
-            {course.teacherName ?? 'Unknown teacher'}
-          </span>
-        </div>
+        {/* Teacher info — only shown in student mode */}
+        {!isTeacher && (
+          <div className="flex items-center gap-3 mb-4">
+            {course.teacherAvatar ? (
+              <img src={course.teacherAvatar} className="w-9 h-9 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+            )}
+            <span className="text-sm font-medium text-gray-700">
+              {course.teacherName ?? 'Unknown teacher'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Tab bar */}
@@ -428,7 +450,7 @@ function CourseDetailPage() {
         </div>
       )}
 
-      {/* Materials */}
+      {/* Materials (student view) */}
       {!isTeacher && activeTab === 'materials' && (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-3">
@@ -471,7 +493,12 @@ function CourseDetailPage() {
               <span className="font-semibold text-gray-900">Assignments</span>
               <span className="text-gray-400 text-sm">{courseAssignments.length}</span>
             </div>
-            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowAddAssignment(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-7 h-7"
+              onClick={() => setShowAddAssignment(true)}
+            >
               <Plus className="w-5 h-5 text-gray-700" />
             </Button>
           </div>
@@ -489,7 +516,11 @@ function CourseDetailPage() {
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-red-100 text-red-800';
                 return (
-                  <div key={asg.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
+                  <div
+                    key={asg.id}
+                    onClick={() => setEditingAssignment(asg)}
+                    className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md cursor-pointer active:scale-95 transition"
+                  >
                     <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
                       <ClipboardCheck className="w-4 h-4 text-blue-600" />
                     </div>
@@ -511,46 +542,6 @@ function CourseDetailPage() {
               })}
             </div>
           )}
-
-          {showAddAssignment && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
-              <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
-                <h2 className="text-base font-semibold text-gray-900">New Assignment</h2>
-                <input
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-                  placeholder="Title"
-                  value={asgTitle}
-                  onChange={(e) => setAsgTitle(e.target.value)}
-                  autoFocus
-                />
-                <textarea
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none"
-                  placeholder="Description (optional)"
-                  rows={2}
-                  value={asgDesc}
-                  onChange={(e) => setAsgDesc(e.target.value)}
-                />
-                <input
-                  type="datetime-local"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-                  value={asgDate}
-                  onChange={(e) => setAsgDate(e.target.value)}
-                />
-                <div className="flex gap-2">
-                  <Button variant="ghost" className="flex-1" onClick={() => setShowAddAssignment(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={handleAddAssignment}
-                    disabled={savingAsg || !asgTitle.trim() || !asgDate}
-                  >
-                    {savingAsg ? 'Saving…' : 'Create'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -563,7 +554,12 @@ function CourseDetailPage() {
               <span className="font-semibold text-gray-900">Study Materials</span>
               <span className="text-gray-400 text-sm">{materials.length}</span>
             </div>
-            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowAddMaterial(true)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-7 h-7"
+              onClick={() => setShowAddMaterial(true)}
+            >
               <Plus className="w-5 h-5 text-gray-700" />
             </Button>
           </div>
@@ -573,7 +569,10 @@ function CourseDetailPage() {
           ) : (
             <div className="space-y-2">
               {materials.map((material) => (
-                <div key={material.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
+                <div
+                  key={material.id}
+                  className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+                >
                   <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{material.title}</p>
@@ -636,11 +635,48 @@ function CourseDetailPage() {
       {/* Teacher: Students tab */}
       {isTeacher && teacherTab === 'students' && (
         <div className="px-4 mt-6 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="w-5 h-5 text-indigo-500" />
-            <span className="font-semibold text-gray-900">Students</span>
-            <span className="text-gray-400 text-sm">{courseStudents.length}</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-500" />
+              <span className="font-semibold text-gray-900">Students</span>
+              <span className="text-gray-400 text-sm">{courseStudents.length}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-7 h-7"
+              onClick={() => setShowAddStudent((v) => !v)}
+            >
+              <Plus className="w-5 h-5 text-gray-700" />
+            </Button>
           </div>
+
+          {showAddStudent && (
+            <div className="relative mb-3">
+              <input
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                placeholder="Search by name or email…"
+                value={studentQuery}
+                onChange={(e) => setStudentQuery(e.target.value)}
+                autoFocus
+              />
+              {studentResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 overflow-hidden">
+                  {studentResults.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => handleAddStudent(u.id)}
+                      disabled={addingStudent}
+                      className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                    >
+                      <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
+                      {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {courseStudents.length === 0 ? (
             <p className="text-sm text-gray-400 py-4 text-center">No students enrolled</p>
@@ -662,9 +698,15 @@ function CourseDetailPage() {
                       ? 'bg-yellow-100 text-yellow-800'
                       : 'bg-red-100 text-red-800';
                 return (
-                  <div key={student.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
+                  <div
+                    key={student.id}
+                    className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+                  >
                     {student.avatar ? (
-                      <img src={student.avatar} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                      <img
+                        src={student.avatar}
+                        className="w-9 h-9 rounded-full object-cover shrink-0"
+                      />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
                         <span className="text-xs font-bold text-indigo-600">{initials}</span>
@@ -685,6 +727,40 @@ function CourseDetailPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* New Assignment Dialog */}
+      <NewAssignmentDialog
+        isOpen={showAddAssignment}
+        onOpenChange={setShowAddAssignment}
+        onSubmit={handleAddAssignment}
+      />
+
+      {/* Edit Assignment Dialog */}
+      {editingAssignment && (
+        <EditAssignmentDialog
+          assignmentId={editingAssignment.id}
+          courseId={courseId}
+          initialTitle={editingAssignment.title}
+          initialDescription={editingAssignment.description}
+          initialDueDate={editingAssignment.dueDate}
+          initialEvalType={editingAssignment.evalType}
+          onClose={() => setEditingAssignment(null)}
+          onEval={(taskId, currentScore, evalType) =>
+            setEvalDialogState({ taskId, evalType, currentScore })
+          }
+        />
+      )}
+
+      {/* Eval Dialog */}
+      {evalDialogState && (
+        <EvalDialog
+          taskId={evalDialogState.taskId}
+          evalType={evalDialogState.evalType}
+          currentScore={evalDialogState.currentScore}
+          onClose={() => setEvalDialogState(null)}
+          onSubmit={handleSubmitEval}
+        />
       )}
     </div>
   );
