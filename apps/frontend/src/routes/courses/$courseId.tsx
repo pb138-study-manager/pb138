@@ -132,8 +132,12 @@ function CourseDetailPage() {
   }
 
   async function handleDeleteMaterial(materialId: number) {
-    await api.delete(`/courses/${courseId}/materials/${materialId}`);
-    queryClient.invalidateQueries({ queryKey: ['courseMaterials', courseId] });
+    try {
+      await api.delete(`/courses/${courseId}/materials/${materialId}`);
+      queryClient.invalidateQueries({ queryKey: ['courseMaterials', courseId] });
+    } catch {
+      // silently ignore — list will remain unchanged
+    }
   }
 
   const [showAddAssignment, setShowAddAssignment] = useState(false);
@@ -321,7 +325,7 @@ function CourseDetailPage() {
       )}
 
       {/* Tasks */}
-      {activeTab === 'tasks' && (
+      {!isTeacher && activeTab === 'tasks' && (
         <div className="px-4 mt-6 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -392,7 +396,7 @@ function CourseDetailPage() {
       )}
 
       {/* Notes */}
-      {activeTab === 'notes' && (
+      {!isTeacher && activeTab === 'notes' && (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -419,7 +423,7 @@ function CourseDetailPage() {
       )}
 
       {/* Materials */}
-      {activeTab === 'materials' && (
+      {!isTeacher && activeTab === 'materials' && (
         <div className="px-4 mt-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
