@@ -28,11 +28,8 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
-      - name: Approve pnpm builds
-        run: pnpm approve-builds
-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-frozen-lockfile
 
       - name: Lint
         run: pnpm lint
@@ -59,11 +56,8 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
-      - name: Approve pnpm builds
-        run: pnpm approve-builds
-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-frozen-lockfile
 
       - name: Build frontend
         run: pnpm --filter @pb138/frontend build
@@ -135,11 +129,8 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
-      - name: Approve pnpm builds
-        run: pnpm approve-builds
-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --prefer-frozen-lockfile
 
       - name: Install Playwright browsers
         working-directory: apps/frontend
