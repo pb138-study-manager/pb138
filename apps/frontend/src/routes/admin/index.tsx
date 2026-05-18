@@ -1,20 +1,11 @@
 import type { ReactNode } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
-import { mockAdminUsers, mockAuditLogs, mockRoles } from '@/components/admin/mock-data';
+import { useAdminManager } from '@/hooks/useAdminManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Database, FileText, Shield, SlidersHorizontal, Users } from 'lucide-react';
 
-export const Route = createFileRoute('/admin/')({
-  component: AdminOverviewPage,
-});
-
-const tiles: {
-  to: string;
-  title: string;
-  description: string;
-  icon: ReactNode;
-}[] = [
+const tiles: { to: string; title: string; description: string; icon: ReactNode }[] = [
   {
     to: '/admin/settings',
     title: 'System settings',
@@ -47,12 +38,18 @@ const tiles: {
   },
 ];
 
+export const Route = createFileRoute('/admin/')({
+  component: AdminOverviewPage,
+});
+
 function AdminOverviewPage() {
+  const { adminUsers, adminLogs, adminRoles } = useAdminManager();
+
   return (
     <div>
       <AdminPageHeader
         title="Administration"
-        description="Manage system configuration, review logs, and control access. All data on this page is mock UI until the admin API is connected."
+        description="Manage system configuration, review logs, and control access."
       />
       <div className="mb-10 grid gap-4 sm:grid-cols-3">
         <Card>
@@ -60,8 +57,7 @@ function AdminOverviewPage() {
             <CardTitle className="text-base font-medium text-gray-600">Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-900">{mockAdminUsers.length}</p>
-            <p className="text-xs text-gray-500">mock directory</p>
+            <p className="text-3xl font-bold text-gray-900">{adminUsers.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -69,8 +65,7 @@ function AdminOverviewPage() {
             <CardTitle className="text-base font-medium text-gray-600">Log events</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-900">{mockAuditLogs.length}</p>
-            <p className="text-xs text-gray-500">sample rows</p>
+            <p className="text-3xl font-bold text-gray-900">{adminLogs.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -78,8 +73,7 @@ function AdminOverviewPage() {
             <CardTitle className="text-base font-medium text-gray-600">Roles</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-900">{mockRoles.length}</p>
-            <p className="text-xs text-gray-500">defined roles</p>
+            <p className="text-3xl font-bold text-gray-900">{adminRoles.length}</p>
           </CardContent>
         </Card>
       </div>
