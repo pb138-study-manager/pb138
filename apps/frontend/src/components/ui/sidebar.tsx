@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ClipboardCheck,
   Clock,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   CalendarDays,
   GraduationCap,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,8 @@ import { useRoleMode } from '@/lib/roleMode';
 export default function Sidebar({ activeTab }: { activeTab: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { t } = useTranslation();
-  const { mode } = useRoleMode();
+  const { mode, toggle } = useRoleMode();
+  const navigate = useNavigate();
 
   const { data: me } = useQuery({
     queryKey: ['userMe'],
@@ -46,7 +48,13 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
     { id: 'profile', icon: <Users className="w-5 h-5 shrink-0" />, label: t('nav.profile'), href: '/profile' },
   ];
 
-  const navItems = (isTeacher && mode === 'teacher') ? teacherNavItems : studentNavItems;
+  const isTeacherMode = isTeacher && mode === 'teacher';
+  const navItems = isTeacherMode ? teacherNavItems : studentNavItems;
+
+  function handleToggle() {
+    toggle();
+    navigate({ to: isTeacherMode ? '/today' : '/teachers' });
+  }
 
   return (
     <aside
@@ -99,6 +107,24 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
           </Link>
         ))}
       </div>
+
+      {isTeacher && (
+        <div className={cn('border-t border-gray-200 dark:border-gray-800 p-3')}>
+          <button
+            onClick={handleToggle}
+            title={isTeacherMode ? 'Switch to Student' : 'Switch to Teacher'}
+            className={cn(
+              'flex items-center rounded-lg transition-colors font-medium w-full text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
+              isCollapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5'
+            )}
+          >
+            <ArrowLeftRight className="w-5 h-5 shrink-0" />
+            {!isCollapsed && (
+              <span>{isTeacherMode ? 'Switch to Student' : 'Switch to Teacher'}</span>
+            )}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

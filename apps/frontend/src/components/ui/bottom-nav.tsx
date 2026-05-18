@@ -6,10 +6,11 @@ import {
   Menu,
   BookOpen,
   GraduationCap,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useRoleMode } from '@/lib/roleMode';
@@ -23,7 +24,8 @@ interface NavItem {
 
 export default function BottomNav({ active }: { active: string }) {
   const { t } = useTranslation();
-  const { mode } = useRoleMode();
+  const { mode, toggle } = useRoleMode();
+  const navigate = useNavigate();
 
   const { data: me } = useQuery({
     queryKey: ['userMe'],
@@ -45,7 +47,13 @@ export default function BottomNav({ active }: { active: string }) {
     { id: 'profile', label: t('nav.profile'), href: '/profile', icon: <Users className="w-5 h-5" /> },
   ];
 
-  const items = (isTeacher && mode === 'teacher') ? teacherItems : studentItems;
+  const isTeacherMode = isTeacher && mode === 'teacher';
+  const items = isTeacherMode ? teacherItems : studentItems;
+
+  function handleToggle() {
+    toggle();
+    navigate({ to: isTeacherMode ? '/today' : '/teachers' });
+  }
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex justify-around transition-colors">
@@ -64,6 +72,15 @@ export default function BottomNav({ active }: { active: string }) {
         </Link>
       ))}
 
+      {isTeacher && (
+        <button
+          onClick={handleToggle}
+          className="flex flex-col items-center justify-center py-3 px-4 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+        >
+          <ArrowLeftRight className="w-5 h-5 mb-1" />
+          <span className="text-xs font-medium">{isTeacherMode ? 'Student' : 'Teacher'}</span>
+        </button>
+      )}
     </div>
   );
 }
