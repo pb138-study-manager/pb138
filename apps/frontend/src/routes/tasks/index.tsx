@@ -11,8 +11,6 @@ export const Route = createFileRoute('/tasks/')({
 export function TasksPage() {
   const { t } = useTranslation();
   const {
-    activeFilter,
-    setActiveFilter,
     isPending,
     overdue,
     today,

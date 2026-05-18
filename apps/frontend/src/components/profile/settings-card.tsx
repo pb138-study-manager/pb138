@@ -5,12 +5,14 @@ import { useNavigate } from '@tanstack/react-router';
 import ThemeSetting from '@/components/profile/theme-setting';
 import LanguageSetting from '@/components/profile/language-setting';
 import NotificationSetting from '@/components/profile/notification-setting';
+import RoleModeSetting from '@/components/profile/role-mode-setting';
 import ActionSetting from '@/components/profile/action-setting';
 
 interface SettingsCardProps {
   theme: string;
   language: 'en' | 'cs';
   notificationsEnabled: boolean;
+  isTeacher?: boolean;
   onUpdateSettings: (key: 'lightTheme' | 'notificationsEnabled', value: boolean) => void;
   onChangeLanguage: (lng: 'en' | 'cs') => void;
 }
@@ -19,6 +21,7 @@ export default function SettingsCard({
   theme,
   language,
   notificationsEnabled,
+  isTeacher = false,
   onUpdateSettings,
   onChangeLanguage,
 }: SettingsCardProps) {
@@ -37,6 +40,8 @@ export default function SettingsCard({
             notificationsEnabled={notificationsEnabled}
             onUpdateSettings={onUpdateSettings}
           />
+
+          {isTeacher && <RoleModeSetting />}
 
           <ActionSetting
             icon={<LayoutPanelLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />}
