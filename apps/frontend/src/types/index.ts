@@ -1,5 +1,5 @@
 export type TaskStatus = 'TODO' | 'IN PROGRESS' | 'DONE';
-export type RoleName = 'USER' | 'MENTOR' | 'ADMIN';
+export type RoleName = 'USER' | 'ADMIN' | 'TEACHER';
 
 export interface User {
   id: number;
@@ -115,4 +115,27 @@ export interface CourseTaskListItem {
   /** Komu je úloha určená */
   target: 'all' | 'one';
   targetStudentName: string | null;
+}
+
+export interface AdminUser {
+  id: number;
+  login: string;
+  email: string;
+  name: string | null;
+  deletedAt: string | null;
+  roles: RoleName[];
+}
+
+export interface AdminAuditLog {
+  id: number;
+  actorId: number;
+  actorLogin: string | null;
+  description: string;
+  happenedAt: string;
+}
+
+export interface AdminRole {
+  id: number;
+  name: RoleName;
+  permissions: string[];
 }
