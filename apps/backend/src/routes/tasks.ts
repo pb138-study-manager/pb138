@@ -14,7 +14,7 @@ const EvalSchema = z.object({
 
 const CreateTaskSchema = z.object({
   title: z.string().min(1),
-  dueDate: z.string(),
+  dueDate: z.string().optional(),
   description: z.string().optional(),
   assignmentId: z.number().optional(),
   parentId: z.number().optional(),
@@ -89,7 +89,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
         .values({
           userId: (user as AuthUser).id,
           title: body.title,
-          dueDate: new Date(body.dueDate),
+          ...(body.dueDate !== undefined && { dueDate: new Date(body.dueDate) }),
           description: body.description,
           assignmentId: body.assignmentId,
           parentId: body.parentId,

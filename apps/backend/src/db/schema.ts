@@ -188,8 +188,16 @@ export const tasks = pgTable('tasks', {
   parentId: integer('parent_id').references((): AnyPgColumn => tasks.id),
   title: text('title').notNull(),
   description: text('description'),
-  dueDate: timestamp('due_date').notNull(),
+  dueDate: timestamp('due_date'),
   status: taskStatusEnum('status').notNull().default('TODO'),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const assignmentSubtasks = pgTable('assignment_subtasks', {
+  id: serial('id').primaryKey(),
+  assignmentId: integer('assignment_id').notNull().references(() => assignments.id),
+  title: text('title').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
   deletedAt: timestamp('deleted_at'),
 });
 

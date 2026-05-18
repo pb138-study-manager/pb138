@@ -25,7 +25,7 @@ export interface Task {
   parentId: number | null;
   title: string;
   description: string | null;
-  dueDate: string;
+  dueDate: string | null;
   status: TaskStatus;
   deletedAt: string | null;
   subtasks?: Task[];

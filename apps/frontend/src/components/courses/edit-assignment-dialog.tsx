@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ClipboardCheck, Users, Check, CheckCircle, Circle } from 'lucide-react';
+import { Calendar, ClipboardCheck, Users, ListTodo, Check, CheckCircle, Circle, Plus, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import { api } from '@/lib/api';
 
@@ -15,6 +16,13 @@ interface AssignmentStudent {
   avatar: string | null;
   status: 'TODO' | 'IN PROGRESS' | 'DONE';
   evalScore: number | null;
+}
+
+interface AssignmentSubtask {
+  id: number;
+  assignmentId: number;
+  title: string;
+  sortOrder: number;
 }
 
 interface Props {
@@ -49,6 +57,9 @@ export default function EditAssignmentDialog({
   const [evalType, setEvalType] = useState(initialEvalType);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [studentsExpanded, setStudentsExpanded] = useState(false);
+  const [subtasksExpanded, setSubtasksExpanded] = useState(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [addingSubtask, setAddingSubtask] = useState(false);
   const initializedRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -81,13 +92,42 @@ export default function EditAssignmentDialog({
     enabled: studentsExpanded,
   });
 
+  const { data: subtasks = [], refetch: refetchSubtasks } = useQuery({
+    queryKey: ['assignmentSubtasks', assignmentId],
+    queryFn: () =>
+      api
+        .get<AssignmentSubtask[]>(`/courses/${courseId}/assignments/${assignmentId}/subtasks`)
+        .catch(() => []),
+    enabled: subtasksExpanded,
+  });
+
+  async function handleAddSubtask() {
+    if (!newSubtaskTitle.trim()) return;
+    setAddingSubtask(true);
+    try {
+      await api.post(`/courses/${courseId}/assignments/${assignmentId}/subtasks`, {
+        title: newSubtaskTitle.trim(),
+      });
+      setNewSubtaskTitle('');
+      refetchSubtasks();
+    } catch { /* silently ignore */ }
+    finally { setAddingSubtask(false); }
+  }
+
+  async function handleDeleteSubtask(subtaskId: number) {
+    try {
+      await api.delete(`/courses/${courseId}/assignments/${assignmentId}/subtasks/${subtaskId}`);
+      refetchSubtasks();
+    } catch { /* silently ignore */ }
+  }
+
   const totalStudents = students.length;
   const doneCount = students.filter((s) => s.status === 'DONE').length;
 
   const pills = [
     {
       icon: Calendar,
-      label: selectedDate ? selectedDate.toLocaleDateString() : 'Date',
+      label: selectedDate ? selectedDate.toLocaleDateString() : 'Deadline',
       active: selectedDate !== null,
       onClick: () => setIsDateOpen(true),
     },
@@ -112,7 +152,7 @@ export default function EditAssignmentDialog({
             <div className="border-t" />
 
             <div className="flex flex-wrap gap-2 pt-4">
-              {/* Date pill */}
+              {/* Deadline date pill */}
               {pills.map((pill) => (
                 <button
                   key={pill.label}
@@ -156,7 +196,20 @@ export default function EditAssignmentDialog({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Students pill — toggles expanded section */}
+              {/* Subtasks pill */}
+              <button
+                onClick={() => setSubtasksExpanded((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                  subtasksExpanded
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <ListTodo className="w-3.5 h-3.5" />
+                {subtasks.length > 0 ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks'}
+              </button>
+
+              {/* Students pill */}
               <button
                 onClick={() => setStudentsExpanded((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
@@ -170,7 +223,45 @@ export default function EditAssignmentDialog({
               </button>
             </div>
 
-            {/* Students expanded section — like subtasks in edit-task-dialog */}
+            {/* Subtasks section */}
+            {subtasksExpanded && (
+              <>
+                <div className="border-t my-3" />
+                <div className="space-y-1.5">
+                  {subtasks.map((s) => (
+                    <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-xl text-sm">
+                      <span className="flex-1 text-gray-700 truncate">{s.title}</span>
+                      <button
+                        onClick={() => handleDeleteSubtask(s.id)}
+                        className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      placeholder="Add a subtask..."
+                      value={newSubtaskTitle}
+                      onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubtask(); }}
+                      className="text-sm h-8 flex-1"
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="w-8 h-8 shrink-0"
+                      onClick={handleAddSubtask}
+                      disabled={!newSubtaskTitle.trim() || addingSubtask}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Students expanded section */}
             {studentsExpanded && (
               <>
                 <div className="border-t my-3" />

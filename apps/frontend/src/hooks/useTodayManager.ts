@@ -34,12 +34,12 @@ export function useTodayManager() {
     .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
   const todayTasks = tasks.filter((t) => {
-    if (t.status === 'DONE') return false;
+    if (t.status === 'DONE' || !t.dueDate) return false;
     return isSameDay(new Date(t.dueDate), now);
   });
 
   const backlogTasks = tasks.filter((t) => {
-    if (t.status === 'DONE') return false;
+    if (t.status === 'DONE' || !t.dueDate) return false;
     const due = new Date(t.dueDate);
     return due < todayStart;
   });

@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { courses, userCourses, tasks, assignments, userProfiles, users, evals } from '../db/schema';
+import { courses, userCourses, tasks, assignments, assignmentSubtasks, userProfiles, users, evals, events } from '../db/schema';
 
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
@@ -446,6 +446,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         set.status = 400;
         return { error: 'NO_STUDENTS', message: 'No eligible students found' };
       }
+      const deadline = new Date(body.dueDate);
       const assignment = await db.transaction(async (tx) => {
         const [created] = await tx
           .insert(assignments)
@@ -453,10 +454,11 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
             courseId: course.id,
             title: body.title,
             description: body.description,
-            dueDate: new Date(body.dueDate),
+            dueDate: deadline,
             evalType: body.evalType ?? 'none',
           })
           .returning();
+        // Tasks for students have no due date — student sets their own
         await tx.insert(tasks).values(
           recipients.map((e) => ({
             userId: e.userId,
@@ -464,7 +466,18 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
             courseId: course.id,
             title: body.title,
             description: body.description,
-            dueDate: new Date(body.dueDate),
+          }))
+        );
+        // Create a DEADLINE calendar event for each student
+        await tx.insert(events).values(
+          recipients.map((e) => ({
+            userId: e.userId,
+            title: body.title,
+            description: `Deadline for assignment`,
+            startDate: deadline,
+            endDate: deadline,
+            courseId: course.id,
+            type: 'DEADLINE' as const,
           }))
         );
         return created;
@@ -583,6 +596,95 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       })
     )
   )
+  .get('/:id/assignments/:assignmentId/subtasks', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const assignmentId = Number(params.assignmentId);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course || course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied' };
+    }
+    return db
+      .select()
+      .from(assignmentSubtasks)
+      .where(
+        and(eq(assignmentSubtasks.assignmentId, assignmentId), isNull(assignmentSubtasks.deletedAt))
+      )
+      .orderBy(assignmentSubtasks.sortOrder, assignmentSubtasks.id);
+  })
+  .post(
+    '/:id/assignments/:assignmentId/subtasks',
+    async ({ params, body, user, set }) => {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+      }
+      const courseId = Number(params.id);
+      const assignmentId = Number(params.assignmentId);
+      const [course] = await db
+        .select()
+        .from(courses)
+        .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+      if (!course || course.lectureTeacherId !== authUser.id) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Access denied' };
+      }
+      const [subtask] = await db
+        .insert(assignmentSubtasks)
+        .values({ assignmentId, title: body.title })
+        .returning();
+      await logAction(db, authUser.id, `Added subtask to assignment ${assignmentId}`);
+      return subtask;
+    },
+    zodBody(z.object({ title: z.string().min(1) }))
+  )
+  .delete('/:id/assignments/:assignmentId/subtasks/:subtaskId', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const assignmentId = Number(params.assignmentId);
+    const subtaskId = Number(params.subtaskId);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course || course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied' };
+    }
+    const [existing] = await db
+      .select()
+      .from(assignmentSubtasks)
+      .where(
+        and(
+          eq(assignmentSubtasks.id, subtaskId),
+          eq(assignmentSubtasks.assignmentId, assignmentId),
+          isNull(assignmentSubtasks.deletedAt)
+        )
+      );
+    if (!existing) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Subtask not found' };
+    }
+    await db
+      .update(assignmentSubtasks)
+      .set({ deletedAt: new Date() })
+      .where(eq(assignmentSubtasks.id, subtaskId));
+    await logAction(db, authUser.id, `Deleted subtask ${subtaskId} from assignment ${assignmentId}`);
+    return { success: true };
+  })
   .get('/:id/assignments/:assignmentId/students', async ({ params, user, set }) => {
     const authUser = user as AuthUser;
     if (!authUser.roles.includes('TEACHER')) {

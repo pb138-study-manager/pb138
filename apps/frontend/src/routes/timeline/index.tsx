@@ -54,7 +54,7 @@ function TimelinePage() {
 
   const timelineItems: TimelineItem[] = [
     ...eventsForSelectedDate.map((e) => ({ kind: 'event' as const, time: new Date(e.startDate).getTime(), data: e })),
-    ...tasksForSelectedDate.map((t) => ({ kind: 'task' as const, time: new Date(t.dueDate).getTime(), data: t })),
+    ...tasksForSelectedDate.map((t) => ({ kind: 'task' as const, time: new Date(t.dueDate!).getTime(), data: t })),
   ].sort((a, b) => a.time - b.time)
 
   return (
@@ -156,7 +156,7 @@ function TimelinePage() {
             <TaskTimelineCard
               key={`task-${item.data.id}`}
               task={item.data}
-              timeLabel={formatTime(item.data.dueDate)}
+              timeLabel={formatTime(item.data.dueDate ?? '')}
               onToggle={() => toggleTask(item.data.id)}
               onEditFull={editTaskFull}
             />
