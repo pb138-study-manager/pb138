@@ -1,6 +1,6 @@
 # Matica obrazoviek — Study Manager (Student OS)
 
-Matica zobrazuje, ktoré obrazovky sú dostupné pre každú rolu. Roly sú kumulatívne: TEACHER a ADMIN sú súčasne aj USER (majú všetky práva USER + navyše vlastné).
+Matica zobrazuje, ktoré obrazovky sú dostupné pre každú rolu. Roly sú kumulatívne: TEACHER a ADMIN sú súčasne aj USER.
 
 ## Legenda
 
@@ -9,73 +9,74 @@ Matica zobrazuje, ktoré obrazovky sú dostupné pre každú rolu. Roly sú kumu
 | ✅ | Plný prístup |
 | 👁 | Len čítanie / obmedzený pohľad |
 | ❌ | Nedostupné / presmerované |
-| 🔀 | Závisí od roly (role toggle) |
+| ⚠️ | Placeholder — stránka existuje, obsah nie je implementovaný |
 
 ---
 
 ## Matica prístupu
 
-| Obrazovka / URL | GUEST (neprihlásený) | USER | TEACHER | ADMIN |
+| Obrazovka / URL | GUEST | USER | TEACHER | ADMIN |
 |---|---|---|---|---|
 | **/ (Landing page)** | ✅ | ✅ | ✅ | ✅ |
-| **/login** | ✅ | ✅ (presmerovanie na /today) | ✅ | ✅ |
-| **/register** | ✅ | ✅ (presmerovanie na /today) | ✅ | ✅ |
+| **/login** | ✅ | ✅ | ✅ | ✅ |
+| **/register** | ✅ | ✅ | ✅ | ✅ |
 | **/verify-email** | ✅ | ✅ | ✅ | ✅ |
-| **--- Chránené stránky (vyžadujú prihlásenie) ---** | | | | |
+| **— Chránené stránky —** | | | | |
 | **/today** | ❌ | ✅ | ✅ | ✅ |
 | **/tasks** | ❌ | ✅ | ✅ | ✅ |
 | **/notes** | ❌ | ✅ | ✅ | ✅ |
-| **/notes/:noteId** | ❌ | ✅ (vlastné poznámky) | ✅ | ✅ |
+| **/notes/:noteId** | ❌ | ✅ | ✅ | ✅ |
 | **/timeline** | ❌ | ✅ | ✅ | ✅ |
-| **/courses** | ❌ | ✅ (zapísané kurzy) | ✅ | ✅ |
+| **/courses** | ❌ | ✅ | ✅ | ✅ |
 | **/courses/new** | ❌ | ❌ | ✅ | ✅ |
-| **/courses/:courseId** | ❌ | 👁 (ako študent) | ✅ (ako učiteľ kurzu) | ✅ |
+| **/courses/:courseId** (student view) | ❌ | ✅ | ✅ | ✅ |
+| **/courses/:courseId** (teacher view — tab Assignments) | ❌ | ❌ | ✅ | ✅ |
+| **/courses/:courseId** (teacher view — tab Materials) | ❌ | ❌ | ✅ | ✅ |
+| **/courses/:courseId** (teacher view — tab Students) | ❌ | ❌ | ✅ | ✅ |
 | **/profile** | ❌ | ✅ | ✅ | ✅ |
-| **--- Teacher portal (role toggle STUDENT ⇄ TEACHER) ---** | | | | |
+| **/others** (More drawer) | ❌ | ✅ | ✅ | ✅ |
+| **— Teacher portal —** | | | | |
 | **/teachers** (My Classes) | ❌ | ❌ | ✅ | ✅ |
-| **/teachers/assignments** | ❌ | ❌ | ✅ | ✅ |
-| **/teachers/materials** | ❌ | ❌ | ✅ | ✅ |
-| **/teachers/students** | ❌ | ❌ | ✅ | ✅ |
-| **--- Admin panel ---** | | | | |
-| **/admin** | ❌ | ❌ | ❌ | ✅ |
+| **/teachers/assignments** | ❌ | ❌ | ⚠️ | ⚠️ |
+| **/teachers/materials** | ❌ | ❌ | ⚠️ | ⚠️ |
+| **/teachers/students** | ❌ | ❌ | ⚠️ | ⚠️ |
+| **— Admin panel —** | | | | |
+| **/admin** (prehľad) | ❌ | ❌ | ❌ | ✅ |
 | **/admin/users** | ❌ | ❌ | ❌ | ✅ |
 | **/admin/roles** | ❌ | ❌ | ❌ | ✅ |
 | **/admin/logs** | ❌ | ❌ | ❌ | ✅ |
-| **/admin/settings** | ❌ | ❌ | ❌ | ✅ |
-| **/admin/database** | ❌ | ❌ | ❌ | ✅ |
-| **--- Pomocné stránky ---** | | | | |
-| **/custom-nav** | ❌ | ✅ | ✅ | ✅ |
-| **/others** (More drawer) | ❌ | ✅ | ✅ | ✅ |
+| **/admin/settings** | ❌ | ❌ | ❌ | ⚠️ |
+| **/admin/database** | ❌ | ❌ | ❌ | ⚠️ |
 
 ---
 
 ## Navigácia podľa roly
 
-### Študent (USER) — bottom nav / sidebar
+### Študent (USER / TEACHER v student móde)
 
-| Slot | Obrazovka | Ikona |
-|------|-----------|-------|
-| 1 | Today | 🏠 |
-| 2 | Tasks | ✅ |
-| 3 | Courses | 📚 |
-| 4 | Notes | 📝 |
-| 5 | Timeline | 📅 |
-| — | Profile | 👤 |
-| — | Others / More | ⋯ |
+| Slot | Obrazovka | URL |
+|------|-----------|-----|
+| 1 | Today | /today |
+| 2 | Tasks | /tasks |
+| 3 | Courses | /courses |
+| 4 | Notes | /notes |
+| 5 | Others | /others |
+| — | Profile | /profile |
+| — | Role toggle (len TEACHER) | — prepne do teacher módu |
 
-### Učiteľ (TEACHER) — po prepnutí roly
+### Učiteľ (TEACHER v teacher móde)
 
-| Slot | Obrazovka | Ikona |
-|------|-----------|-------|
-| 1 | My Classes | 🏫 |
-| 2 | Assignments | 📋 |
-| 3 | Study Materials | 📦 |
-| 4 | Students | 👥 |
-| — | Profile | 👤 |
+| Slot | Obrazovka | URL |
+|------|-----------|-----|
+| 1 | My Classes | /teachers |
+| 2 | Profile | /profile |
+| — | Role toggle | — prepne späť do student módu |
+
+> Role toggle je tlačidlo v spodnej navigácii (mobil) a v sidebar (desktop). Viditeľné iba pre používateľov s rolou TEACHER.
 
 ### Admin (ADMIN)
 
-Admin má prístup k všetkým USER obrazovkám + admin panel (`/admin/*`).
+Admin má prístup k všetkým USER obrazovkám + vlastný admin panel s vlastným sidebar (`/admin/*`). Hlavná navigácia sa na admin stránkach skrýva.
 
 ---
 
@@ -87,13 +88,12 @@ Admin má prístup k všetkým USER obrazovkám + admin panel (`/admin/*`).
 |-------|-----------------|-------------------|-----------------|-------|
 | Zobraziť detail kurzu | ✅ | ❌ | ✅ | ✅ |
 | Zobraziť study materials | ✅ | ❌ | ✅ | ✅ |
-| Zobraziť assignments | ✅ | ❌ | ✅ | ✅ |
+| Zobraziť assignments (tab) | ✅ | ❌ | ✅ | ✅ |
 | Zobraziť zoznam študentov | ❌ | ❌ | ✅ | ✅ |
-| Kliknúť na kartu študenta (detail) | ❌ | ❌ | ✅ | ✅ |
 | Vytvoriť assignment | ❌ | ❌ | ✅ | ✅ |
 | Editovať assignment | ❌ | ❌ | ✅ | ✅ |
 | Pridať study material | ❌ | ❌ | ✅ | ✅ |
-| Zapísať sa do kurzu | ✅ (enroll) | ✅ | ❌ | ✅ |
+| Zapísať sa / odhlásiť z kurzu | ✅ | ✅ | ❌ | ✅ |
 | Vymazať kurz | ❌ | ❌ | ✅ | ✅ |
 
 ### /tasks
@@ -112,10 +112,10 @@ Admin má prístup k všetkým USER obrazovkám + admin panel (`/admin/*`).
 | Akcia | USER | TEACHER | ADMIN |
 |-------|------|---------|-------|
 | Prístup k admin panelu | ❌ | ❌ | ✅ |
-| Spravovať používateľov | ❌ | ❌ | ✅ |
+| Zobraziť / editovať používateľov | ❌ | ❌ | ✅ |
 | Spravovať role | ❌ | ❌ | ✅ |
 | Zobraziť audit logy | ❌ | ❌ | ✅ |
-| Systémové nastavenia | ❌ | ❌ | ✅ |
+| Systémové nastavenia | ❌ | ❌ | ⚠️ placeholder |
 
 ---
 
@@ -123,8 +123,6 @@ Admin má prístup k všetkým USER obrazovkám + admin panel (`/admin/*`).
 
 | Rola | Popis | Pridelenie |
 |------|-------|-----------|
-| **USER** | Základná rola každého prihláseného používateľa | Automaticky pri registrácii |
-| **TEACHER** | Učiteľ — môže vytvárať kurzy, zadávať úlohy, hodnotiť | Manuálne administrátorom |
-| **ADMIN** | Systémový administrátor — plný prístup | Manuálne |
-
-> Poznámka: Rola MENTOR bola odstránená. Oprávnenia správy skupín a hodnotenia úloh prevzala rola TEACHER.
+| **USER** | Základná rola každého prihláseného používateľa — tasky, notes, kurzy, timeline | Automaticky pri registrácii |
+| **TEACHER** | Učiteľ — vytvára kurzy, zadáva úlohy, spravuje materials, hodnotí | Manuálne administrátorom |
+| **ADMIN** | Systémový administrátor — plný prístup vrátane admin panelu | Manuálne |
