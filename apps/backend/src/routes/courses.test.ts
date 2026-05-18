@@ -451,11 +451,13 @@ describe('GET /courses/:id/assignments', () => {
     await db.delete(courses).where(eq(courses.id, courseId));
   });
 
-  it('returns 403 for non-teacher', async () => {
+  it('returns 200 with empty array for enrolled student with no tasks', async () => {
     const res = await testApp.handle(
       req(`http://localhost/courses/${courseId}/assignments`, userAuth)
     );
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
   });
 
   it('returns assignments with done/total counts', async () => {
@@ -472,12 +474,11 @@ describe('GET /courses/:id/assignments', () => {
     expect(Number(body[0].done)).toBe(0);
   });
 
-  it('returns 403 if teacher does not teach the course', async () => {
-    // Create a second teacher user
-    const OTHER_TEACHER_AUTH_ID = 'other-teacher-uuid-asgn';
+  it('returns 200 with empty array for teacher who does not teach the course', async () => {
+    const OTHER_TEACHER_AUTH_ID = `other-teacher-uuid-asgn-${Date.now()}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: 'other-teacher-asgn@example.com', login: 'other-teacher-asgn', pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
+      .values({ email: `other-teacher-asgn-${Date.now()}@example.com`, login: `other-teacher-asgn-${Date.now()}`, pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -491,7 +492,9 @@ describe('GET /courses/:id/assignments', () => {
     const res = await testApp.handle(
       req(`http://localhost/courses/${courseId}/assignments`, otherAuth)
     );
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
 
     // Cleanup
     await db.delete(userRoles).where(eq(userRoles.userId, otherTeacher.id));
