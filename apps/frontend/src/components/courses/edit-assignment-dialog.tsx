@@ -78,6 +78,7 @@ export default function EditAssignmentDialog({
           evalType,
         });
         queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
       } catch { /* silently ignore */ }
     }, 600);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
