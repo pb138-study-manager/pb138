@@ -289,10 +289,6 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
   })
   .get('/:id/assignments', async ({ params, user, set }) => {
     const authUser = user as AuthUser;
-    if (!authUser.roles.includes('TEACHER')) {
-      set.status = 403;
-      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
-    }
     const courseId = Number(params.id);
     const [course] = await db
       .select()
@@ -302,9 +298,23 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Course not found' };
     }
-    if (course.lectureTeacherId !== authUser.id) {
-      set.status = 403;
-      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+    const isTeacher = authUser.roles.includes('TEACHER') && course.lectureTeacherId === authUser.id;
+    if (!isTeacher) {
+      // Students: return public deadline info for assignments they have tasks for
+      const studentAssignments = await db
+        .select({
+          id: assignments.id,
+          title: assignments.title,
+          dueDate: assignments.dueDate,
+        })
+        .from(assignments)
+        .innerJoin(tasks, and(
+          eq(tasks.assignmentId, assignments.id),
+          eq(tasks.userId, authUser.id),
+          isNull(tasks.deletedAt)
+        ))
+        .where(and(eq(assignments.courseId, courseId), isNull(assignments.deletedAt)));
+      return studentAssignments;
     }
     return db
       .select({

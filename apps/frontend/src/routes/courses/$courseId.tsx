@@ -113,11 +113,11 @@ function CourseDetailPage() {
     enabled: isTeacher,
   });
 
-  interface DeadlineEvent { id: number; title: string; startDate: string; }
-  const { data: deadlines = [] } = useQuery({
-    queryKey: ['courseDeadlines', courseId],
+  interface StudentAssignment { id: number; title: string; dueDate: string; }
+  const { data: studentAssignments = [] } = useQuery({
+    queryKey: ['studentAssignments', courseId],
     queryFn: () =>
-      api.get<DeadlineEvent[]>(`/events?courseId=${courseId}&type=DEADLINE&upcoming=true`).catch(() => []),
+      api.get<StudentAssignment[]>(`/courses/${courseId}/assignments`).catch(() => []),
     enabled: !isTeacher,
   });
 
@@ -345,26 +345,26 @@ function CourseDetailPage() {
         )}
       </div>
 
-      {/* Upcoming deadlines — student only */}
-      {!isTeacher && deadlines.length > 0 && (
+      {/* Assignment deadlines — student only */}
+      {!isTeacher && studentAssignments.length > 0 && (
         <div className="px-4 mb-2 space-y-1.5">
-          {deadlines
-            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
-            .map((d) => {
-              const date = new Date(d.startDate);
+          {[...studentAssignments]
+            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+            .map((a) => {
+              const date = new Date(a.dueDate);
               const daysLeft = Math.ceil((date.getTime() - Date.now()) / 86400000);
               const urgent = daysLeft <= 3;
               return (
                 <div
-                  key={d.id}
+                  key={a.id}
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl ${urgent ? 'bg-red-50' : 'bg-orange-50'}`}
                 >
                   <div className={`w-2 h-2 rounded-full shrink-0 ${urgent ? 'bg-red-500' : 'bg-orange-400'}`} />
                   <p className={`text-sm font-medium flex-1 truncate ${urgent ? 'text-red-700' : 'text-orange-700'}`}>
-                    {d.title}
+                    {a.title}
                   </p>
                   <span className={`text-xs font-semibold shrink-0 ${urgent ? 'text-red-500' : 'text-orange-500'}`}>
-                    {daysLeft === 0
+                    {daysLeft <= 0
                       ? 'Today'
                       : daysLeft === 1
                         ? 'Tomorrow'
