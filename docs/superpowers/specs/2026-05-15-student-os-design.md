@@ -42,7 +42,7 @@ The redesign **evolves** this — no rebuild. New features are layered on top. E
 - Desktop: all three panels visible, AI panel collapses to icon
 - Mobile: bottom nav + AI accessible as a tab
 
-**Role toggle:** Small pill at the top of the sidebar — `STUDENT ⇄ TEACHER` — only visible if the user holds both roles. Switches the entire nav set without logging out.
+**Role toggle:** Toggle switch na stránke `/profile` (Settings sekcia) — `Teacher Mode` on/off. Viditeľný pre všetkých prihlásených. Sidebar a bottom nav reagujú na kombináciu `mode === 'teacher'` (z `roleMode` v localStorage) + `isTeacher` (z `/users/me` roles). Sidebar pill ako samostatný prvok nie je implementovaný.
 
 **Dark mode:** Persisted in `user_settings.light_theme`, toggled via `dark` class on `<html>`.
 

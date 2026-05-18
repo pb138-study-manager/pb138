@@ -1,6 +1,6 @@
 # PB138 — Aktuálny stav projektu
 
-> **Aktualizované:** 2026-05-16 (session 2)  
+> **Aktualizované:** 2026-05-18 (session 3)  
 > **Vetva:** `merge-be-fe`
 
 ---
@@ -44,12 +44,12 @@
 
 | Čo | Poznámka |
 |---|---|
-| `/admin/*` routes | UI existuje, backend routes nie |
+| `/ai/*` routes | AI Copilot — Claude/E-infra API integrácia |
 | `/ai/*` routes | AI Copilot — Claude/E-infra API integrácia |
 | `/notifications` | In-app notifikácie |
 | `/search` | Globálne vyhľadávanie |
 | Email service | `services/email.ts` — SMTP odosielanie |
-| `/users/:id/profile` | Verejný profil iného používateľa (KAN-60) |
+| `/users/:id/profile` | Verejný profil iného používateľa |
 
 ---
 
@@ -80,31 +80,30 @@
 | **Course detail** (`/courses/:id`) | Tabs Tasks / Notes / Materials; teacher name + avatar; tasks split na Assigned / Created by me (KAN-48) |
 | **Study materials** | Backend: `study_materials` tabuľka + `routes/materials.ts`; Frontend: Materials tab v course detail (KAN-43) |
 
-### ⚠️ UI existuje, ale používa mock dáta
+### ✅ Hotové a napojené na API (pridané v session 3)
 
-| Stránka | Čo chýba |
+| Stránka / komponent | Poznámka |
 |---|---|
-| **Timeline** (`/timeline`) | Stránka existuje → treba napojiť na `/events` API |
-| **Admin** (`/admin/*`, 6 stránok) | Kompletné UI s mock dátami → nemá backend routes |
+| **Admin panel** (`/admin/*`) | Backend: `routes/admin.ts` — users, audit-logs, roles za ADMIN guard; Frontend: `useAdminManager` hook, všetky 3 stránky napojené na API |
+| **Admin layout** | `routes/admin/route.tsx` — `AdminSidebar` + `p-6` padding, hlavný sidebar skrytý na admin stránkach |
+| **Timeline** (`/timeline`) | Napojené na `GET /events?from&to` + `GET /tasks`; create/edit/delete event funguje |
+| **Role toggle** | `RoleModeSetting` komponent v `/profile` — toggle switch, `roleMode` v localStorage; sidebar + bottom nav reagujú na `mode + isTeacher` |
 
-### ⚠️ UI shell existuje, ale nefunkčný
+### ⚠️ UI shell existuje, ale je placeholder
 
 | Stránka | Stav |
 |---|---|
-| Teacher portal (`/teachers/*`) | Shell stránky existujú, obsah nie je implementovaný |
+| **Teacher portal** (`/teachers/*`) | Shell stránky existujú (My Classes, atď.), obsah nie je implementovaný — zostáva ako placeholder |
 | Others/More drawer (`/others`) | Shell existuje |
 
 ### ❌ Chýba úplne
 
 | Čo | Popis |
 |---|---|
-| **Role toggle** | Sidebar pill STUDENT ⇄ TEACHER (viditeľný iba pre TEACHER rolu) |
 | **AI Copilot panel** | Pravý panel — proaktívny feed, chat, weekly plan |
-| **Notification bell** | Bell ikona v headeri + dropdown (KAN-41) |
-| **Teacher portal** | My Classes, Assignments, Evaluations, Study Materials, Students (funkčné obrazovky) |
-| **Public user profiles** | `/profile/:userId` — kliknutie na meno učiteľa v kurze (KAN-60) |
+| **Notification bell** | Bell ikona v headeri + dropdown |
+| **Public user profiles** | `/profile/:userId` — kliknutie na meno učiteľa v kurze |
 | **Global search** | CMD+K palette |
-| **Task/assignment creation UI** | + tlačidlo v Tasks tabe kurzu nemá modal |
 
 ---
 
