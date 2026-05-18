@@ -48,7 +48,36 @@ export function useTimelineManager() {
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
   });
 
-  const eventsForSelectedDate = events.filter((e) =>
+  // Synthetic deadline events derived from assignment tasks — one per unique assignment deadline per day
+  const deadlineEvents: Event[] = (() => {
+    const seen = new Set<string>();
+    const result: Event[] = [];
+    for (const task of tasks) {
+      if (!task.assignmentDeadline) continue;
+      const key = `${task.assignmentId}-${task.assignmentDeadline}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push({
+        id: -(task.assignmentId!),
+        userId: task.userId,
+        title: task.title,
+        startDate: task.assignmentDeadline,
+        endDate: task.assignmentDeadline,
+        type: 'DEADLINE' as const,
+        description: null,
+        place: null,
+        deletedAt: null,
+      });
+    }
+    return result;
+  })();
+
+  const allEvents = [
+    ...events.filter((e) => e.type !== 'DEADLINE'),
+    ...deadlineEvents,
+  ];
+
+  const eventsForSelectedDate = allEvents.filter((e) =>
     isSameDay(new Date(e.startDate), selectedDate)
   );
 
@@ -125,6 +154,7 @@ export function useTimelineManager() {
   }
 
   async function deleteEvent(id: number) {
+    if (id < 0) return; // synthetic deadline — cannot delete
     await api.delete(`/events/${id}`);
     queryClient.setQueryData<Event[]>(['events', weekStart.toISOString()], (prev = []) =>
       prev.filter((e) => e.id !== id)
@@ -135,7 +165,7 @@ export function useTimelineManager() {
     selectedDate,
     weekStart,
     weekDates,
-    events,
+    events: allEvents,
     eventsForSelectedDate,
     tasksForSelectedDate,
     isPending,
