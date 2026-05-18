@@ -34,7 +34,7 @@ const UpdateEventSchema = z.object({
   },
   { message: 'startDate must not be after endDate', path: ['startDate'] }
 );
-import { eq, and, isNull, lt, gt } from 'drizzle-orm';
+import { eq, and, isNull, lt, gt, gte } from 'drizzle-orm';
 
 export const eventsRoutes = new Elysia({ prefix: '/events' })
   .use(authMiddleware)
@@ -53,6 +53,15 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
     }
     if (query.to) {
       conditions.push(lt(events.startDate, new Date(query.to as string)));
+    }
+    if (query.courseId) {
+      conditions.push(eq(events.courseId, Number(query.courseId)));
+    }
+    if (query.type) {
+      conditions.push(eq(events.type, query.type as 'EVENT' | 'DEADLINE'));
+    }
+    if (query.upcoming === 'true') {
+      conditions.push(gte(events.startDate, new Date()));
     }
 
     return db.select().from(events).where(and(...conditions));
