@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
-import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2 } from 'lucide-react';
+import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2, X, CheckCircle, Circle } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
 import { Button } from '@/components/ui/button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -170,6 +170,24 @@ function CourseDetailPage() {
     evalType: 'pass_fail' | 'graded';
     currentScore: number | null;
   } | null>(null);
+
+  // Student detail modal
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  interface StudentTask {
+    taskId: number;
+    status: string;
+    assignmentId: number;
+    assignmentTitle: string;
+    dueDate: string;
+    evalScore: number | null;
+    evalFeedback: string | null;
+  }
+  const { data: studentTasks = [] } = useQuery({
+    queryKey: ['studentDetail', courseId, selectedStudentId],
+    queryFn: () =>
+      api.get<StudentTask[]>(`/courses/${courseId}/students/${selectedStudentId}`).catch(() => []),
+    enabled: selectedStudentId !== null,
+  });
 
   async function handleSubmitEval(taskId: number, score: number, feedback: string) {
     await api.post(`/tasks/${taskId}/eval`, { score, feedback });
@@ -572,7 +590,8 @@ function CourseDetailPage() {
               {materials.map((material) => (
                 <div
                   key={material.id}
-                  className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+                  onClick={() => material.url && window.open(material.url, '_blank')}
+                  className={`flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md ${material.url ? 'cursor-pointer active:scale-95 transition' : ''}`}
                 >
                   <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
                   <div className="flex-1 min-w-0">
@@ -582,8 +601,8 @@ function CourseDetailPage() {
                     )}
                   </div>
                   <button
-                    onClick={() => handleDeleteMaterial(material.id)}
-                    className="text-gray-300 hover:text-red-400 transition-colors p-1"
+                    onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material.id); }}
+                    className="text-gray-300 hover:text-red-400 transition-colors p-1 shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -701,7 +720,8 @@ function CourseDetailPage() {
                 return (
                   <div
                     key={student.id}
-                    className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+                    onClick={() => setSelectedStudentId(student.id)}
+                    className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md cursor-pointer active:scale-95 transition"
                   >
                     {student.avatar ? (
                       <img
@@ -762,6 +782,59 @@ function CourseDetailPage() {
           onClose={() => setEvalDialogState(null)}
           onSubmit={handleSubmitEval}
         />
+      )}
+
+      {/* Student detail modal */}
+      {selectedStudentId !== null && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-3 max-h-[70vh] flex flex-col">
+            <div className="flex items-center justify-between shrink-0">
+              <h2 className="text-base font-semibold text-gray-900">
+                {courseStudents.find((s) => s.id === selectedStudentId)?.name ??
+                  courseStudents.find((s) => s.id === selectedStudentId)?.email ??
+                  'Student'}
+              </h2>
+              <button onClick={() => setSelectedStudentId(null)}>
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <div className="overflow-y-auto space-y-2 flex-1">
+              {studentTasks.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">No assignments yet</p>
+              ) : (
+                studentTasks.map((t) => (
+                  <div
+                    key={t.taskId}
+                    className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2.5"
+                  >
+                    {t.status === 'DONE' ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-gray-300 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {t.assignmentTitle}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Due{' '}
+                        {new Date(t.dueDate).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </p>
+                    </div>
+                    {t.evalScore !== null && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">
+                        {t.evalScore}
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

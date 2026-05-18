@@ -372,6 +372,49 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       })
     );
   })
+  .get('/:id/students/:studentId', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const studentId = Number(params.studentId);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied' };
+    }
+    const studentTasks = await db
+      .select({
+        taskId: tasks.id,
+        status: tasks.status,
+        assignmentId: assignments.id,
+        assignmentTitle: assignments.title,
+        dueDate: tasks.dueDate,
+        evalScore: evals.score,
+        evalFeedback: evals.feedback,
+      })
+      .from(tasks)
+      .innerJoin(assignments, eq(tasks.assignmentId, assignments.id))
+      .leftJoin(evals, eq(evals.taskId, tasks.id))
+      .where(
+        and(
+          eq(tasks.userId, studentId),
+          eq(tasks.courseId, courseId),
+          isNotNull(tasks.assignmentId),
+          isNull(tasks.deletedAt)
+        )
+      );
+    return studentTasks;
+  })
   .post(
     '/:id/assignments',
     async ({ params, body, user, set }) => {
