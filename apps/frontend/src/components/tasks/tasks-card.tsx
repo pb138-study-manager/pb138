@@ -61,12 +61,7 @@ export default function TaskCard({
 
   const dueTime = task.dueDate
     ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
-    : task.assignmentDeadline
-      ? null
-      : t('tasks.noDueDate');
-  const deadlineLabel = task.assignmentDeadline
-    ? `Deadline: ${new Date(task.assignmentDeadline).toLocaleDateString([], { month: 'short', day: 'numeric' })}`
-    : null;
+    : t('tasks.noDueDate');
   const hasUsers = task.assignmentId !== null;
 
   const effectiveDone = subtasksLoaded
@@ -148,10 +143,7 @@ export default function TaskCard({
             )}>
               {task.title}
             </p>
-            {dueTime && <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>}
-            {deadlineLabel && (
-              <p className="text-[13px] text-orange-500 font-medium mt-0.5 truncate">{deadlineLabel}</p>
-            )}
+            <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
             {effectiveTotal > 0 && (
               <div className="mt-1.5">
                 <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

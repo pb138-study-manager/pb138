@@ -26,7 +26,6 @@ export interface Task {
   title: string;
   description: string | null;
   dueDate: string | null;
-  assignmentDeadline?: string | null;
   status: TaskStatus;
   deletedAt: string | null;
   subtasks?: Task[];

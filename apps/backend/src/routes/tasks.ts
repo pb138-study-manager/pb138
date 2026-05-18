@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { tasks, evals, assignments } from '../db/schema';
+import { tasks, evals } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
@@ -40,21 +40,8 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
   .get('/', async ({ user }) => {
     const authUser = user as AuthUser;
     const parentTasks = await db
-      .select({
-        id: tasks.id,
-        userId: tasks.userId,
-        assignmentId: tasks.assignmentId,
-        courseId: tasks.courseId,
-        parentId: tasks.parentId,
-        title: tasks.title,
-        description: tasks.description,
-        dueDate: tasks.dueDate,
-        status: tasks.status,
-        deletedAt: tasks.deletedAt,
-        assignmentDeadline: assignments.dueDate,
-      })
+      .select()
       .from(tasks)
-      .leftJoin(assignments, eq(tasks.assignmentId, assignments.id))
       .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNull(tasks.parentId)));
 
     const allSubtasks = await db
@@ -73,7 +60,6 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
 
     return parentTasks.map((task) => ({
       ...task,
-      assignmentDeadline: task.assignmentDeadline?.toISOString() ?? null,
       subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
       doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
     }));
