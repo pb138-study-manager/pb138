@@ -16,7 +16,7 @@ import {
 // Enums
 // ---------------------------------------------------------------------------
 
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
+export const roleNameEnum = pgEnum('role_name', ['USER', 'ADMIN', 'TEACHER']);
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
 export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
 export const eventTypeEnum = pgEnum('event_type', ['EVENT', 'DEADLINE']);

@@ -48,7 +48,7 @@ export const mockAuditLogs: AdminAuditLogRow[] = [
 
 export const mockAdminUsers: AdminUserRow[] = [
   { id: 1, login: 'admin', email: 'admin@example.com', roles: ['ADMIN'], active: true },
-  { id: 2, login: 'mentor1', email: 'mentor1@example.com', roles: ['MENTOR', 'USER'], active: true },
+  { id: 2, login: 'teacher1', email: 'teacher1@example.com', roles: ['TEACHER', 'USER'], active: true },
   { id: 3, login: 'student1', email: 'student1@example.com', roles: ['USER'], active: true },
   { id: 4, login: 'inactive', email: 'old@example.com', roles: ['USER'], active: false },
 ];
@@ -61,8 +61,8 @@ export const mockRoles: AdminRoleRow[] = [
   },
   {
     id: 2,
-    name: 'MENTOR',
-    permissions: ['CREATE_TASK', 'ADD_TO_GROUP', 'VIEW_GROUP_TASKS'],
+    name: 'TEACHER',
+    permissions: ['CREATE_TASK', 'ADD_TO_GROUP', 'ASSIGN_TASK', 'EVALUATE_TASK'],
   },
   {
     id: 3,

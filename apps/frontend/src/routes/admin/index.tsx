@@ -65,7 +65,7 @@ function AdminOverviewPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         {tiles.map((t) => (
           <Link key={t.to} to={t.to}>
             <Card className="h-full transition-shadow hover:shadow-md">
