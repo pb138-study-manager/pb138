@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, implement-frontend]
+    branches: [main, develop, implement-frontend, merge-be-fe]
   pull_request:
-    branches: [main, develop, implement-frontend]
+    branches: [main, develop, implement-frontend, merge-be-fe]
 
 permissions:
   contents: read
@@ -29,7 +29,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
 
       - name: Lint
         run: pnpm lint
@@ -57,7 +57,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
 
       - name: Build frontend
         run: pnpm --filter @pb138/frontend build
@@ -130,7 +130,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
 
       - name: Install Playwright browsers
         working-directory: apps/frontend
