@@ -36,8 +36,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
   // GET /admin/users?q=&limit=50&offset=0
   .get('/users', async ({ query }) => {
     const q = (query.q as string | undefined)?.trim() ?? '';
-    const limit = Math.min(Number(query.limit ?? 50), 200);
-    const offset = Number(query.offset ?? 0);
+    const limit = Math.min(Number(query.limit ?? 50) || 50, 200);
+    const offset = Math.max(0, Number(query.offset ?? 0) || 0);
 
     const baseQuery = db
       .select({
@@ -51,8 +51,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       .leftJoin(userProfiles, eq(users.id, userProfiles.userId));
 
     const allUsers = await (q
-      ? baseQuery.where(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)))
-      : baseQuery
+      ? baseQuery.where(and(isNull(users.deletedAt), or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`))))
+      : baseQuery.where(isNull(users.deletedAt))
     )
       .limit(limit)
       .offset(offset);
@@ -86,6 +86,11 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     async ({ params, body, user, set }) => {
       const targetId = Number(params.id);
       const authUser = user as AuthUser;
+
+      if (isNaN(targetId)) {
+        set.status = 400;
+        return { error: 'BAD_REQUEST', message: 'Invalid user id' };
+      }
 
       const [target] = await db
         .select({ id: users.id })
@@ -131,8 +136,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
   // GET /admin/audit-logs?q=&limit=50&offset=0
   .get('/audit-logs', async ({ query }) => {
     const q = (query.q as string | undefined)?.trim() ?? '';
-    const limit = Math.min(Number(query.limit ?? 50), 200);
-    const offset = Number(query.offset ?? 0);
+    const limit = Math.min(Number(query.limit ?? 50) || 50, 200);
+    const offset = Math.max(0, Number(query.offset ?? 0) || 0);
 
     const baseQuery = db
       .select({
