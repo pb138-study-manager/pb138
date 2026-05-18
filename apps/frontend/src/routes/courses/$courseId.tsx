@@ -113,13 +113,6 @@ function CourseDetailPage() {
     enabled: isTeacher,
   });
 
-  interface StudentAssignment { id: number; title: string; dueDate: string; }
-  const { data: studentAssignments = [] } = useQuery({
-    queryKey: ['studentAssignments', courseId],
-    queryFn: () =>
-      api.get<StudentAssignment[]>(`/courses/${courseId}/assignments`).catch(() => []),
-    enabled: !isTeacher,
-  });
 
   // Materials state
   const [showAddMaterial, setShowAddMaterial] = useState(false);
@@ -344,37 +337,6 @@ function CourseDetailPage() {
           </div>
         )}
       </div>
-
-      {/* Assignment deadlines — student only */}
-      {!isTeacher && studentAssignments.length > 0 && (
-        <div className="px-4 mb-2 space-y-1.5">
-          {[...studentAssignments]
-            .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-            .map((a) => {
-              const date = new Date(a.dueDate);
-              const daysLeft = Math.ceil((date.getTime() - Date.now()) / 86400000);
-              const urgent = daysLeft <= 3;
-              return (
-                <div
-                  key={a.id}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl ${urgent ? 'bg-red-50' : 'bg-orange-50'}`}
-                >
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${urgent ? 'bg-red-500' : 'bg-orange-400'}`} />
-                  <p className={`text-sm font-medium flex-1 truncate ${urgent ? 'text-red-700' : 'text-orange-700'}`}>
-                    {a.title}
-                  </p>
-                  <span className={`text-xs font-semibold shrink-0 ${urgent ? 'text-red-500' : 'text-orange-500'}`}>
-                    {daysLeft <= 0
-                      ? 'Today'
-                      : daysLeft === 1
-                        ? 'Tomorrow'
-                        : date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                  </span>
-                </div>
-              );
-            })}
-        </div>
-      )}
 
       {/* Tab bar */}
       {isTeacher ? (
