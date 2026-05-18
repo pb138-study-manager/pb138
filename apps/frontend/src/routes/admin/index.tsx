@@ -3,26 +3,14 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { useAdminManager } from '@/hooks/useAdminManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Database, FileText, Shield, SlidersHorizontal, Users } from 'lucide-react';
+import { FileText, Shield, Users } from 'lucide-react';
 
 const tiles: { to: string; title: string; description: string; icon: ReactNode }[] = [
-  {
-    to: '/admin/settings',
-    title: 'System settings',
-    description: 'Feature flags, limits, and global preferences.',
-    icon: <SlidersHorizontal className="size-5 text-indigo-600" />,
-  },
   {
     to: '/admin/logs',
     title: 'System logs',
     description: 'Audit trail and security events.',
     icon: <FileText className="size-5 text-indigo-600" />,
-  },
-  {
-    to: '/admin/database',
-    title: 'Database',
-    description: 'Health, backups, and operational tools.',
-    icon: <Database className="size-5 text-indigo-600" />,
   },
   {
     to: '/admin/users',

@@ -24,6 +24,7 @@ function RootLayout() {
   const { isAuthenticated, isLoading } = useAuth();
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+  const isAdminRoute = pathname.startsWith('/admin');
   const hideNav = isPublicRoute;
 
   useEffect(() => {
@@ -69,10 +70,8 @@ function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <RoleModeProvider>
       <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
-        {!hideNav && (
-          <>
-            <Sidebar activeTab={activeTab} />
-          </>
+        {!hideNav && !isAdminRoute && (
+          <Sidebar activeTab={activeTab} />
         )}
         <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full">
           <Outlet />
