@@ -37,19 +37,13 @@ export function useTimelineManager() {
   );
 
   function prevWeek() {
-    setWeekStart((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() - 7);
-      return d;
-    });
+    setWeekStart((prev) => shiftDate(prev, -7));
+    setSelectedDate((prev) => shiftDate(prev, -7));
   }
 
   function nextWeek() {
-    setWeekStart((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() + 7);
-      return d;
-    });
+    setWeekStart((prev) => shiftDate(prev, 7));
+    setSelectedDate((prev) => shiftDate(prev, 7));
   }
 
   function selectDate(date: Date) {
