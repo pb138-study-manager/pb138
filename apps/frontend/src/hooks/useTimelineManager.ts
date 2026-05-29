@@ -2,29 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Event, EventType, Task } from '@/types';
-
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day; // Monday as first day
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function getWeekDates(weekStart: Date): Date[] {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-  return a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
-}
+import { getWeekStart, getWeekDates, isSameDay, shiftDate } from './timeline-utils';
 
 export function useTimelineManager() {
   const queryClient = useQueryClient();
@@ -48,34 +26,7 @@ export function useTimelineManager() {
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
   });
 
-  // Synthetic deadline events derived from assignment tasks — one per unique assignment deadline per day
-  const deadlineEvents: Event[] = (() => {
-    const seen = new Set<string>();
-    const result: Event[] = [];
-    for (const task of tasks) {
-      if (!task.assignmentDeadline) continue;
-      const key = `${task.assignmentId}-${task.assignmentDeadline}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      result.push({
-        id: -(task.assignmentId!),
-        userId: task.userId,
-        title: task.title,
-        startDate: task.assignmentDeadline,
-        endDate: task.assignmentDeadline,
-        type: 'DEADLINE' as const,
-        description: null,
-        place: null,
-        deletedAt: null,
-      });
-    }
-    return result;
-  })();
-
-  const allEvents = [
-    ...events.filter((e) => e.type !== 'DEADLINE'),
-    ...deadlineEvents,
-  ];
+  const allEvents = events;
 
   const eventsForSelectedDate = allEvents.filter((e) =>
     isSameDay(new Date(e.startDate), selectedDate)
