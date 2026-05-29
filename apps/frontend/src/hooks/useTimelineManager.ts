@@ -99,7 +99,6 @@ export function useTimelineManager() {
   }
 
   async function deleteEvent(id: number) {
-    if (id < 0) return; // synthetic deadline — cannot delete
     await api.delete(`/events/${id}`);
     queryClient.setQueryData<Event[]>(['events', weekStart.toISOString()], (prev = []) =>
       prev.filter((e) => e.id !== id)
