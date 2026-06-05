@@ -1,296 +1,403 @@
-# Presentation Sprint Design — Student OS (4 dni)
+# Presentation Sprint Design — Student OS
 
 **Dátum:** 2026-06-06  
-**Cieľ:** Prezentácia-ready produkt s AI wow features za 4 dni  
+**Cieľ:** Prezentácia-ready produkt s AI wow features  
 **Kontekst:** Akademická obhajoba pred pedagógmi, PB138 MU Brno  
 **Demo flow:** Login → Today → Tasks → Notes → Timeline → Courses
 
 ---
 
-## 1. Prístup
+## 1. Prístup — paralelné trackery
 
-Paralelné trackery — 4 členovia tímu, každý má nezávislý track:
+4 členovia tímu, každý má nezávislý track. Poradie trackov je odporúčané — Track 1 odblokuje ostatné, zvyšok beží paralelne.
 
-| Track | Deň | Zodpovednosť |
-|---|---|---|
-| **Track 1 — Fundament** | 1 | AuthGuard + Courses → API + bug hunt |
-| **Track 2 — AI Backend** | 2 | `/ai` endpointy + OpenAI integrácia |
-| **Track 3 — Visual Polish** | 2–3 | Today / Tasks / Notes / Timeline vylepšenia |
-| **Track 4 — AI Frontend** | 3–4 | AI Copilot panel + Notes AI features |
-| **Spoločne** | 4 | Demo seed data + full run-through + posledný polish |
+| Track | Zodpovednosť |
+|---|---|
+| **Track 1 — Fundament** | AuthGuard + Courses → API + bug hunt |
+| **Track 2 — AI Backend** | `/ai` endpointy + E-infra LLM integrácia |
+| **Track 3 — Visual Polish** | Today / Tasks / Notes / Timeline / Courses vylepšenia |
+| **Track 4 — AI Frontend** | AI Copilot panel + Notes AI features (Quiz + Chat) |
+| **Spoločne (záver)** | Demo seed data + full run-through + posledný polish |
 
 ---
 
-## 2. Track 1 — Fundament (Deň 1)
+## 2. E-infra LLM API — konfigurácia
 
-### 2.1 AuthGuard
+**Base URL:** `https://llm.ai.e-infra.cz/v1/`  
+**Autentikácia:** Bearer token  
+**Kompatibilita:** OpenAI API-compatible (používa sa `openai` npm package)
+
+**Dostupné modely** (overiť aktuálny stav na https://llm.ai.e-infra.cz/status/):
+
+| Model | Použitie |
+|---|---|
+| `llama3.3:latest` | Rýchly general-purpose chat, brief, quiz |
+| `llama3.3:70b-instruct-fp16` | Lepšia kvalita, pomalší |
+| `deepseek-r1:32b-qwen-distill-fp16` | Reasoning-heavy úlohy |
+| `qwen2.5-coder:32b-instruct-q8_0` | Ak by sme robili code features |
+| `gpt-oss-120b` | Najväčší, najlepší, najpomalší |
+
+**Odporúčanie pre demo:** `llama3.3:latest` — dobrá rovnováha rýchlosti a kvality.
+
+**Env vars (`.env` v backend):**
+```
+EINFRA_API_KEY=<token>
+EINFRA_BASE_URL=https://llm.ai.e-infra.cz/v1/
+EINFRA_MODEL=llama3.3:latest
+```
+
+Model je konfigurovateľný cez env var — dá sa zmeniť bez zmeny kódu.
+
+**Získanie zoznamu modelov (curl):**
+```bash
+curl -H "Authorization: Bearer ${EINFRA_API_KEY}" \
+  https://llm.ai.e-infra.cz/v1/models | jq .data[].id
+```
+
+---
+
+## 3. Track 1 — Fundament
+
+### T1-1: AuthGuard komponent
 
 Wrapper komponent ktorý chráni všetky autentikované routes.
 
+**Súbor:** `apps/frontend/src/components/AuthGuard.tsx`
+
 ```tsx
-// src/components/AuthGuard.tsx
-// Ak session neexistuje → redirect na /login
-// Wrap-ne: /today, /tasks, /notes, /notes/:id, /timeline, /courses, /courses/:id, /profile
+// Použiť useAuth() z lib/auth.tsx (Supabase session)
+// Ak isLoading === true → zobraziť full-page spinner, nie redirect
+// Ak !isAuthenticated → navigate('/login')
+// Chránené routes: /today, /tasks, /notes, /notes/:id,
+//                  /timeline, /courses, /courses/:id, /profile
 ```
 
-- Použiť `useAuth()` z `lib/auth.tsx` (Supabase session)
-- Ak `isLoading === true` → spinner (nie redirect)
-- Ak `!isAuthenticated` → `navigate('/login')`
-- Aplikovať v `__root.tsx` alebo individuálne na každej route
-
-### 2.2 Courses → API
-
-Vymeniť `course-mock-data.ts` za reálne API volania.
-
-**Nový hook:** `hooks/useCourseManager.ts`
-
-```typescript
-// Vzor podľa useTasksManager.ts
-// Endpointy: GET /courses, GET /courses/:id, POST /courses/:id/enroll, DELETE /courses/:id/enroll
-// GET /courses/:id/progress → % completion tasks
-```
-
-- `courses/index.tsx` — zoznam kurzov z API
-- `courses/$courseId.tsx` — detail kurzu z API
-- Odstrániť import `course-mock-data.ts` zo všetkých komponentov
-
-### 2.3 Bug hunt
-
-Manuálne prejsť celý demo flow a zdokumentovať kritické bugy:
-
-1. Login → auth sync → Today
-2. Vytvoriť task → zobraziť → toggle done → delete
-3. Vytvoriť poznámku → upraviť → zaradiť do folderu
-4. Otvoriť Timeline → zobraziť eventy → pridať event
-5. Otvoriť Courses → zobraziť kurzy → detail kurzu
-
-Každý bug → GitHub issue alebo priama oprava ak je malý.
+Aplikovať v `__root.tsx` — jeden wrapper pre všetky chránené routes naraz.
 
 ---
 
-## 3. Track 2 — AI Backend (Deň 2)
+### T1-2: Hook `useCourseManager`
 
-**API kľúč:** E-infra OpenAI API  
-**Env var:** `OPENAI_API_KEY` v `.env`  
-**Model:** `gpt-4o-mini` (rýchly + lacný pre demo)
+Vymeniť `course-mock-data.ts` za reálne API volania.
 
-### Nový súbor: `apps/backend/src/routes/ai.ts`
+**Nový súbor:** `apps/frontend/src/hooks/useCourseManager.ts`
 
-Registrovať v `index.ts` ako `/ai`.
-
-#### POST `/ai/brief`
+Vzor podľa existujúceho `useTasksManager.ts`:
 
 ```typescript
-// Načíta tasks (dnes + tento týždeň) a events usera
-// Pošle do OpenAI s system promptom ako study advisor
-// Vráti: { brief: string, priorities: { title, dueDate, urgency }[] }
-// urgency: 'high' | 'medium' | 'low'
+// GET /courses               → zoznam kurzov
+// GET /courses/:id           → detail kurzu
+// GET /courses/:id/progress  → { completed: number, total: number }
+// POST /courses/:id/enroll   → zapísať sa
+// DELETE /courses/:id/enroll → odhlásiť sa
+```
+
+- `courses/index.tsx` — nahradiť mock za `useCourseManager`
+- `courses/$courseId.tsx` — nahradiť mock za `useCourseManager`
+- Odstrániť `components/courses/course-mock-data.ts` a všetky jeho importy
+
+---
+
+### T1-3: Bug hunt — prejsť celý demo flow
+
+Manuálne otestovať a opraviť kritické bugy pred ostatnými trackami:
+
+1. Login → `/auth/sync` → `/today` sa načíta
+2. Vytvoriť task → zobraziť v zozname → toggle done → soft delete
+3. Vytvoriť poznámku → upraviť obsah → zaradiť do folderu
+4. Timeline → zobraziť eventy → pridať nový event
+5. Courses → po napojení na API: zoznam → detail kurzu
+
+Každý bug: priama oprava ak triviálny, inak GitHub issue s popisom krokov na reprodukciu.
+
+---
+
+## 4. Track 2 — AI Backend
+
+### T2-1: Nový route súbor `apps/backend/src/routes/ai.ts`
+
+Registrovať v `index.ts` ako prefix `/ai`.
+
+**OpenAI client setup:**
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.EINFRA_API_KEY,
+  baseURL: process.env.EINFRA_BASE_URL,
+});
+const MODEL = process.env.EINFRA_MODEL ?? 'llama3.3:latest';
+```
+
+Všetky endpointy:
+- `authMiddleware` + `onBeforeHandle` ownership check
+- Zod validácia body pomocou `zodBody()`
+- `logAction()` na každé volanie
+- Rate limit: jednoduchý in-memory Map — max 10 req/min na `userId`
+
+---
+
+### T2-2: `POST /ai/brief`
+
+```typescript
+// Načíta tasks (dueDate <= +7 dní, isNull deletedAt) a events (tento týždeň) pre usera
+// Pošle ako kontext do LLM
+// Vráti: { brief: string, priorities: { title: string, dueDate: string, urgency: 'high'|'medium'|'low' }[] }
 ```
 
 **System prompt:**
 ```
-Si študentský asistent. Dostaneš zoznam úloh a eventov. 
-Vygeneruj krátky (2-3 vety) denný brief v slovenčine a zoraď top 3 priority.
-Buď konkrétny, priateľský, motivujúci.
+Si študentský asistent. Dostaneš JSON so zoznamom úloh a eventov študenta.
+Vygeneruj krátky denný brief (2-3 vety, slovenčina) a identifikuj top 3 priority.
+Pre každú prioritu urč urgency: high = deadline do 1 dňa, medium = do 3 dní, low = neskôr.
+Odpoveď vráť ako JSON: { "brief": "...", "priorities": [{ "title", "dueDate", "urgency" }] }
 ```
 
-#### POST `/ai/chat`
+---
+
+### T2-3: `POST /ai/chat`
 
 ```typescript
-// Body: { messages: { role: 'user'|'assistant', content: string }[] }
-// Kontext: tasks + courses usera injektované do system promptu
+// Body: { messages: { role: 'user' | 'assistant', content: string }[] }
+// Injektovať kontext usera (tasks, courses) do system promptu
 // Vráti: { reply: string }
 ```
 
-#### POST `/ai/notes/:id/quiz`
+**System prompt:**
+```
+Si študentský AI asistent. Poznáš kontext: {tasksJson}, {coursesJson}.
+Odpovedaj v jazyku, v ktorom sa ťa pýtajú (SK/EN). Buď stručný a konkrétny.
+```
+
+---
+
+### T2-4: `POST /ai/notes/:id/quiz`
 
 ```typescript
-// Načíta obsah poznámky (overí ownership)
-// Pošle do OpenAI s požiadavkou na 5 multiple-choice otázok
-// Vráti: { questions: { question, options: string[4], correct: number }[] }
+// Overiť ownership poznámky (eq userId)
+// Načítať obsah (description field)
+// Vráti: { questions: { question: string, options: string[], correct: number }[] }
+// correct = index do options (0–3)
 ```
 
 **System prompt:**
 ```
-Si učiteľ. Dostaneš text poznámky. Vytvor 5 multiple-choice otázok (A/B/C/D)
-na overenie porozumenia. Odpovede musia byť v jazyku poznámky.
-Vráť JSON: { questions: [{ question, options: [4 strings], correct: 0-3 }] }
+Si skúšajúci učiteľ. Dostaneš text poznámky. Vytvor presne 5 multiple-choice otázok.
+Každá otázka má 4 možnosti (pole strings). Správna odpoveď je na indexe `correct` (0-3).
+Odpoveď VÝLUČNE ako JSON bez textu navyše:
+{ "questions": [{ "question": "...", "options": ["A","B","C","D"], "correct": 0 }] }
+Otázky musia byť v jazyku poznámky.
 ```
 
-#### POST `/ai/notes/:id/chat`
+---
+
+### T2-5: `POST /ai/notes/:id/chat`
 
 ```typescript
-// Body: { messages: { role: 'user'|'assistant', content: string }[] }
-// Kontext: obsah poznámky injektovaný do system promptu
-// AI odpovedá VÝLUČNE na základe textu poznámky (nie z vlastných vedomostí)
+// Body: { messages: { role: 'user' | 'assistant', content: string }[] }
+// Overiť ownership poznámky
+// Obsah poznámky injektovaný do system promptu
 // Vráti: { reply: string }
 ```
 
 **System prompt:**
 ```
 Si asistent pre štúdium. Odpovedaj IBA na základe nasledujúcej poznámky.
-Ak odpoveď nie je v poznámke, povedz to úprimne.
-Poznámka: {noteContent}
+Ak odpoveď v poznámke nie je, úprimne to povedz.
+Jazyk odpovede = jazyk otázky.
+
+POZNÁMKA:
+{noteContent}
 ```
-
-### Validácia a auth
-
-Všetky `/ai/*` endpointy:
-- `authMiddleware` + `onBeforeHandle` check
-- Zod validácia body
-- Rate limit: max 10 req/min na usera (jednoduchý in-memory counter)
-- `logAction()` na každé AI volanie
 
 ---
 
-## 4. Track 3 — Visual Polish (Deň 2–3)
+## 5. Track 3 — Visual Polish
 
-### /today
+### T3-1: /today
 
-- Greeting header: `"Dobré ráno, {name} 👋"` (ráno) / `"Dobrý deň"` / `"Dobrý večer"` podľa hodiny
-- Progress bar: `"X z Y úloh hotových dnes"` — vypočítané z dnešných taskov
-- Empty state s CTA ak nie sú žiadne úlohy: `"Žiadne úlohy na dnes. Chceš nejakú pridať?"`
-- Animated checkmark pri toggle done (CSS transition, nie library)
+- Greeting header podľa hodiny: `"Dobré ráno, {name} 👋"` (5–11h) / `"Dobrý deň"` (11–18h) / `"Dobrý večer"` (18–5h)
+- Progress bar: `"X z Y úloh hotových dnes"` — počítané z dnešných taskov
+- Empty state s CTA tlačidlom ak nie sú žiadne dnešné úlohy
+- CSS transition na checkmark ikone pri toggle done (nie externá library)
 
-### /tasks
+### T3-2: /tasks
 
-- Farebné priority badges: červená = `dueDate < 1 deň`, žltá = `< 3 dni`, zelená = `> 3 dni`
-- Deadline countdown text: `"za 2 dni"`, `"dnes"`, `"oneskorené"`
-- Skupinové sekcie: **Dnes** / **Tento týždeň** / **Neskôr** (groupBy dueDate)
-- Strikethrough + fade animácia pri označení done
+- Urgency badge na task karte: červená = dueDate do 24h, žltá = do 72h, zelená = neskôr
+- Countdown text vedľa dátumu: `"dnes"`, `"za 2 dni"`, `"oneskorené"` (ak dueDate v minulosti)
+- Skupinové sekcie zoznamu: **Dnes** / **Tento týždeň** / **Neskôr** (groupBy dueDate bucket)
+- Strikethrough + opacity fade animácia pri označení done (CSS transition)
 
-### /notes
+### T3-3: /notes
 
-- Word count + odhadovaný čas čítania v headerri poznámky (`~2 min čítania`)
-- Farebné folder ikony (7 predvolených farieb, user si vyberie pri vytvorení)
-- Tlačidlá **🧠 Quiz me** a **✦ Ask AI** v toolbar detail view (implementácia v Track 4)
+- Word count + odhadovaný čas čítania v toolbar poznámky: `"142 slov · ~1 min čítania"`
+- Farebné folder ikony — 7 predvolených farieb, user vyberie pri vytvorení folderu
+- Tlačidlá **🧠 Quiz me** a **✦ Ask AI** v toolbar (implementácia: Track 4)
 
-### /timeline
+### T3-4: /timeline
 
-- Farebné kategórie eventov: kurz = modrá, osobné = zelená, deadline = červená
-- Hover tooltip s názvom, časom a miestom eventu
-- Tlačidlo **+ Pridať event** prominentné (nie skryté v menu)
+- Farebné kategórie eventov: kurz = modrá, osobné = zelená, deadline = červená — podľa `type` poľa eventu alebo manuálne nastaviteľné
+- Hover tooltip na evente: názov, čas, miesto
+- Tlačidlo **+ Pridať event** prominentné v headerri, nie skryté
 
-### /courses
+### T3-5: /courses
 
-- Progress bar per kurz (volá `GET /courses/:id/progress`)
-- Farebné kurz karty — každý kurz dostane farbu z predvolenej palety (hash z ID)
-- Enroll / Unenroll button funkčný a prepojený na API
+- Progress bar per kurz karta: volá `GET /courses/:id/progress`, zobrazí `X / Y úloh`
+- Farebné kurz karty: deterministická farba z predvolenej palety podľa `id % 7`
+- Enroll / Unenroll tlačidlo funkčné (napojené na API v T1-2)
 
-### Globálne
+### T3-6: Globálne
 
-- Konzistentné loading skeletons na všetkých stránkach (nie prázdna biela plocha)
-- Konzistentné error states (nie `undefined` v UI)
+- Loading skeletons na všetkých stránkach (shimmer `animate-pulse` v Tailwind) — nikdy prázdna biela plocha
+- Konzistentné error stavy: ak fetch zlyhá, zobraziť error banner, nie `undefined` alebo crash
 
 ---
 
-## 5. Track 4 — AI Frontend (Deň 3–4)
+## 6. Track 4 — AI Frontend
 
-### 5.1 AI Copilot Panel (pravý collapsible sidebar)
+### T4-1: AI Copilot Panel
 
-**Súbory:**
+**Nové súbory:**
 ```
-src/components/ai/AICopilotPanel.tsx    — hlavný komponent
-src/components/ai/BriefTab.tsx          — Daily brief tab
-src/components/ai/ChatTab.tsx           — Chat tab
-src/context/AIPanelContext.tsx          — open/close state
+src/context/AIPanelContext.tsx          — isOpen state, toggle funkcia
+src/components/ai/AICopilotPanel.tsx   — hlavný sidebar komponent
+src/components/ai/BriefTab.tsx         — Daily brief tab
+src/components/ai/ChatTab.tsx          — Chat tab
 ```
 
 **Layout:**
-- Šírka: 280px, fixná, pravá strana
-- Collapsible: tlačidlo `✦` v top bare (header)
-- State v React Context — dostupný z každej stránky
-- Nezobrazuje sa na `/login`, `/register`, `/verify-email`
+- Šírka 280px, fixná, pravá strana obrazovky
+- Toggle tlačidlo `✦` v pravom hornom rohu top baru — vždy viditeľné
+- Panel sa nezobrazuje na `/login`, `/register`, `/verify-email`
+- Na mobile: panel sa zobrazí ako full-width drawer zdola
 
 **Brief tab:**
-```
-- Načíta pri prvom otvorení (lazy) — volá POST /ai/brief
-- Zobrazí: AI text (2-3 vety) + top 3 priority s farebnými dot indikátormi
-  - červená dot = high urgency
-  - žltá dot = medium
-  - zelená dot = low
-- Tlačidlo "↻ Aktualizovať brief" — znova zavolá endpoint
-- Loading state: shimmer skeleton
-```
+- Načíta sa lazy pri prvom otvorení panelu — volá `POST /ai/brief`
+- Zobrazí: AI text (2-3 vety) + top 3 priority s farebnými dot indikátormi (červená/žltá/zelená podľa `urgency`)
+- Tlačidlo `↻ Aktualizovať` — znova zavolá endpoint a prepíše obsah
+- Loading state: shimmer skeleton (nie spinner)
 
 **Chat tab:**
-```
-- Messages array v lokálnom state (session only, neperzistuje)
-- Volá POST /ai/chat s celou históriou správ
-- Streaming nie je potrebný — počkáme na celú odpoveď (jednoduchšie)
-- Enter odošle správu, Shift+Enter = nový riadok
+- `messages` pole v lokálnom state — session only, neperzistuje
+- Volá `POST /ai/chat` s celou históriou
+- Streaming nie je potrebný — čakáme na celú odpoveď
+- Enter = odoslať, Shift+Enter = nový riadok v správe
 - Auto-scroll na poslednú správu
-```
 
-### 5.2 Notes AI — Quiz me
+---
 
-**Komponent:** `src/components/notes/QuizModal.tsx`
+### T4-2: Quiz modal (`QuizModal.tsx`)
 
-```
-- Otvára sa tlačidlom "🧠 Quiz me" v note detail toolbar
-- Zavolá POST /ai/notes/:id/quiz pri otvorení
-- Loading state: "Generujem otázky…" so spinnerom
-- Zobrazí otázky jedna po druhej:
-  - Číslo otázky (1 z 5)
+**Súbor:** `src/components/notes/QuizModal.tsx`
+
+- Otvára sa tlačidlom `🧠 Quiz me` v note detail toolbar
+- Pri otvorení zavolá `POST /ai/notes/:id/quiz`
+- Loading state: text `"Generujem otázky…"` so spinnerom
+- Otázky jedna po druhej:
+  - Header: `"Otázka 2 z 5"`
   - Text otázky
-  - 4 možnosti (A/B/C/D) ako klikateľné tlačidlá
+  - 4 klikateľné možnosti (A/B/C/D)
   - Po výbere: zelená = správna, červená = nesprávna + zvýraznenie správnej
-  - Tlačidlo Ďalšia / Dokončiť
-- Na konci: skóre "4/5 správnych 🎉"
-```
+  - Tlačidlá `← Predošlá` / `Ďalšia →` / `Dokončiť`
+- Záverečná obrazovka: `"4/5 správnych 🎉"` + tlačidlo `Skúsiť znova`
 
-### 5.3 Notes AI — Ask AI (chat s poznámkou)
+---
 
-**Komponent:** `src/components/notes/NoteAIChat.tsx`
+### T4-3: Note AI chat (`NoteAIChat.tsx`)
 
-```
-- Otvára sa tlačidlom "✦ Ask AI" v note detail toolbar
+**Súbor:** `src/components/notes/NoteAIChat.tsx`
+
+- Otvára sa tlačidlom `✦ Ask AI` v note detail toolbar
 - Zobrazí sa ako drawer z pravej strany (konzistentné s Copilot panelom)
-- Indikátor kontextu: zelená bodka + "Kontext: {názov poznámky}"
-- Volá POST /ai/notes/:id/chat
-- Rovnaký chat UI ako v Copilot paneli
-- História len pre session (neperzistuje)
-```
+- Indikátor kontextu: zelená bodka + `"Kontext: {názov poznámky}"`
+- Volá `POST /ai/notes/:id/chat`
+- Rovnaký chat UI štýl ako ChatTab v Copilot paneli
+- História len pre session
 
 ---
 
-## 6. Demo Seed Data (Deň 4)
+## 7. Demo seed data
 
-Rozšíriť `apps/backend/src/db/seed-user.ts` o realistické demo dáta:
+Rozšíriť `apps/backend/src/db/seed-user.ts`:
 
 ```
-- 3 kurzy: "PB138 Web Development", "IB101 Algoritmy", "MA001 Matematika"
-- 10 úloh: mix statusov, rôzne due dates (niektoré dnes, niektoré tento týždeň)
-- 5 eventov na tento týždeň (prednášky, odovzdania)
-- 4 poznámky s reálnym obsahom (min. 200 slov každá) — kvôli AI quiz/chat demo
-- Každý kurz má 2-3 úlohy priradené
+Kurzy (3):
+  - "PB138 Web Development" — modrá
+  - "IB101 Algoritmy" — fialová  
+  - "MA001 Matematika" — zelená
+
+Úlohy (10): mix statusov TODO/IN PROGRESS/DONE
+  - niektoré dueDate = dnes (pre demo urgentnosti)
+  - niektoré = tento týždeň
+  - niektoré = budúci týždeň
+  - každý kurz má 2-3 priradené úlohy
+
+Eventy (5): prednášky + odovzdania na tento týždeň
+
+Poznámky (4): min. 200 slov každá, reálny obsah
+  (kratší obsah dáva horšie quiz otázky od AI)
+  Napríklad: "TCP/IP sieťové protokoly", "Sorting algoritmy",
+             "React hooks a lifecycle", "Taylorov rad"
 ```
 
-Demo účet: `demo@student.muni.cz` / heslo nastaviť cez Supabase admin.
+Demo účet: `demo@student.muni.cz` — heslo nastaviť v Supabase Admin.
 
 ---
 
-## 7. Čo nerobíme (YAGNI)
+## 8. Testy
 
-- Teacher portal — nie je v demo flow, preskočiť
+### 8.1 Unit testy (Vitest)
+
+**Nové test súbory:**
+
+| Súbor | Čo testuje |
+|---|---|
+| `src/lib/urgency.test.ts` | Urgency badge logika — `dueDate < 1d → 'high'` atď. |
+| `src/lib/groupTasks.test.ts` | groupBy dueDate bucket (Dnes / Týždeň / Neskôr) |
+| `src/lib/readingTime.test.ts` | Word count + čas čítania výpočet |
+| `src/components/notes/QuizModal.test.ts` | Quiz state machine — výber odpovede, prechod na ďalšiu, záverečné skóre |
+| `apps/backend/src/routes/ai.test.ts` | Backend: mock OpenAI response → správny formát odpovede |
+
+Existujúce testy (`timeline-utils.test.ts`) zostávajú, netreba meniť.
+
+### 8.2 E2E testy (Playwright)
+
+**Nové test súbory v `apps/frontend/e2e/`:**
+
+| Súbor | Scenár |
+|---|---|
+| `auth.spec.ts` | Login → redirect na `/today`, neautorizovaný prístup na `/today` → redirect na `/login` |
+| `tasks.spec.ts` | Vytvoriť task → zobraziť v zozname → toggle done → badge sa zmení |
+| `notes-quiz.spec.ts` | Otvoriť poznámku → klik `Quiz me` → modal sa otvorí → odpovede fungujú |
+| `ai-copilot.spec.ts` | Otvoriť AI panel → Brief tab sa načíta → Chat tab: odoslať správu → odpoveď sa zobrazí |
+
+**Poznámka k e2e a AI:** AI endpointy v Playwright testoch mockuje `page.route()` — testy nevolajú skutočný E-infra API, aby boli deterministické a rýchle.
+
+---
+
+## 9. Čo nerobíme (YAGNI)
+
+- Teacher portal — nie je v demo flow
 - Admin panel API — nie je v demo flow
 - AI streaming responses — overkill pre demo
-- Perzistovanie chat histórie — nie je potrebné
-- Notifikácie
-- Pomodoro timer
+- Perzistovanie chat histórie v DB — nie je potrebné
+- Notifikácie, Pomodoro timer
+- Mobile-first responsive — desktop demo postačuje, mobile drawer pre AI panel je nice-to-have
 
 ---
 
-## 8. Definition of Done
+## 10. Definition of Done
 
 Prezentácia je ready keď:
 
-- [ ] Celý demo flow beží bez chyby od loginu po courses
-- [ ] AuthGuard funguje — `/today` bez loginu redirectuje na `/login`
-- [ ] Courses zobrazuje reálne dáta z API
-- [ ] AI Copilot panel sa otvorí, brief sa načíta, chat odpovie
-- [ ] "Quiz me" vygeneruje 5 otázok z poznámky
-- [ ] "Ask AI" odpovie na otázku na základe poznámky
-- [ ] Demo seed dáta sú naplnené — DB nie je prázdna
+- [ ] Celý demo flow beží bez chyby: Login → Today → Tasks → Notes → Timeline → Courses
+- [ ] `/today` bez session redirectuje na `/login` (AuthGuard funguje)
+- [ ] Courses zobrazuje reálne dáta z API (nie mock)
+- [ ] AI Copilot panel: otvorí sa, Brief sa načíta, Chat odpovie
+- [ ] `Quiz me` vygeneruje 5 otázok, správne/nesprávne odpovede sa farbia
+- [ ] `Ask AI` odpovie na otázku na základe obsahu poznámky
+- [ ] Demo seed dáta sú naplnené — DB nie je prázdna pri prezentácii
 - [ ] Dark mode funguje konzistentne na všetkých stránkach
-- [ ] Žiadne `console.error` v dev tools počas demo flow
+- [ ] Žiadne `console.error` v DevTools počas celého demo flow
+- [ ] Unit testy: `pnpm test` prechádza bez failed testov
+- [ ] E2E testy: `pnpm test:e2e` prechádza (vrátane mocknutých AI testov)
