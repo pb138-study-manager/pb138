@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Plus } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useRoleMode } from '@/lib/roleMode'
+import { getCourseColor } from '@/lib/courseColors'
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
@@ -37,17 +36,21 @@ function CoursesPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 py-6">
+        <div className="grid grid-cols-2 gap-4 animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-800" />
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
-      <div className="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Courses</h1>
+      <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Courses</h1>
         {isTeacher && (
           <Button
             variant="ghost"
@@ -67,24 +70,25 @@ function CoursesPage() {
             {isTeacher ? 'No courses yet' : 'You are not enrolled in any courses yet'}
           </div>
         ) : (
-          visibleCourses.map((course) => (
-            <Card
-              key={course.id}
-              onClick={() => navigate({ to: `/courses/${course.id}` })}
-              className="rounded-2xl shadow-md cursor-pointer active:scale-95 transition"
-            >
-              <CardContent className="p-4 space-y-3">
+          visibleCourses.map((course) => {
+            const color = getCourseColor(course.id)
+            return (
+              <div
+                key={course.id}
+                onClick={() => navigate({ to: `/courses/${course.id}` })}
+                className={`rounded-2xl p-4 cursor-pointer active:scale-95 transition border space-y-3 ${color.bg} ${color.border}`}
+              >
+                <div className={`w-3 h-3 rounded-full ${color.accent}`} />
                 <div>
-                  <h3 className="font-bold text-gray-900">{course.code}</h3>
-                  <p className="text-xs text-gray-500 truncate">{course.name ?? course.code}</p>
+                  <h3 className={`font-bold ${color.text}`}>{course.code}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{course.name ?? course.code}</p>
                 </div>
-                <Badge variant="secondary">{course.semester}</Badge>
-                {course.lectureSchedule && (
-                  <p className="text-xs text-gray-400">{course.lectureSchedule}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20 text-gray-600 dark:text-gray-300">
+                  {course.semester}
+                </span>
+              </div>
+            )
+          })
         )}
       </div>
     </div>
