@@ -11,6 +11,7 @@ import { usersRoutes } from './routes/users';
 import { groupsRoutes } from './routes/groups';
 import { materialsRoutes } from './routes/materials';
 import { adminRoutes } from './routes/admin';
+import { aiRoutes } from './routes/ai';
 
 const PORT = process.env.PORT ?? 3001;
 
@@ -31,6 +32,7 @@ const app = new Elysia()
   .use(groupsRoutes)
   .use(materialsRoutes)
   .use(adminRoutes)
+  .use(aiRoutes)
   .listen(PORT);
 
 console.log(`Backend running at http://localhost:${PORT}`);
