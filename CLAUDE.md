@@ -25,7 +25,7 @@
 - **Language:** TypeScript `^5.4.5`
 - **ORM:** Drizzle ORM `^0.30.9` + `drizzle-kit ^0.21.1`
 - **DB driver:** `postgres ^3.4.4` (postgres.js)
-- **Database:** PostgreSQL 16 (via Docker)
+- **Database:** PostgreSQL 16 (Supabase cloud — no local Docker needed)
 - **Auth:** Supabase Auth (JWT verified via JWKS — `jose` library, NOT @elysiajs/jwt)
 - **Validation:** Zod (`z.object()` + custom `zodBody()` helper in `src/lib/validation.ts`)
 - **CORS:** `@elysiajs/cors ^1.0.2`
@@ -43,9 +43,16 @@
 ### Infrastructure
 
 - **Monorepo:** pnpm workspaces
-- **Containerization:** Docker Compose (postgres + backend + frontend/nginx)
+- **Database hosting:** Supabase cloud (PostgreSQL 16) — no local Docker, DB_URL in `.env`
 - **CI/CD:** GitHub Actions (lint → test → build → e2e)
 - **Linting:** ESLint `^8.57.0` + Prettier `^3.2.5`
+
+### AI (Presentation Sprint)
+
+- **Provider:** E-infra LLM API (`https://llm.ai.e-infra.cz/v1/`) — OpenAI-compatible
+- **Package:** `openai` npm package (OpenAI SDK pointed at E-infra base URL)
+- **Env vars:** `E_INFRA_API_TOKEN`, `EINFRA_BASE_URL`, `EINFRA_MODEL`
+- **Default model:** `llama3.3:latest` (configurable via env)
 
 ---
 
@@ -103,7 +110,7 @@ pb138/
 │       │   │   │   └── $noteId.tsx   # /notes/:noteId
 │       │   │   ├── timeline/index.tsx # /timeline
 │       │   │   ├── courses/
-│       │   │   │   ├── index.tsx     # /courses — mock data (NOT yet connected to API)
+│       │   │   │   ├── index.tsx     # /courses — connected to API, colored cards + progress bar
 │       │   │   │   ├── new.tsx       # /courses/new
 │       │   │   │   └── $courseId.tsx # /courses/:courseId
 │       │   │   ├── teachers/
@@ -123,7 +130,7 @@ pb138/
 │       │   │   ├── ui/               # Button, Input, Modal, Badge, Calendar, Sidebar, etc.
 │       │   │   ├── tasks/            # TaskCard, TaskSection, NewTaskDialog, EditTaskDialog, SubtasksDialog
 │       │   │   ├── notes/            # NoteDetailView, NotesView, FoldersView, dialogs
-│       │   │   ├── courses/          # CourseTasks, CourseStudyMaterials (uses mock data)
+│       │   │   ├── courses/          # CourseTasks, CourseStudyMaterials
 │       │   │   ├── today/            # WeekCalendar
 │       │   │   ├── profile/          # UserCard, SettingsCard, ThemeSetting, etc.
 │       │   │   └── admin/            # AdminUsersManager, AdminLogsView, AdminRolesManager, etc.
@@ -136,6 +143,8 @@ pb138/
 │       │   ├── lib/
 │       │   │   ├── api.ts            # Fetch wrapper (uses Supabase session token)
 │       │   │   ├── auth.tsx          # AuthProvider + useAuth() — Supabase session
+│       │   │   ├── courseColors.ts   # Deterministic color palette for course cards (id % 7)
+│       │   │   ├── courseColors.test.ts
 │       │   │   ├── supabase.ts       # Supabase client instance
 │       │   │   ├── i18n.ts           # i18next setup (EN/CS, persisted to localStorage)
 │       │   │   └── utils.ts
@@ -170,29 +179,32 @@ pb138/
 | `routes/users.ts` | ✅ Done | /users/me profile + settings + password |
 | `routes/groups.ts` | ✅ Done | Groups + members + assignments |
 | `routes/courses.ts` | ✅ Done | Courses + enrollment |
-| Admin routes | ❌ Missing | No `/admin` backend routes yet |
-| AI routes | ❌ Missing | No `/ai` Claude API integration yet |
-| Study materials API | ❌ Missing | No `study_materials` table or routes |
-| Notifications | ❌ Missing | Email/notification system not wired |
+| Admin routes | ❌ Missing | No `/admin` backend routes yet — not in demo scope |
+| AI routes | ❌ Missing | `/ai/*` to be implemented (Track 2 — E-infra LLM) |
+| Study materials API | ❌ Missing | Not in demo scope |
+| Notifications | ❌ Missing | Not in demo scope |
 
-### Frontend — ✅ UI shell mostly done, some pages still use mock data
+### Frontend — Presentation sprint state (2026-06-06)
 
 | Page / Area | Status | Notes |
 |---|---|---|
 | Auth (login/register/verify) | ✅ Done | Supabase Auth |
+| AuthGuard | ✅ Done | Implemented in `__root.tsx` — redirect to `/login` if `!isAuthenticated` |
 | Today screen | ✅ Done | Connected to API (tasks by date, week strip) |
 | Tasks | ✅ Done | Connected to API (CRUD, subtasks, toggle) |
 | Notes + Folders | ✅ Done | Connected to API |
+| Timeline | ✅ Done | Connected to API via `useTimelineManager` |
+| Courses list | ✅ Done | Connected to API, colored cards (id % 7 palette), progress bar |
+| Course detail | ⚠️ Partial | Connected to API, needs visual polish |
 | Profile + Settings | ✅ Done | Theme, language, user info |
-| Admin panel | ✅ Done (UI) | Uses mock data — NOT connected to backend |
-| Courses list | ⚠️ Mock data | UI exists, not connected to courses API |
-| Course detail | ⚠️ Mock data | UI exists, not connected |
-| Teachers portal | ⚠️ UI shell | Routes exist, not functional |
-| Timeline | ⚠️ Partial | Page exists, needs events API connection |
+| Admin panel | ⚠️ UI only | Uses mock data — not in demo scope |
+| Teachers portal | ⚠️ UI shell | Not in demo scope |
 | Dark mode | ✅ Done | Tailwind `class` strategy, toggled via settings |
 | i18n (EN/CS) | ✅ Done | react-i18next, language saved to localStorage |
-| AuthGuard | ❌ Missing | No AuthGuard component — routes not protected |
-| AI Copilot panel | ❌ Missing | Not started |
+| Visual polish (Today/Tasks/Notes/Timeline) | ❌ Pending | Track 3 — urgency badges, greeting, word count, etc. |
+| AI Copilot panel | ❌ Pending | Track 4 — right sidebar, Brief + Chat tabs |
+| Notes Quiz modal | ❌ Pending | Track 4 — `QuizModal.tsx`, calls `/ai/notes/:id/quiz` |
+| Notes AI chat | ❌ Pending | Track 4 — `NoteAIChat.tsx`, calls `/ai/notes/:id/chat` |
 
 ---
 
@@ -224,25 +236,46 @@ pb138/
 
 ---
 
-## What's Still Missing (Remaining Work)
+## Presentation Sprint — Remaining Work (2026-06-06)
 
-### High priority
-1. **Connect courses frontend to API** — remove mock data, wire to `/courses` endpoints
-2. **AuthGuard** — protect all authenticated routes (`/today`, `/tasks`, `/notes`, etc.)
-3. **Connect timeline to events API** — `/events` backend exists, frontend not wired
-4. **Connect admin panel to backend** — `/admin` backend routes need to be built first
-5. **Teacher portal** — My Classes, Assignments, Evaluations, Study Materials, Students screens (functional)
+Demo flow: **Login → Today → Tasks → Notes → Timeline → Courses**
 
-### Medium priority
-6. **Study materials** — `study_materials` table + API routes + frontend (KAN-43)
-7. **Notifications** — schema, API routes, bell icon in header (KAN-41)
-8. **Backend admin routes** — `/admin/users`, `/admin/audit-logs`, `/admin/settings`
-9. **Role-aware sidebar toggle** — student ⇄ teacher switch (KAN-39)
+### Track 2 — AI Backend (next priority)
+1. Install `openai` npm package in backend
+2. `apps/backend/src/routes/ai.ts` — new route file registered at `/ai`
+3. `POST /ai/brief` — daily brief + top 3 priorities from tasks/events
+4. `POST /ai/chat` — general student assistant with user context
+5. `POST /ai/notes/:id/quiz` — generate 5 multiple-choice questions from note content
+6. `POST /ai/notes/:id/chat` — chat grounded in a single note's content
 
-### Lower priority / Phase 3
-10. **AI Copilot** — `/ai` backend routes (Claude API via E-infra), AI panel frontend (KAN-50–54)
-11. **Global search** — `/search` endpoint + CMD+K palette (KAN-55, 56)
-12. **Pomodoro timer** (KAN-59)
+E-infra client setup (add to backend `.env`):
+```
+E_INFRA_API_TOKEN=<token>
+EINFRA_BASE_URL=https://llm.ai.e-infra.cz/v1/
+EINFRA_MODEL=llama3.3:latest
+```
+
+### Track 3 — Visual Polish
+7. `/today` — greeting by time of day + daily progress bar
+8. `/tasks` — urgency badges (red/yellow/green), countdown text, grouped sections, strikethrough animation
+9. `/notes` — word count + reading time in toolbar, `🧠 Quiz me` and `✦ Ask AI` buttons (wired in T4)
+10. `/timeline` — colored event categories, prominent `+ Add event` button
+11. Global — loading skeletons on all pages, consistent error banners
+
+### Track 4 — AI Frontend
+12. `AIPanelContext.tsx` — isOpen state + toggle
+13. `AICopilotPanel.tsx` — 280px right sidebar, tabs: Brief / Chat
+14. `BriefTab.tsx` — calls `POST /ai/brief`, shimmer skeleton, refresh button
+15. `ChatTab.tsx` — local message history, Enter to send, auto-scroll
+16. `QuizModal.tsx` — `🧠 Quiz me` modal, 5 questions, colored correct/incorrect answers
+17. `NoteAIChat.tsx` — `✦ Ask AI` drawer for note context chat
+
+### Shared — Demo Seed Data
+18. Extend `seed-user.ts`: 3 courses, 10 tasks (mix of urgency), 5 events, 4 notes (200+ words each)
+19. Demo account: `demo@student.muni.cz` (set password in Supabase Admin)
+
+### Not in scope (YAGNI)
+- Teacher portal, admin panel API, AI streaming, persistent chat history, notifications, Pomodoro
 
 ---
 
@@ -496,10 +529,17 @@ parentId: integer('parent_id').references((): AnyPgColumn => tasks.id)
 | DELETE | `/courses/:id/enroll` | Yes | Unenroll current user |
 | GET | `/courses/:id/progress` | Yes | Task completion stats |
 
-### Not yet implemented
-- `/admin/*` — admin routes
-- `/ai/*` — AI copilot routes (Claude API)
-- `/study-materials/*` — study materials
+### AI (`/ai`) — Track 2, to be implemented
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/ai/brief` | Yes | Daily brief + top 3 priorities from user's tasks/events |
+| POST | `/ai/chat` | Yes | General chat with user context (tasks, courses). Body: `{ messages: [{role, content}] }` |
+| POST | `/ai/notes/:id/quiz` | Yes | Generate 5 MCQ from note content. Returns `{ questions: [{question, options, correct}] }` |
+| POST | `/ai/notes/:id/chat` | Yes | Chat grounded in specific note. Body: `{ messages: [{role, content}] }` |
+
+### Not in scope
+- `/admin/*` — not in demo flow
+- `/study-materials/*` — not in demo scope
 
 ---
 
@@ -538,22 +578,22 @@ parentId: integer('parent_id').references((): AnyPgColumn => tasks.id)
 ```bash
 # Root:
 pnpm install
-docker compose up --build            # Start everything
 
-# Frontend only:
+# Frontend (from repo root):
 pnpm --filter @pb138/frontend dev    # http://localhost:5173
 pnpm --filter @pb138/frontend test
 pnpm --filter @pb138/frontend test:e2e
 
-# Backend only (from apps/backend/):
+# Backend (from apps/backend/):
 bun run dev                          # http://localhost:3001
 bun test
 
-# DB (from apps/backend/):
+# DB (from apps/backend/) — DB is Supabase cloud, no local Docker needed:
 bun run db:generate    # Generate migrations from schema changes
 bun run db:migrate     # Apply migrations
 bun run db:push        # Push schema directly (dev only)
 bun run src/db/seed.ts # Run seed
+bun run src/db/seed-user.ts # Seed demo user data
 
 # Lint + format:
 pnpm lint
