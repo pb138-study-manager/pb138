@@ -41,7 +41,7 @@
 
 **Env vars (`.env` v backend):**
 ```
-EINFRA_API_KEY=<token>
+E_INFRA_API_TOKEN=<token>
 EINFRA_BASE_URL=https://llm.ai.e-infra.cz/v1/
 EINFRA_MODEL=llama3.3:latest
 ```
@@ -50,7 +50,7 @@ Model je konfigurovateľný cez env var — dá sa zmeniť bez zmeny kódu.
 
 **Získanie zoznamu modelov (curl):**
 ```bash
-curl -H "Authorization: Bearer ${EINFRA_API_KEY}" \
+curl -H "Authorization: Bearer ${E_INFRA_API_TOKEN}" \
   https://llm.ai.e-infra.cz/v1/models | jq .data[].id
 ```
 
