@@ -10,6 +10,32 @@ export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
 })
 
+// Samostatný komponent lebo volá hook — hooky sa nedajú volať vo vnútri .map()
+function CourseProgressBar({ courseId, accentClass }: { courseId: number; accentClass: string }) {
+  const { data } = useQuery({
+    queryKey: ['course-progress', courseId],
+    queryFn: () =>
+      api
+        .get<{ completed: number; total: number }>(`/courses/${courseId}/progress`)
+        .catch(() => ({ completed: 0, total: 0 })),
+  })
+
+  if (!data || data.total === 0) return null
+  const pct = Math.round((data.completed / data.total) * 100)
+
+  return (
+    <div className="mt-1">
+      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+        <span>{data.completed}/{data.total} úloh</span>
+        <span>{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/50 dark:bg-black/20 overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${accentClass}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
 interface Course {
   id: number;
   code: string;
@@ -86,6 +112,7 @@ function CoursesPage() {
                 <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20 text-gray-600 dark:text-gray-300">
                   {course.semester}
                 </span>
+                <CourseProgressBar courseId={course.id} accentClass={color.accent} />
               </div>
             )
           })
