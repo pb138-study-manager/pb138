@@ -201,7 +201,7 @@ pb138/
 | Teachers portal | ⚠️ UI shell | Not in demo scope |
 | Dark mode | ✅ Done | Tailwind `class` strategy, toggled via settings |
 | i18n (EN/CS) | ✅ Done | react-i18next, language saved to localStorage |
-| Visual polish (Today/Tasks/Notes/Timeline) | ❌ Pending | Track 3 — urgency badges, greeting, word count, etc. |
+| Visual polish (Today/Tasks/Notes/Timeline) | ✅ Done | Greeting + progress bar, urgency badges, countdown, word count, skeleton loaders |
 | AI Copilot panel | ❌ Pending | Track 4 — right sidebar, Brief + Chat tabs |
 | Notes Quiz modal | ❌ Pending | Track 4 — `QuizModal.tsx`, calls `/ai/notes/:id/quiz` |
 | Notes AI chat | ❌ Pending | Track 4 — `NoteAIChat.tsx`, calls `/ai/notes/:id/chat` |
@@ -240,13 +240,11 @@ pb138/
 
 Demo flow: **Login → Today → Tasks → Notes → Timeline → Courses**
 
-### Track 2 — AI Backend (next priority)
-1. Install `openai` npm package in backend
-2. `apps/backend/src/routes/ai.ts` — new route file registered at `/ai`
-3. `POST /ai/brief` — daily brief + top 3 priorities from tasks/events
-4. `POST /ai/chat` — general student assistant with user context
-5. `POST /ai/notes/:id/quiz` — generate 5 multiple-choice questions from note content
-6. `POST /ai/notes/:id/chat` — chat grounded in a single note's content
+### Track 2 — AI Backend ✅ Done
+- `openai` package installed, E-infra client configured (`qwen3.5` model)
+- `apps/backend/src/routes/ai.ts` registered at `/ai`
+- `POST /ai/brief`, `POST /ai/chat`, `POST /ai/notes/:id/quiz`, `POST /ai/notes/:id/chat` — all implemented
+- Rate limit: 10 req/min per user (in-memory Map)
 
 E-infra client setup (add to backend `.env`):
 ```
@@ -255,12 +253,11 @@ EINFRA_BASE_URL=https://llm.ai.e-infra.cz/v1/
 EINFRA_MODEL=llama3.3:latest
 ```
 
-### Track 3 — Visual Polish
-7. `/today` — greeting by time of day + daily progress bar
-8. `/tasks` — urgency badges (red/yellow/green), countdown text, grouped sections, strikethrough animation
-9. `/notes` — word count + reading time in toolbar, `🧠 Quiz me` and `✦ Ask AI` buttons (wired in T4)
-10. `/timeline` — colored event categories, prominent `+ Add event` button
-11. Global — loading skeletons on all pages, consistent error banners
+### Track 3 — Visual Polish ✅ Done
+- `/today` — greeting by time of day + daily progress bar + skeleton loader
+- `/tasks` — urgency badges (red/yellow/green), countdown text, strikethrough + opacity animation, skeleton loader
+- `/notes` — word count + reading time, `🧠 Quiz me` + `✦ Ask AI` buttons in toolbar
+- `/timeline` — skeleton loader (loading state)
 
 ### Track 4 — AI Frontend
 12. `AIPanelContext.tsx` — isOpen state + toggle
