@@ -1,0 +1,131 @@
+<h2>Vizuálny polish — čo a kde</h2>
+<p class="subtitle">Sekcia 4 — konkrétne vylepšenia na každej stránke demo flow</p>
+
+<div class="section">
+  <h3>Demo flow: Login → Today → Tasks → Notes → Timeline → Courses</h3>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 0.875rem;">
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+    <div>
+      <div class="label" style="color: #6366f1;">/login + /register</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ✅ funguje</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo pridať</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li>Gradient hero background (nie flat šedá)</li>
+        <li>Logo / brand name prominent</li>
+        <li>Loading spinner na submit button</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Prvý dojem. Ak login vyzerá genericky, celý produkt pôsobí genericky.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+    <div>
+      <div class="label" style="color: #10b981;">/today</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ✅ API OK</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo pridať</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li>Greeting header: "Dobré ráno, Peter 👋"</li>
+        <li>Progress bar "X z Y úloh hotových"</li>
+        <li>Empty state s CTA ak nie sú úlohy</li>
+        <li>Animated task check (✓ pri toggling)</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Today je prvá stránka po logine — musí okamžite ukázať hodnotu a pocit "toto je moje".</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+    <div>
+      <div class="label" style="color: #10b981;">/tasks</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ✅ API OK</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo pridať</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li>Farebné priority badges (červená/žltá/zelená)</li>
+        <li>Deadline countdown "za 2 dni"</li>
+        <li>Skupinové sekcie: Dnes / Tento týždeň / Neskôr</li>
+        <li>Strikethrough animácia pri dokončení</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Farebné priority a countdown pridávajú urgentnosť — tasks stránka sa cíti živá, nie len zoznam.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid var(--border);">
+    <div>
+      <div class="label" style="color: #10b981;">/notes</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ✅ API OK</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo pridať</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li><strong style="color: #818cf8;">🧠 Quiz me + ✦ Ask AI tlačidlá</strong> (AI features)</li>
+        <li>Word count + čas čítania v headerri</li>
+        <li>Folder farby (nie len ikony)</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Notes je kde NotebookLM feature žije — musí pôsobiť ako skutočný editor, nie textové pole.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid #f59e0b33;">
+    <div>
+      <div class="label" style="color: #f59e0b;">/timeline</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ⚠️ čiastočne</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo pridať</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li>Farebné kategórie eventov (kurz / osobné / deadline)</li>
+        <li>Hover tooltip s detailom eventu</li>
+        <li>Tlačidlo "Pridať event" prominentné</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Timeline je vizuálne najimpresívnejšia stránka ak je nabitá dátami — perfektná pre demo.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 140px 1fr 1fr; gap: 1rem; align-items: start; padding: 1rem; background: var(--surface); border-radius: 10px; border: 1px solid #ef444433;">
+    <div>
+      <div class="label" style="color: #ef4444;">/courses</div>
+      <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Stav: ❌ mock dáta</div>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Čo treba</div>
+      <ul style="margin: 0; padding-left: 1.1rem; color: #94a3b8; font-size: 0.8rem; line-height: 1.8;">
+        <li>Pripojiť na reálne API (useCourseManager hook)</li>
+        <li>Progress bar per kurz (% úloh hotových)</li>
+        <li>Farebné kurz karty (každý kurz = iná farba)</li>
+        <li>Enroll / unenroll button funkčný</li>
+      </ul>
+    </div>
+    <div>
+      <div style="font-size: 0.8rem; font-weight: 500; color: #e2e8f0; margin-bottom: 4px;">Prečo to robí rozdiel</div>
+      <p style="margin: 0; color: #64748b; font-size: 0.79rem; line-height: 1.6;">Ak kurzy fungujú len s mock dátami, pedagóg si to všimne pri otázkach. Reálne API je nevyhnutné.</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.08); border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); font-size: 0.85rem;">
+  <strong>Bonus — seed dáta pre demo:</strong> Vytvoriť seed script ktorý naplní DB realistickými dátami (3 kurzy, 10 úloh, 5 eventov, 4 poznámky). Demo nikdy nebehá na prázdnej DB.
+</div>

@@ -1,0 +1,108 @@
+<h2>App Shell Layout</h2>
+<p class="subtitle">Section 2 of 5 — How the sidebar, role toggle, and AI panel fit together. Which layout feels right?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Sidebar + floating AI button</h3>
+      <p>Compact sidebar with nav icons + labels. AI Copilot opens as a slide-in panel from the right when triggered. Clean by default, powerful when needed.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Desktop layout</div>
+        <div class="mockup-body" style="display:flex;gap:0;height:220px;overflow:hidden;border-radius:8px;border:1px solid #e2e8f0">
+          <!-- Sidebar -->
+          <div style="width:180px;background:#1e1b4b;color:#fff;padding:12px 8px;display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+            <div style="font-size:10px;font-weight:700;color:#818cf8;padding:4px 8px;margin-bottom:4px;letter-spacing:.08em">STUDENT</div>
+            <div style="background:#4f46e5;border-radius:6px;padding:5px 8px;font-size:11px;display:flex;align-items:center;gap:6px">🏠 <span>Today</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">✅ <span>Tasks</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📚 <span>Courses</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📝 <span>Notes</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📅 <span>Timeline</span></div>
+            <div style="margin-top:auto;border-top:1px solid #3730a3;padding-top:8px;padding-left:8px;font-size:11px;color:#818cf8">👤 Profile</div>
+          </div>
+          <!-- Main content -->
+          <div style="flex:1;background:#f8fafc;padding:14px;overflow:hidden">
+            <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:8px">Today</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Week strip here</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Task list here</div>
+          </div>
+          <!-- AI floating button -->
+          <div style="position:absolute;bottom:16px;right:16px;background:#6366f1;color:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:600;box-shadow:0 4px 12px rgba(99,102,241,.4)">🤖 Ask AI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Sidebar + persistent AI strip <span style="font-size:11px;background:#6366f1;color:#fff;border-radius:999px;padding:2px 8px;vertical-align:middle">Recommended</span></h3>
+      <p>Sidebar on the left, main content in the center, a collapsible AI panel on the right. AI is always one click away — not buried. On mobile: bottom nav + AI tab.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Desktop layout</div>
+        <div class="mockup-body" style="display:flex;gap:0;height:220px;overflow:hidden;border-radius:8px;border:1px solid #e2e8f0">
+          <!-- Sidebar -->
+          <div style="width:160px;background:#1e1b4b;color:#fff;padding:12px 8px;display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding:0 4px">
+              <div style="font-size:10px;font-weight:700;color:#818cf8;letter-spacing:.08em">STUDENT</div>
+              <div style="font-size:9px;background:#3730a3;color:#818cf8;border-radius:4px;padding:1px 5px;cursor:pointer">⇄ Switch</div>
+            </div>
+            <div style="background:#4f46e5;border-radius:6px;padding:5px 8px;font-size:11px;display:flex;align-items:center;gap:6px">🏠 <span>Today</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">✅ <span>Tasks</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📚 <span>Courses</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📝 <span>Notes</span></div>
+            <div style="padding:5px 8px;font-size:11px;color:#c7d2fe;display:flex;align-items:center;gap:6px">📅 <span>Timeline</span></div>
+            <div style="margin-top:auto;border-top:1px solid #3730a3;padding-top:8px;padding-left:4px;font-size:11px;color:#818cf8">👤 Profile</div>
+          </div>
+          <!-- Main content -->
+          <div style="flex:1;background:#f8fafc;padding:14px;overflow:hidden">
+            <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:8px">Today</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Week strip here</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Task list here</div>
+          </div>
+          <!-- AI panel -->
+          <div style="width:140px;background:#f0f9ff;border-left:2px solid #38bdf8;padding:10px 8px;flex-shrink:0">
+            <div style="font-size:10px;font-weight:700;color:#0284c7;letter-spacing:.06em;margin-bottom:8px">🤖 AI COPILOT</div>
+            <div style="background:#fff;border-radius:6px;padding:6px;font-size:10px;color:#475569;margin-bottom:6px;border:1px solid #e0f2fe">3 tasks due this week. Start with PB138 notes — highest priority.</div>
+            <div style="background:#e0f2fe;border-radius:6px;padding:5px 8px;font-size:10px;color:#0284c7;text-align:center;cursor:pointer">Ask something…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Icon-only sidebar + full AI page</h3>
+      <p>Minimal icon-only sidebar (collapsed by default) maximizes content space. AI Copilot is a full dedicated page/tab, not a panel. Great for mobile-first feel on desktop too.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Desktop layout</div>
+        <div class="mockup-body" style="display:flex;gap:0;height:220px;overflow:hidden;border-radius:8px;border:1px solid #e2e8f0">
+          <!-- Icon sidebar -->
+          <div style="width:52px;background:#1e1b4b;color:#fff;padding:10px 6px;display:flex;flex-direction:column;gap:8px;align-items:center;flex-shrink:0">
+            <div style="font-size:16px;background:#4f46e5;border-radius:6px;padding:6px;line-height:1">🏠</div>
+            <div style="font-size:16px;padding:6px;opacity:.6;line-height:1">✅</div>
+            <div style="font-size:16px;padding:6px;opacity:.6;line-height:1">📚</div>
+            <div style="font-size:16px;padding:6px;opacity:.6;line-height:1">📝</div>
+            <div style="font-size:16px;padding:6px;opacity:.6;line-height:1">📅</div>
+            <div style="font-size:16px;padding:6px;opacity:.6;line-height:1;margin-top:auto">🤖</div>
+          </div>
+          <!-- Main content -->
+          <div style="flex:1;background:#f8fafc;padding:14px;overflow:hidden">
+            <div style="font-size:14px;font-weight:700;color:#1e293b;margin-bottom:8px">Today</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;margin-bottom:6px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Week strip here</div>
+            <div style="background:#fff;border-radius:6px;padding:8px;font-size:11px;color:#475569;border:1px solid #e2e8f0">Task list here</div>
+            <div style="margin-top:8px;background:#fff;border-radius:6px;padding:8px;font-size:11px;color:#475569;border:1px solid #e2e8f0">More content...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 14px;font-size:12px;color:#713f12">
+  <strong>Role toggle</strong> (all options): small pill in the sidebar header — "STUDENT ⇄ TEACHER" — only visible if you have both roles. Switches the entire nav set without logging out.
+</div>
