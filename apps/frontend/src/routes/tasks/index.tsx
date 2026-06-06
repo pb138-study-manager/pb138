@@ -26,8 +26,10 @@ export function TasksPage() {
 
   if (isPending) {
     return (
-      <div className="flex-1 w-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
-        <p className="text-gray-400 dark:text-gray-500">{t('tasks.loading')}</p>
+      <div className="flex-1 w-full bg-gray-50 dark:bg-gray-900 px-4 py-8 space-y-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 rounded-2xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
+        ))}
       </div>
     );
   }

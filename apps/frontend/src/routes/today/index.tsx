@@ -49,7 +49,7 @@ function TodayPage() {
   const visibleEvents = todayEvents.slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 overflow-y-auto">
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
         {/* Greeting + progress */}

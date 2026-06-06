@@ -6,6 +6,25 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import EditTaskDialog from '@/components/tasks/edit-task-dialog';
 
+function getUrgency(dueDate: string | null | undefined): 'high' | 'medium' | 'low' | null {
+  if (!dueDate) return null;
+  const diff = new Date(dueDate).getTime() - Date.now();
+  if (diff < 0) return 'high';
+  if (diff < 24 * 60 * 60 * 1000) return 'high';
+  if (diff < 72 * 60 * 60 * 1000) return 'medium';
+  return 'low';
+}
+
+function getCountdown(dueDate: string | null | undefined): string {
+  if (!dueDate) return '';
+  const diff = new Date(dueDate).getTime() - Date.now();
+  if (diff < 0) return 'Overdue';
+  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  return `za ${days} dni`;
+}
+
 type EditData = {
   title: string;
   dueDate: string;
@@ -60,9 +79,21 @@ export default function TaskCard({
   }, [subtasksOpen, task.id, indent]);
 
   const dueTime = task.dueDate
-    ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+    ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString('sk-SK', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
     : t('tasks.noDueDate');
   const hasUsers = task.assignmentId !== null;
+  const urgency = getUrgency(task.dueDate);
+  const countdown = getCountdown(task.dueDate);
+  const urgencyColors = {
+    high: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+    medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
+    low: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+  };
 
   const effectiveDone = subtasksLoaded
     ? subtasks.filter((s) => s.status === 'DONE').length
@@ -125,25 +156,37 @@ export default function TaskCard({
 
   return (
     <>
-      <div className={cn(
-        'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl mb-2 shadow-sm hover:shadow-md transition-shadow',
-        indent && 'ml-6'
-      )}>
+      <div
+        className={cn(
+          'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl mb-2 shadow-sm hover:shadow-md transition-shadow',
+          indent && 'ml-6'
+        )}
+      >
         <div className="p-4 flex items-center gap-3">
           <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-xl shrink-0">
-            {hasUsers
-              ? <Users className="w-4 h-4 text-blue-500" />
-              : <Clock className="w-4 h-4 text-blue-400" />
-            }
+            {hasUsers ? (
+              <Users className="w-4 h-4 text-blue-500" />
+            ) : (
+              <Clock className="w-4 h-4 text-blue-400" />
+            )}
           </div>
           <div className="flex-1 min-w-0" onClick={() => setEditOpen(true)}>
-            <p className={cn(
-              'font-bold text-sm truncate cursor-pointer',
-              isChecked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'
-            )}>
+            <p
+              className={cn(
+                'font-bold text-sm truncate cursor-pointer transition-all duration-300',
+                isChecked ? 'line-through text-gray-400 opacity-50' : 'text-gray-900 dark:text-white'
+              )}
+            >
               {task.title}
             </p>
             <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
+            {urgency && task.status !== 'DONE' && (
+              <span
+                className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${urgencyColors[urgency]}`}
+              >
+                {countdown}
+              </span>
+            )}
             {effectiveTotal > 0 && (
               <div className="mt-1.5">
                 <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -158,11 +201,7 @@ export default function TaskCard({
               </div>
             )}
           </div>
-          <button
-            onClick={handleToggle}
-            disabled={toggling || deleting}
-            className="shrink-0 ml-1"
-          >
+          <button onClick={handleToggle} disabled={toggling || deleting} className="shrink-0 ml-1">
             {isChecked ? (
               <div className="w-7 h-7 rounded-full border-2 border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-600 flex items-center justify-center">
                 <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-500" />
@@ -180,7 +219,11 @@ export default function TaskCard({
               onClick={() => setSubtasksOpen((o) => !o)}
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600"
             >
-              {subtasksOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {subtasksOpen ? (
+                <ChevronUp className="w-3 h-3" />
+              ) : (
+                <ChevronDown className="w-3 h-3" />
+              )}
               {subtasksLoaded
                 ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}`
                 : 'Subtasks'}
@@ -190,16 +233,18 @@ export default function TaskCard({
       </div>
 
       {/* Subtask cards rendered outside parent card, at same level but indented */}
-      {!indent && subtasksOpen && subtasks.map((sub) => (
-        <TaskCard
-          key={sub.id}
-          task={sub}
-          indent
-          onToggle={handleSubToggle}
-          onEditFull={handleSubEditFull}
-          onDelete={handleSubDelete}
-        />
-      ))}
+      {!indent &&
+        subtasksOpen &&
+        subtasks.map((sub) => (
+          <TaskCard
+            key={sub.id}
+            task={sub}
+            indent
+            onToggle={handleSubToggle}
+            onEditFull={handleSubEditFull}
+            onDelete={handleSubDelete}
+          />
+        ))}
 
       <EditTaskDialog
         task={task}
