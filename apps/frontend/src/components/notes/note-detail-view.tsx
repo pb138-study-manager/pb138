@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, BrainCircuit, Sparkles } from 'lucide-react';
 import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
@@ -10,9 +10,24 @@ interface NoteDetailViewProps {
   autoEdit?: boolean;
   onSave: (id: number, title: string, description: string) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
+  onQuiz?: () => void;
+  onAskAI?: () => void;
 }
 
-export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: NoteDetailViewProps) {
+function getReadingStats(text: string): { words: number; minutes: number } {
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return { words, minutes };
+}
+
+export default function NoteDetailView({
+  note,
+  autoEdit,
+  onSave,
+  onDelete,
+  onQuiz,
+  onAskAI,
+}: NoteDetailViewProps) {
   const [isEditing, setIsEditing] = useState(autoEdit || false);
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.description || '');
@@ -20,6 +35,8 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { t } = useTranslation();
+
+  const { words, minutes } = getReadingStats(content);
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -43,11 +60,20 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm flex flex-col min-h-[50vh] h-full transition-colors">
-      <div className="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-3 gap-4">
+    <div
+      className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm flex flex-col min-h-[50vh]
+  h-full transition-colors"
+    >
+      {/* Toolbar */}
+      <div
+        className="flex justify-between items-center mb-4 border-b dark:border-gray-700 pb-3
+  gap-4"
+      >
         {isEditing ? (
           <input
-            className="text-xl font-bold flex-1 border dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="text-xl font-bold flex-1 border dark:border-gray-600 rounded-lg px-3 py-1
+  focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900
+  dark:text-white"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('dialog.noteTitle')}
@@ -86,9 +112,41 @@ export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: Not
         </div>
       </div>
 
+      {/* Stats + AI buttons */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {words} slov · ~{minutes} min čítania
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
+            onClick={onQuiz}
+            disabled={words < 20}
+          >
+            <BrainCircuit size={14} />
+            Quiz me
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
+            onClick={onAskAI}
+            disabled={words < 5}
+          >
+            <Sparkles size={14} />
+            Ask AI
+          </Button>
+        </div>
+      </div>
+
+      {/* Content */}
       {isEditing ? (
         <textarea
-          className="flex-1 w-full p-3 border dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="flex-1 w-full p-3 border dark:border-gray-600 rounded-xl resize-none
+  focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900
+  dark:text-white"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={t('notes.startWriting')}
