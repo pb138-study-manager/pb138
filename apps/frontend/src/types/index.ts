@@ -63,7 +63,30 @@ export interface Note {
   userId: number;
   title: string;
   description: string;
+  folderId?: number | null;
   deletedAt: string | null;
+}
+
+export type NoteModel = Note;
+
+export interface FolderModel {
+  id: number;
+  userId: number;
+  name: string;
+  deletedAt: string | null;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+}
+
+export interface UserSettings {
+  lightTheme: boolean;
+  notificationsEnabled: boolean;
+  language?: string;
+  customNav?: NavItem[];
 }
 
 export interface Group {

@@ -130,17 +130,15 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
 
               {/* Eval type dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                      evalType !== 'none'
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <ClipboardCheck className="w-3.5 h-3.5" />
-                    {EVAL_LABELS[evalType]}
-                  </button>
+                <DropdownMenuTrigger
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    evalType !== 'none'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  {EVAL_LABELS[evalType]}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {(['none', 'pass_fail', 'graded'] as const).map((type) => (
@@ -158,21 +156,19 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
 
               {/* Send to dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                      sendTo === 'student'
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    {sendTo === 'student' && selectedStudent
-                      ? (selectedStudent.name ?? selectedStudent.email)
-                      : sendTo === 'student'
-                        ? 'Select student…'
-                        : 'Whole class'}
-                  </button>
+                <DropdownMenuTrigger
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    sendTo === 'student'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  {sendTo === 'student' && selectedStudent
+                    ? (selectedStudent.name ?? selectedStudent.email)
+                    : sendTo === 'student'
+                      ? 'Select student…'
+                      : 'Whole class'}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem

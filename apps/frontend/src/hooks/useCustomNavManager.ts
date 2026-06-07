@@ -63,7 +63,7 @@ export function useCustomNavManager() {
     try {
       const navItemsToSave = selectedIds
         .map((id) => AVAILABLE_ITEMS.find((item) => item.id === id))
-        .filter(Boolean) as NavItem[];
+        .filter((item): item is NavItem => item !== undefined);
 
       await updateCustomNav(navItemsToSave);
       return true;

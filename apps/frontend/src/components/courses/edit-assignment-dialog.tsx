@@ -82,7 +82,7 @@ export default function EditAssignmentDialog({
       } catch { /* silently ignore */ }
     }, 600);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [title, selectedDate, evalType]);
+  }, [title, selectedDate, evalType, assignmentId, courseId, queryClient]);
 
   const { data: students = [] } = useQuery({
     queryKey: ['assignmentStudents', assignmentId],
@@ -171,17 +171,15 @@ export default function EditAssignmentDialog({
 
               {/* Eval type dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                      evalType !== 'none'
-                        ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    <ClipboardCheck className="w-3.5 h-3.5" />
-                    {EVAL_LABELS[evalType]}
-                  </button>
+                <DropdownMenuTrigger
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    evalType !== 'none'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  {EVAL_LABELS[evalType]}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {(['none', 'pass_fail', 'graded'] as const).map((type) => (
@@ -283,7 +281,7 @@ export default function EditAssignmentDialog({
                           className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-xl text-sm"
                         >
                           {s.avatar ? (
-                            <img src={s.avatar} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                            <img src={s.avatar} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
                           ) : (
                             <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
                               <span className="text-[10px] font-bold text-indigo-600">{initials}</span>

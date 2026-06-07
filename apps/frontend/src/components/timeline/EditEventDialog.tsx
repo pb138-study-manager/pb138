@@ -52,7 +52,7 @@ export default function EditEventDialog({
       })
     }, 800)
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [title, startDate, endDate, type, description])
+  }, [title, startDate, endDate, type, description, computedEndDate, onSave, place])
 
   return (
     <>

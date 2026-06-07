@@ -71,16 +71,18 @@ export const aiRoutes = new Elysia({ prefix: '/ai' })
       .from(events)
       .where(and(eq(events.userId, authUser.id), isNull(events.deletedAt)));
 
-    const context = JSON.stringify({ tasks: userTasks, events: userEvents });
+    const today = new Date().toISOString().split('T')[0];
+    const context = JSON.stringify({ today, tasks: userTasks, events: userEvents });
 
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages: [
         {
           role: 'system',
-          content: `You are a student assistant. You will receive a JSON with the student's tasks and events.
+          content: `You are a student assistant. You will receive a JSON with today's date, the student's tasks and events.
+Today is ${today}. Tasks with dueDate before today are overdue.
 Generate a short daily brief (2-3 sentences) and identify the top 3 priorities.
-For each priority determine urgency: high = deadline within 1 day, medium = within 3 days, low = later.
+For each priority determine urgency: high = overdue or deadline within 1 day, medium = within 3 days, low = later.
 Respond in ${langLabel}.
 Return ONLY as JSON with no extra text:
 {"brief":"...","priorities":[{"title":"...","dueDate":"...","urgency":"high"}]}`,
@@ -90,7 +92,7 @@ Return ONLY as JSON with no extra text:
     });
 
     const raw = completion.choices[0].message.content ?? '{}';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const jsonMatch = raw.match(/\{[\s\S]*}/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { brief: raw, priorities: [] };
 
     await logAction(db, authUser.id, 'Generated AI daily brief');
@@ -116,13 +118,15 @@ Return ONLY as JSON with no extra text:
       .innerJoin(userCourses, eq(userCourses.courseId, courses.id))
       .where(and(eq(userCourses.userId, authUser.id), isNull(courses.deletedAt)));
 
+    const today = new Date().toISOString().split('T')[0];
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages: [
         {
           role: 'system',
-          content: `Si študentský AI asistent. Kontext študenta: tasks=${JSON.stringify(userTasks)}, courses=${JSON.stringify(enrolledCourses)}.
-Odpovedaj v jazyku, v ktorom sa ťa pýtajú (SK alebo EN). Buď stručný a konkrétny.`,
+          content: `You are a student AI assistant. Today is ${today}. Tasks with dueDate before today are overdue.
+Student context: tasks=${JSON.stringify(userTasks)}, courses=${JSON.stringify(enrolledCourses)}.
+Respond in the language the user writes in (Slovak or English). Be concise and specific.`,
         },
         ...body.messages,
       ],
@@ -169,7 +173,7 @@ Return ONLY as JSON with no extra text:
     });
 
     const raw = completion.choices[0].message.content ?? '{}';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const jsonMatch = raw.match(/\{[\s\S]*}/);
     const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { questions: [] };
 
     await logAction(db, authUser.id, `Generated quiz for note ${note.id}`);
