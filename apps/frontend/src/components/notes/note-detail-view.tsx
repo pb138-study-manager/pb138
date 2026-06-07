@@ -4,14 +4,14 @@ import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
 import { useTranslation } from 'react-i18next';
+import { QuizModal } from '@/components/notes/QuizModal';
+import { NoteAIChat } from '@/components/notes/NoteAIChat';
 
 interface NoteDetailViewProps {
   note: NoteModel;
   autoEdit?: boolean;
   onSave: (id: number, title: string, description: string) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onQuiz?: () => void;
-  onAskAI?: () => void;
 }
 
 function getReadingStats(text: string): { words: number; minutes: number } {
@@ -25,8 +25,6 @@ export default function NoteDetailView({
   autoEdit,
   onSave,
   onDelete,
-  onQuiz,
-  onAskAI,
 }: NoteDetailViewProps) {
   const [isEditing, setIsEditing] = useState(autoEdit || false);
   const [title, setTitle] = useState(note.title);
@@ -34,6 +32,8 @@ export default function NoteDetailView({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
   const { t } = useTranslation();
 
   const { words, minutes } = getReadingStats(content);
@@ -122,7 +122,7 @@ export default function NoteDetailView({
             variant="outline"
             size="sm"
             className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
-            onClick={onQuiz}
+            onClick={() => setQuizOpen(true)}
             disabled={words < 20}
           >
             <BrainCircuit size={14} />
@@ -132,7 +132,7 @@ export default function NoteDetailView({
             variant="outline"
             size="sm"
             className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
-            onClick={onAskAI}
+            onClick={() => setAiChatOpen(true)}
             disabled={words < 5}
           >
             <Sparkles size={14} />
@@ -162,6 +162,20 @@ export default function NoteDetailView({
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
+      />
+
+      <QuizModal
+        noteId={note.id}
+        noteTitle={note.title}
+        isOpen={quizOpen}
+        onClose={() => setQuizOpen(false)}
+      />
+
+      <NoteAIChat
+        noteId={note.id}
+        noteTitle={note.title}
+        isOpen={aiChatOpen}
+        onClose={() => setAiChatOpen(false)}
       />
     </div>
   );

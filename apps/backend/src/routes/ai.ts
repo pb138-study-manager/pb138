@@ -27,8 +27,17 @@ function checkRateLimit(userId: number): boolean {
   return true;
 }
 
+const BriefSchema = z.object({
+  lang: z.string().optional(),
+});
+
 const ChatSchema = z.object({
   messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })),
+  lang: z.string().optional(),
+});
+
+const QuizLangSchema = z.object({
+  lang: z.string().optional(),
 });
 
 export const aiRoutes = new Elysia({ prefix: '/ai' })
@@ -41,12 +50,15 @@ export const aiRoutes = new Elysia({ prefix: '/ai' })
   })
 
   // POST /ai/brief
-  .post('/brief', async ({ user, set }) => {
+  .post('/brief', async ({ body, user, set }) => {
     const authUser = user as AuthUser;
     if (!checkRateLimit(authUser.id)) {
       set.status = 429;
       return { error: 'RATE_LIMITED', message: 'Max 10 AI requests per minute' };
     }
+
+    const lang = body.lang ?? 'sk';
+    const langLabel = lang === 'en' ? 'English' : 'Slovak';
 
     const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const userTasks = await db
@@ -54,9 +66,6 @@ export const aiRoutes = new Elysia({ prefix: '/ai' })
       .from(tasks)
       .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), lte(tasks.dueDate, weekFromNow)));
 
-    const weekStart = new Date();
-    weekStart.setHours(0, 0, 0, 0);
-    const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
     const userEvents = await db
       .select()
       .from(events)
@@ -69,10 +78,11 @@ export const aiRoutes = new Elysia({ prefix: '/ai' })
       messages: [
         {
           role: 'system',
-          content: `Si študentský asistent. Dostaneš JSON so zoznamom úloh a eventov študenta.
-Vygeneruj krátky denný brief (2-3 vety, slovenčina) a identifikuj top 3 priority.
-Pre každú prioritu urč urgency: high = deadline do 1 dňa, medium = do 3 dní, low = neskôr.
-Odpoveď vráť VÝLUČNE ako JSON bez textu navyše:
+          content: `You are a student assistant. You will receive a JSON with the student's tasks and events.
+Generate a short daily brief (2-3 sentences) and identify the top 3 priorities.
+For each priority determine urgency: high = deadline within 1 day, medium = within 3 days, low = later.
+Respond in ${langLabel}.
+Return ONLY as JSON with no extra text:
 {"brief":"...","priorities":[{"title":"...","dueDate":"...","urgency":"high"}]}`,
         },
         { role: 'user', content: context },
@@ -85,7 +95,7 @@ Odpoveď vráť VÝLUČNE ako JSON bez textu navyše:
 
     await logAction(db, authUser.id, 'Generated AI daily brief');
     return parsed;
-  })
+  }, zodBody(BriefSchema))
 
   // POST /ai/chat
   .post('/chat', async ({ body, user, set }) => {
@@ -123,12 +133,15 @@ Odpovedaj v jazyku, v ktorom sa ťa pýtajú (SK alebo EN). Buď stručný a kon
   }, zodBody(ChatSchema))
 
   // POST /ai/notes/:id/quiz
-  .post('/notes/:id/quiz', async ({ params, user, set }) => {
+  .post('/notes/:id/quiz', async ({ params, body, user, set }) => {
     const authUser = user as AuthUser;
     if (!checkRateLimit(authUser.id)) {
       set.status = 429;
       return { error: 'RATE_LIMITED', message: 'Max 10 AI requests per minute' };
     }
+
+    const lang = body.lang ?? 'sk';
+    const langLabel = lang === 'en' ? 'English' : 'Slovak';
 
     const [note] = await db
       .select()
@@ -145,11 +158,11 @@ Odpovedaj v jazyku, v ktorom sa ťa pýtajú (SK alebo EN). Buď stručný a kon
       messages: [
         {
           role: 'system',
-          content: `Si skúšajúci učiteľ. Dostaneš text poznámky. Vytvor presne 5 multiple-choice otázok.
-Každá otázka má 4 možnosti (pole strings). Správna odpoveď je na indexe correct (0-3).
-Odpoveď VÝLUČNE ako JSON bez textu navyše:
-{"questions":[{"question":"...","options":["A","B","C","D"],"correct":0}]}
-Otázky musia byť v jazyku poznámky.`,
+          content: `You are an examiner. You will receive note text. Create exactly 5 multiple-choice questions.
+Each question has 4 options (array of strings). The correct answer is at index correct (0-3).
+Questions must be in ${langLabel}.
+Return ONLY as JSON with no extra text:
+{"questions":[{"question":"...","options":["A","B","C","D"],"correct":0}]}`,
         },
         { role: 'user', content: note.description ?? note.title },
       ],
@@ -161,7 +174,7 @@ Otázky musia byť v jazyku poznámky.`,
 
     await logAction(db, authUser.id, `Generated quiz for note ${note.id}`);
     return parsed;
-  })
+  }, zodBody(QuizLangSchema))
 
   // POST /ai/notes/:id/chat
   .post('/notes/:id/chat', async ({ params, body, user, set }) => {

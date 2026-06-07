@@ -6,6 +6,9 @@ import '@/lib/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { RoleModeProvider } from '@/lib/roleMode';
+import { AIPanelProvider, useAIPanel } from '@/context/AIPanelContext';
+import { AICopilotPanel } from '@/components/ai/AICopilotPanel';
+import { Sparkles } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,17 +72,70 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <RoleModeProvider>
-      <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
-        {!hideNav && !isAdminRoute && (
-          <Sidebar activeTab={activeTab} />
-        )}
-        <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full">
-          <Outlet />
-        </main>
-        {!hideNav && <BottomNav active={activeTab} />}
-      </div>
+        <AIPanelProvider>
+          <AppShell
+            hideNav={hideNav}
+            isAdminRoute={isAdminRoute}
+            activeTab={activeTab}
+            isPublicRoute={isPublicRoute}
+          />
+        </AIPanelProvider>
       </RoleModeProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
+  hideNav: boolean;
+  isAdminRoute: boolean;
+  activeTab: string;
+  isPublicRoute: boolean;
+}) {
+  const { isOpen, toggle } = useAIPanel();
+
+  return (
+    <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
+      {!hideNav && !isAdminRoute && <Sidebar activeTab={activeTab} />}
+
+      {/* Main content + desktop inline AI panel */}
+      <div className="flex-1 min-w-0 flex h-full overflow-hidden">
+        <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full overflow-y-auto">
+          <Outlet />
+        </main>
+
+        {/* Desktop: inline panel that pushes main content */}
+        {!isPublicRoute && (
+          <div
+            className={`hidden md:flex shrink-0 h-full transition-all duration-300 ${
+              isOpen ? 'w-72' : 'w-0 overflow-hidden'
+            }`}
+          >
+            <AICopilotPanel inline />
+          </div>
+        )}
+      </div>
+
+      {!hideNav && <BottomNav active={activeTab} />}
+
+      {/* AI toggle button — hidden when panel is open on desktop */}
+      {!isPublicRoute && (
+        <button
+          onClick={toggle}
+          className={`fixed top-4 right-4 z-50 w-9 h-9 rounded-full items-center justify-center shadow-lg transition-colors ${
+            isOpen ? 'hidden' : 'flex'
+          } bg-white dark:bg-gray-800 text-indigo-500 border border-gray-200 dark:border-gray-700`}
+        >
+          <Sparkles size={16} />
+        </button>
+      )}
+
+      {/* Mobile: overlay panel */}
+      {!isPublicRoute && (
+        <div className="md:hidden">
+          <AICopilotPanel />
+        </div>
+      )}
+    </div>
   );
 }
 
