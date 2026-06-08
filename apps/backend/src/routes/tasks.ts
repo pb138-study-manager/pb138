@@ -19,6 +19,8 @@ const CreateTaskSchema = z.object({
   assignmentId: z.number().optional(),
   parentId: z.number().optional(),
   courseId: z.number().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  tags: z.array(z.string().min(1).max(50)).max(20).optional(),
 });
 
 const UpdateTaskSchema = z.object({
@@ -27,6 +29,8 @@ const UpdateTaskSchema = z.object({
   dueDate: z.string().optional(),
   status: z.enum(['TODO', 'IN PROGRESS', 'DONE']).optional(),
   parentId: z.number().nullable().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).nullable().optional(),
+  tags: z.array(z.string().min(1).max(50)).max(20).optional(),
 });
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
@@ -50,6 +54,8 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
         description: tasks.description,
         dueDate: tasks.dueDate,
         status: tasks.status,
+        priority: tasks.priority,
+        tags: tasks.tags,
         deletedAt: tasks.deletedAt,
         assignmentDeadline: assignments.dueDate,
       })
@@ -108,6 +114,8 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
           assignmentId: body.assignmentId,
           parentId: body.parentId,
           courseId: body.courseId,
+          ...(body.priority !== undefined && { priority: body.priority }),
+          ...(body.tags !== undefined && { tags: body.tags }),
         })
         .returning();
       await logAction(db, (user as AuthUser).id, `Created task ${task.id}: ${task.title}`);
@@ -178,6 +186,8 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
           ...(body.dueDate !== undefined && { dueDate: new Date(body.dueDate) }),
           ...(body.status !== undefined && { status: body.status }),
           ...('parentId' in body && { parentId: body.parentId }),
+          ...('priority' in body && { priority: body.priority ?? null }),
+          ...(body.tags !== undefined && { tags: body.tags }),
         })
         .where(eq(tasks.id, existing.id))
         .returning();
