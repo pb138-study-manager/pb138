@@ -39,7 +39,13 @@
     "overdue": "Po termíne",
     "thisWeek": "Tento týždeň",
     "later": "Neskôr",
-    "total": "celkom"
+    "total": "celkom",
+    "priority": "Priorita",
+    "priorityLow": "Nízká",
+    "priorityMedium": "Střední",
+    "priorityHigh": "Vysoká",
+    "tags": "Štítky",
+    "addTag": "Přidat štítek..."
   },
   "notes": {
     "loading": "Načítání poznámek...",

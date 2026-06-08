@@ -39,7 +39,13 @@
     "overdue": "Overdue",
     "thisWeek": "This Week",
     "later": "Later",
-    "total": "total"
+    "total": "total",
+    "priority": "Priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "tags": "Tags",
+    "addTag": "Add tag..."
   },
   "notes": {
     "loading": "Loading notes...",

@@ -32,6 +32,8 @@ export interface Task {
   subtasks?: Task[];
   subtaskCount?: number;
   doneSubtaskCount?: number;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  tags?: string[];
   eval?: Eval;
 }
 
