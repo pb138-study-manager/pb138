@@ -15,7 +15,7 @@ test.describe('Login page', () => {
   });
 
   test('has submit button', async ({ page }) => {
-    await expect(page.getByRole('button', { name: /login/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /continue/i })).toBeVisible();
   });
 
   test('has link to register', async ({ page }) => {
