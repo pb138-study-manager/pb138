@@ -11,6 +11,7 @@ import {
   jsonb,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -21,6 +22,7 @@ export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DON
 export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
 export const eventTypeEnum = pgEnum('event_type', ['EVENT', 'DEADLINE']);
 export const evalTypeEnum = pgEnum('eval_type', ['none', 'pass_fail', 'graded']);
+export const taskPriorityEnum = pgEnum('task_priority', ['LOW', 'MEDIUM', 'HIGH']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -190,6 +192,8 @@ export const tasks = pgTable('tasks', {
   description: text('description'),
   dueDate: timestamp('due_date'),
   status: taskStatusEnum('status').notNull().default('TODO'),
+  priority: taskPriorityEnum('priority'),
+  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
