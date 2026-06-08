@@ -16,7 +16,7 @@ export default function NewEventDialog({
   onSave: (data: { title: string; startDate: string; endDate: string; description?: string; type: EventType }) => Promise<void>
 }) {
   const [title, setTitle] = useState('')
-  const [startDate, setStartDate] = useState<Date | null>(null)
+  const [startDate, setStartDate] = useState<Date | null>(() => new Date())
   const [endDate, setEndDate] = useState<Date | null>(null)
   const [description, setDescription] = useState('')
   const [type, setType] = useState<EventType>('EVENT')
@@ -26,7 +26,7 @@ export default function NewEventDialog({
   useEffect(() => {
     if (isOpen) return
     setTitle('')
-    setStartDate(null)
+    setStartDate(new Date())
     setEndDate(null)
     setDescription('')
     setType('EVENT')
