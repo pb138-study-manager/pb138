@@ -17,7 +17,7 @@ export default function NewTaskDialog({
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string, dueDate: string | null, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
+  onSubmit: (title: string, dueDate: string | undefined, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
 }) {
   const [taskName, setTaskName] = useState('');
   const [isDateOpen, setIsDateOpen] = useState(false);
@@ -38,7 +38,7 @@ export default function NewTaskDialog({
     if (!taskName.trim()) return;
     setSaving(true);
     try {
-      await onSubmit(taskName.trim(), selectedDate?.toISOString() ?? null, subtasks, undefined, selectedCourse?.id);
+      await onSubmit(taskName.trim(), selectedDate?.toISOString() ?? undefined, subtasks, undefined, selectedCourse?.id);
       setTaskName('');
       setSelectedDate(new Date());
       setSubtasks([]);
