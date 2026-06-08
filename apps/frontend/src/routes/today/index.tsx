@@ -8,13 +8,6 @@ export const Route = createFileRoute('/today/')({
   component: TodayPage,
 });
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 12) return 'Dobré ráno';
-  if (h >= 12 && h < 18) return 'Dobrý deň';
-  return 'Dobrý večer';
-}
-
 function TodayPage() {
   const { t } = useTranslation();
   const {
@@ -30,6 +23,14 @@ function TodayPage() {
     handleDelete,
     editEvent,
   } = useTodayManager();
+
+  const h = new Date().getHours();
+  const greeting =
+    h >= 5 && h < 12
+      ? t('today.greetingMorning')
+      : h >= 12 && h < 18
+        ? t('today.greetingAfternoon')
+        : t('today.greetingEvening');
 
   if (isPending) {
     return (
@@ -54,10 +55,10 @@ function TodayPage() {
       <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
         {/* Greeting + progress */}
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">
-          {getGreeting()} 👋
+          {greeting} 👋
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-          {counts.done} z {todayTotal} úloh hotových dnes
+          {t('today.progress', { done: counts.done, total: todayTotal })}
         </p>
         <div
           className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden
