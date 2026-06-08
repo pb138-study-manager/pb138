@@ -9,8 +9,8 @@ export function getUrgency(dueDate: string | null | undefined): 'high' | 'medium
   return 'low';
 }
 
-export function getCountdown(dueDate: string | null | undefined): string {
-  if (!dueDate) return '';
+export function getCountdown(dueDate: string | null | undefined, noDateLabel = ''): string {
+  if (!dueDate) return noDateLabel;
   const diff = new Date(dueDate).getTime() - Date.now();
   if (diff < 0) return 'Overdue';
   const days = Math.floor(diff / (24 * 60 * 60 * 1000));

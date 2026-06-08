@@ -53,11 +53,13 @@ describe('getUrgency', () => {
 });
 
 describe('getCountdown', () => {
-  it('returns empty string for null dueDate', () => {
+  it('returns the noDateLabel when dueDate is null', () => {
+    expect(getCountdown(null, 'No date')).toBe('No date');
     expect(getCountdown(null)).toBe('');
   });
 
-  it('returns empty string for undefined dueDate', () => {
+  it('returns the noDateLabel when dueDate is undefined', () => {
+    expect(getCountdown(undefined, 'No date')).toBe('No date');
     expect(getCountdown(undefined)).toBe('');
   });
 
