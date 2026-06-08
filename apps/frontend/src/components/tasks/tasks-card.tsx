@@ -12,6 +12,8 @@ type EditData = {
   dueDate: string;
   description?: string;
   status?: TaskStatus;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  tags?: string[];
   subtasksToAdd: string[];
   subtaskIdsToDelete: number[];
 };
@@ -27,7 +29,14 @@ export default function TaskCard({
   onToggle: (id: number) => Promise<void>;
   onEditFull: (
     id: number,
-    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    data: {
+      title: string;
+      dueDate: string;
+      description?: string;
+      status?: TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) => Promise<void>;
@@ -76,6 +85,16 @@ export default function TaskCard({
     medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
     low: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
   };
+  const PRIORITY_COLORS: Record<string, string> = {
+    LOW: 'bg-green-100 text-green-600',
+    MEDIUM: 'bg-amber-100 text-amber-600',
+    HIGH: 'bg-red-100 text-red-600',
+  };
+  const PRIORITY_LABELS: Record<string, string> = {
+    LOW: t('tasks.priorityLow'),
+    MEDIUM: t('tasks.priorityMedium'),
+    HIGH: t('tasks.priorityHigh'),
+  };
 
   const effectiveDone = subtasksLoaded
     ? subtasks.filter((s) => s.status === 'DONE').length
@@ -111,7 +130,14 @@ export default function TaskCard({
 
   async function handleSubEditFull(
     subId: number,
-    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    data: {
+      title: string;
+      dueDate: string;
+      description?: string;
+      status?: TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) {
@@ -128,7 +154,14 @@ export default function TaskCard({
   async function handleSave(data: EditData) {
     await onEditFull(
       task.id,
-      { title: data.title, dueDate: data.dueDate, description: data.description, status: data.status },
+      {
+        title: data.title,
+        dueDate: data.dueDate,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+        tags: data.tags,
+      },
       data.subtasksToAdd,
       data.subtaskIdsToDelete
     );
@@ -170,6 +203,25 @@ export default function TaskCard({
               >
                 {countdown}
               </span>
+            )}
+            {task.priority && task.status !== 'DONE' && (
+              <span className={`inline-block mt-1 mr-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}>
+                {PRIORITY_LABELS[task.priority]}
+              </span>
+            )}
+            {task.tags && task.tags.length > 0 && task.status !== 'DONE' && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {task.tags.slice(0, 3).map((tag) => (
+                  <span key={tag} className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
+                    {tag}
+                  </span>
+                ))}
+                {task.tags.length > 3 && (
+                  <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
+                    +{task.tags.length - 3} more
+                  </span>
+                )}
+              </div>
             )}
             {effectiveTotal > 0 && (
               <div className="mt-1.5">
