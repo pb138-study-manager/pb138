@@ -34,9 +34,9 @@ export function useTodayManager() {
   });
 
   const backlogTasks = tasks.filter((t) => {
-    if (t.status === 'DONE' || !t.dueDate) return false;
-    const due = new Date(t.dueDate);
-    return due < todayStart;
+    if (t.status === 'DONE') return false;
+    if (!t.dueDate) return true;
+    return new Date(t.dueDate) < todayStart;
   });
 
   const doneTasks = tasks.filter((t) => t.status === 'DONE');
