@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test('redirect na /login ak nie je session', async ({ page }) => {
-  await page.goto('/today');
-  await expect(page).toHaveURL(/\/login/);
-});
+const PROTECTED_ROUTES = ['/today', '/tasks', '/notes', '/timeline', '/courses', '/profile', '/dashboard'];
 
-test('redirect na /login pre /tasks bez session', async ({ page }) => {
-  await page.goto('/tasks');
-  await expect(page).toHaveURL(/\/login/);
+test.describe('Auth guard', () => {
+  for (const route of PROTECTED_ROUTES) {
+    test(`redirects ${route} to /login when not authenticated`, async ({ page }) => {
+      await page.goto(route);
+      await expect(page).toHaveURL(/\/login/);
+    });
+  }
 });

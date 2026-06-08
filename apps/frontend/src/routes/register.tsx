@@ -55,7 +55,7 @@ function RegisterPage() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-5">
       <div className="bg-whte rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
-        <h1 className="text-3xl font-bold text-black text-center">Sign In</h1>
+        <h1 className="text-3xl font-bold text-black text-center">Register</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
