@@ -41,10 +41,13 @@ export function useTodayManager() {
 
   const doneTasks = tasks.filter((t) => t.status === 'DONE');
 
+  const doneTodayTasks = tasks.filter((t) => t.status === 'DONE' && t.dueDate && isSameDay(new Date(t.dueDate), now));
+
   const counts = {
     today: todayTasks.length,
     backlog: backlogTasks.length,
     done: doneTasks.length,
+    doneToday: doneTodayTasks.length,
   };
 
   async function handleCreate(

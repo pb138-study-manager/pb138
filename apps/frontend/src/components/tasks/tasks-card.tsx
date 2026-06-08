@@ -195,28 +195,28 @@ export default function TaskCard({
               {task.title}
             </p>
             <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
-            {task.status !== 'DONE' && countdown && (
-              <span
-                className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                  urgency ? urgencyColors[urgency] : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                {countdown}
-              </span>
-            )}
-            {task.priority && task.status !== 'DONE' && (
-              <span className={`inline-block mt-1 mr-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}>
-                {PRIORITY_LABELS[task.priority]}
-              </span>
-            )}
-            {task.tags && task.tags.length > 0 && task.status !== 'DONE' && (
-              <div className="flex flex-wrap gap-1 mt-1">
-                {task.tags.slice(0, 3).map((tag) => (
+            {task.status !== 'DONE' && (countdown || task.priority || (task.tags && task.tags.length > 0)) && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {countdown && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      urgency ? urgencyColors[urgency] : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    {countdown}
+                  </span>
+                )}
+                {task.priority && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}>
+                    {PRIORITY_LABELS[task.priority]}
+                  </span>
+                )}
+                {task.tags && task.tags.slice(0, 3).map((tag) => (
                   <span key={tag} className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
                     {tag}
                   </span>
                 ))}
-                {task.tags.length > 3 && (
+                {task.tags && task.tags.length > 3 && (
                   <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
                     +{task.tags.length - 3} more
                   </span>

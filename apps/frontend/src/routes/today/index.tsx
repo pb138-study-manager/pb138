@@ -45,8 +45,8 @@ function TodayPage() {
     );
   }
 
-  const todayTotal = counts.today + counts.done;
-  const progressPct = todayTotal > 0 ? Math.round((counts.done / todayTotal) * 100) : 0;
+  const todayTotal = counts.today + counts.doneToday;
+  const progressPct = todayTotal > 0 ? Math.round((counts.doneToday / todayTotal) * 100) : 0;
   const visibleEvents = todayEvents.slice(0, 2);
 
   return (
@@ -58,7 +58,7 @@ function TodayPage() {
           {greeting} 👋
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-          {t('today.progress', { done: counts.done, total: todayTotal })}
+          {t('today.progress', { done: counts.doneToday, total: todayTotal })}
         </p>
         <div
           className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden
