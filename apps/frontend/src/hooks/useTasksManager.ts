@@ -27,8 +27,23 @@ export function useTasksManager() {
         .catch(console.error),
   });
 
-  async function handleCreate(title: string, dueDate: string | undefined, subtaskTitles: string[] = [], description?: string, courseId?: number) {
-    const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
+  async function handleCreate(
+    title: string,
+    dueDate: string | undefined,
+    subtaskTitles: string[] = [],
+    description?: string,
+    courseId?: number,
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null,
+    tags?: string[]
+  ) {
+    const newTask = await api.post<Task>('/tasks', {
+      title,
+      dueDate,
+      description,
+      courseId,
+      ...(priority != null && { priority }),
+      ...(tags && tags.length > 0 && { tags }),
+    });
     await Promise.all(
       subtaskTitles.map((subTitle) =>
         api.post<Task>('/tasks', { title: subTitle, dueDate, parentId: newTask.id })
@@ -46,7 +61,14 @@ export function useTasksManager() {
 
   async function handleEditFull(
     id: number,
-    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    data: {
+      title: string;
+      dueDate: string;
+      description?: string;
+      status?: TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) {

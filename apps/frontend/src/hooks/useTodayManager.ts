@@ -47,8 +47,23 @@ export function useTodayManager() {
     done: doneTasks.length,
   };
 
-  async function handleCreate(title: string, dueDate: string | undefined, subtaskTitles: string[] = [], description?: string, courseId?: number) {
-    const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
+  async function handleCreate(
+    title: string,
+    dueDate: string | undefined,
+    subtaskTitles: string[] = [],
+    description?: string,
+    courseId?: number,
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null,
+    tags?: string[]
+  ) {
+    const newTask = await api.post<Task>('/tasks', {
+      title,
+      dueDate,
+      description,
+      courseId,
+      ...(priority != null && { priority }),
+      ...(tags && tags.length > 0 && { tags }),
+    });
     await Promise.all(
       subtaskTitles.map((subTitle) =>
         api.post<Task>('/tasks', { title: subTitle, dueDate, parentId: newTask.id })
