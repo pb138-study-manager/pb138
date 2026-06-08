@@ -5,25 +5,7 @@ import { Task, TaskStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import EditTaskDialog from '@/components/tasks/edit-task-dialog';
-
-function getUrgency(dueDate: string | null | undefined): 'high' | 'medium' | 'low' | null {
-  if (!dueDate) return null;
-  const diff = new Date(dueDate).getTime() - Date.now();
-  if (diff < 0) return 'high';
-  if (diff < 24 * 60 * 60 * 1000) return 'high';
-  if (diff < 72 * 60 * 60 * 1000) return 'medium';
-  return 'low';
-}
-
-function getCountdown(dueDate: string | null | undefined): string {
-  if (!dueDate) return '';
-  const diff = new Date(dueDate).getTime() - Date.now();
-  if (diff < 0) return 'Overdue';
-  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Tomorrow';
-  return `za ${days} dni`;
-}
+import { getUrgency, getCountdown } from '@/lib/task-utils';
 
 type EditData = {
   title: string;

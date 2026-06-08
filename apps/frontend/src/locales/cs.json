@@ -53,6 +53,18 @@
     "saving": "Ukládání...",
     "edit": "Upravit"
   },
+  "ai": {
+    "error": "Nastala chyba. Skús znova.",
+    "briefError": "Nepodarilo sa načítať brief. Skús znova.",
+    "askSomething": "Opýtaj sa niečo...",
+    "askAboutNote": "Opýtaj sa čokoľvek o tejto poznámke",
+    "messagePlaceholder": "Napíš správu...",
+    "questionPlaceholder": "Napíš otázku...",
+    "generateBrief": "Generovať brief",
+    "briefSubtitle": "Nechaj AI zhrnúť tvoj deň",
+    "refresh": "Aktualizovať",
+    "context": "Kontext"
+  },
   "dialog": {
     "newFolder": "Nová složka",
     "folderName": "Zadejte název složky...",

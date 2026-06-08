@@ -53,6 +53,18 @@
     "saving": "Saving...",
     "edit": "Edit"
   },
+  "ai": {
+    "error": "An error occurred. Please try again.",
+    "briefError": "Failed to load brief. Please try again.",
+    "askSomething": "Ask something...",
+    "askAboutNote": "Ask anything about this note",
+    "messagePlaceholder": "Write a message...",
+    "questionPlaceholder": "Write a question...",
+    "generateBrief": "Generate brief",
+    "briefSubtitle": "Let AI summarize your day",
+    "refresh": "Refresh",
+    "context": "Context"
+  },
   "dialog": {
     "newFolder": "New Folder",
     "folderName": "Enter folder name...",

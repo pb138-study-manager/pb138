@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 
 interface Message {
@@ -12,6 +13,7 @@ export function ChatTab() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,7 +32,7 @@ export function ChatTab() {
       const result = await api.post<{ reply: string }>('/ai/chat', { messages: newMessages });
       setMessages([...newMessages, { role: 'assistant', content: result.reply }]);
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: 'Nastala chyba. Skús znova.' }]);
+      setMessages([...newMessages, { role: 'assistant', content: t('ai.error') }]);
     } finally {
       setIsLoading(false);
     }
@@ -47,7 +49,7 @@ export function ChatTab() {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400 text-center mt-8">Opýtaj sa niečo...</p>
+          <p className="text-sm text-gray-400 text-center mt-8">{t('ai.askSomething')}</p>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -78,7 +80,7 @@ export function ChatTab() {
         <textarea
           className="flex-1 resize-none rounded-xl border dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-h-32"
           rows={1}
-          placeholder="Napíš správu..."
+          placeholder={t('ai.messagePlaceholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -6,18 +6,13 @@ import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
 import { useTranslation } from 'react-i18next';
 import { QuizModal } from '@/components/notes/QuizModal';
 import { NoteAIChat } from '@/components/notes/NoteAIChat';
+import { getReadingStats } from '@/lib/note-utils';
 
 interface NoteDetailViewProps {
   note: NoteModel;
   autoEdit?: boolean;
   onSave: (id: number, title: string, description: string) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-}
-
-function getReadingStats(text: string): { words: number; minutes: number } {
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const minutes = Math.max(1, Math.round(words / 200));
-  return { words, minutes };
 }
 
 export default function NoteDetailView({

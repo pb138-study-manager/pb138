@@ -1,12 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Event, EventType, Task, TaskStatus } from '@/types';
-
-function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate();
-}
+import { isSameDay } from './timeline-utils';
 
 export function useTodayManager() {
   const queryClient = useQueryClient();

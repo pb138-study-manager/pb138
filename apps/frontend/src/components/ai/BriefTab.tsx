@@ -25,7 +25,7 @@ export function BriefTab() {
   const [data, setData] = useState<BriefData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   async function load() {
     setIsLoading(true);
@@ -34,7 +34,7 @@ export function BriefTab() {
       setData(result);
       setLoaded(true);
     } catch {
-      setData({ brief: 'Nepodarilo sa načítať brief. Skús znova.', priorities: [] });
+      setData({ brief: t('ai.briefError'), priorities: [] });
       setLoaded(true);
     } finally {
       setIsLoading(false);
@@ -44,9 +44,9 @@ export function BriefTab() {
   if (!loaded && !isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 px-4">
-        <p className="text-sm text-gray-400 text-center">Nechaj AI zhrnúť tvoj deň</p>
+        <p className="text-sm text-gray-400 text-center">{t('ai.briefSubtitle')}</p>
         <Button onClick={load} className="bg-indigo-500 hover:bg-indigo-600 text-white">
-          Generovať brief
+          {t('ai.generateBrief')}
         </Button>
       </div>
     );
@@ -79,7 +79,9 @@ export function BriefTab() {
               <div className={`w-2 h-2 rounded-full shrink-0 ${urgencyColors[p.urgency]}`} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.title}</p>
-                <p className="text-xs text-gray-400">{new Date(p.dueDate).toLocaleDateString('sk-SK')}</p>
+                <p className="text-xs text-gray-400">
+                  {new Date(p.dueDate).toLocaleDateString(i18n.language === 'cs' ? 'cs-CZ' : 'en-US')}
+                </p>
               </div>
             </div>
           ))}
@@ -94,7 +96,7 @@ export function BriefTab() {
         disabled={isLoading}
       >
         <RefreshCw size={14} />
-        Aktualizovať
+        {t('ai.refresh')}
       </Button>
     </div>
   );

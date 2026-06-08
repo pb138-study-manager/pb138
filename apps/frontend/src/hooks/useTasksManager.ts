@@ -2,31 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
-
-function splitTasks(tasks: Task[]) {
-  const now = new Date();
-  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
-  const weekEnd = new Date(todayEnd); weekEnd.setDate(weekEnd.getDate() + 6);
-
-  const overdue: Task[] = [];
-  const today: Task[] = [];
-  const thisWeek: Task[] = [];
-  const later: Task[] = [];
-  const done: Task[] = [];
-
-  for (const task of tasks) {
-    if (task.status === 'DONE') { done.push(task); continue; }
-    if (!task.dueDate) { later.push(task); continue; }
-    const due = new Date(task.dueDate);
-    if (due < todayStart) overdue.push(task);
-    else if (due <= todayEnd) today.push(task);
-    else if (due <= weekEnd) thisWeek.push(task);
-    else later.push(task);
-  }
-
-  return { overdue, today, thisWeek, later, done };
-}
+import { splitTasks } from '@/lib/task-utils';
 
 export function useTasksManager() {
   const queryClient = useQueryClient();

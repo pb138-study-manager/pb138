@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 
 interface Message {
@@ -19,6 +20,7 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,7 +46,7 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
       const result = await api.post<{ reply: string }>(`/ai/notes/${noteId}/chat`, { messages: newMessages });
       setMessages([...newMessages, { role: 'assistant', content: result.reply }]);
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: 'Nastala chyba. Skús znova.' }]);
+      setMessages([...newMessages, { role: 'assistant', content: t('ai.error') }]);
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +69,7 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
         <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">Kontext:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t('ai.context')}:</span>
             <span className="text-xs font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{noteTitle}</span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -80,7 +82,7 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
           {messages.length === 0 && (
             <div className="text-center mt-6 space-y-2">
               <Sparkles size={20} className="mx-auto text-indigo-400" />
-              <p className="text-sm text-gray-400">Opýtaj sa čokoľvek o tejto poznámke</p>
+              <p className="text-sm text-gray-400">{t('ai.askAboutNote')}</p>
             </div>
           )}
           {messages.map((m, i) => (
@@ -113,7 +115,7 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
           <textarea
             className="flex-1 resize-none rounded-xl border dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-h-32"
             rows={1}
-            placeholder="Napíš otázku..."
+            placeholder={t('ai.questionPlaceholder')}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
