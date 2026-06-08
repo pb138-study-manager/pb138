@@ -23,7 +23,7 @@ export default function TaskSection({
   tasks: Task[];
   variant?: SectionVariant;
   showBorder?: boolean;
-  onTaskCreated: (title: string, dueDate: string, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
+  onTaskCreated: (title: string, dueDate: string | null, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
   onEditFull: (id: number, data: { title: string; dueDate: string; description?: string; status?: import('@/types').TaskStatus }, subtasksToAdd: string[], subtaskIdsToDelete: number[]) => Promise<void>;
   onDelete: (id: number) => Promise<void>;

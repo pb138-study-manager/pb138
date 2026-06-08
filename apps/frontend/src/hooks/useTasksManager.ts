@@ -27,7 +27,7 @@ export function useTasksManager() {
         .catch(console.error),
   });
 
-  async function handleCreate(title: string, dueDate: string, subtaskTitles: string[] = [], description?: string, courseId?: number) {
+  async function handleCreate(title: string, dueDate: string | null, subtaskTitles: string[] = [], description?: string, courseId?: number) {
     const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
     await Promise.all(
       subtaskTitles.map((subTitle) =>

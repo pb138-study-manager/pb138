@@ -17,11 +17,11 @@ export default function NewTaskDialog({
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (title: string, dueDate: string, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
+  onSubmit: (title: string, dueDate: string | null, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
 }) {
   const [taskName, setTaskName] = useState('');
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
   const [isSubtasksOpen, setIsSubtasksOpen] = useState(false);
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -35,12 +35,12 @@ export default function NewTaskDialog({
   }, [isOpen]);
 
   async function handleSubmit() {
-    if (!taskName.trim() || !selectedDate) return;
+    if (!taskName.trim()) return;
     setSaving(true);
     try {
-      await onSubmit(taskName.trim(), selectedDate.toISOString(), subtasks, undefined, selectedCourse?.id);
+      await onSubmit(taskName.trim(), selectedDate?.toISOString() ?? null, subtasks, undefined, selectedCourse?.id);
       setTaskName('');
-      setSelectedDate(null);
+      setSelectedDate(new Date());
       setSubtasks([]);
       setSelectedCourse(null);
       onOpenChange(false);
@@ -133,7 +133,7 @@ export default function NewTaskDialog({
             <div className="flex justify-end pt-4">
               <Button
                 onClick={handleSubmit}
-                disabled={!taskName.trim() || !selectedDate || saving}
+                disabled={!taskName.trim() || saving}
                 className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-40 p-0"
               >
                 <ArrowUp className="w-4 h-4" />
