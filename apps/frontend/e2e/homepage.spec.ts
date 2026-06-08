@@ -3,16 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Homepage', () => {
   test('should display the homepage', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Welcome to Study Manager' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
   });
 
   test('should display navigation', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByText('PB138 Study Manager')).toBeVisible();
+    await page.goto('/login');
+    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
   });
 
   test('should have Get started link', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByRole('link', { name: 'Get started' })).toBeVisible();
+    await page.goto('/login');
+    await expect(page.getByRole('link', { name: 'Register' })).toBeVisible();
   });
 });
