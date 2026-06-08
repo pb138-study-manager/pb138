@@ -33,6 +33,7 @@
     "done": "Hotovo",
     "due": "Do",
     "noDueDate": "Bez termínu",
+    "noDate": "Bez dátumu",
     "noDescription": "Bez popisu",
     "delete": "Smazat",
     "overdue": "Po termíne",
@@ -80,5 +81,11 @@
     "deleteFolderDesc": "Opravdu chcete smazat tuto složku a všechny její poznámky? Tuto akci nelze vrátit zpět.",
     "deleteNoteTitle": "Smazat poznámku",
     "deleteNoteDesc": "Opravdu chcete smazat tuto poznámku? Tuto akci nelze vrátit zpět."
+  },
+  "today": {
+    "greetingMorning": "Dobré ráno",
+    "greetingAfternoon": "Dobrý deň",
+    "greetingEvening": "Dobrý večer",
+    "progress": "{{done}} z {{total}} úloh hotových dnes"
   }
 }

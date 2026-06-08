@@ -33,6 +33,7 @@
     "done": "Done",
     "due": "Due",
     "noDueDate": "No due date",
+    "noDate": "No date",
     "noDescription": "No description",
     "delete": "Delete",
     "overdue": "Overdue",
@@ -80,5 +81,11 @@
     "deleteFolderDesc": "Are you sure you want to delete this folder and all its notes? This action cannot be undone.",
     "deleteNoteTitle": "Delete Note",
     "deleteNoteDesc": "Are you sure you want to delete this note? This action cannot be undone."
+  },
+  "today": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "progress": "{{done}} of {{total}} tasks done today"
   }
 }
