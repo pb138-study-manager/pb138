@@ -70,7 +70,7 @@ export default function TaskCard({
     : t('tasks.noDueDate');
   const hasUsers = task.assignmentId !== null;
   const urgency = getUrgency(task.dueDate);
-  const countdown = getCountdown(task.dueDate);
+  const countdown = getCountdown(task.dueDate, t('tasks.noDate'));
   const urgencyColors = {
     high: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
     medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
@@ -162,9 +162,11 @@ export default function TaskCard({
               {task.title}
             </p>
             <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
-            {urgency && task.status !== 'DONE' && (
+            {task.status !== 'DONE' && countdown && (
               <span
-                className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${urgencyColors[urgency]}`}
+                className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                  urgency ? urgencyColors[urgency] : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                }`}
               >
                 {countdown}
               </span>
