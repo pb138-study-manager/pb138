@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Trash2, BrainCircuit, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
 import DeleteNoteDialog from '@/components/notes/delete-note-dialog';
@@ -250,9 +251,13 @@ export default function NoteDetailView({
           title={t('notes.clickToEdit')}
         >
           {content ? (
-            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-              {content}
-            </p>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed
+              prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
+              prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:rounded prose-code:px-1 prose-code:text-sm
+              prose-pre:bg-gray-100 dark:prose-pre:bg-gray-700 prose-pre:rounded-lg prose-pre:p-3
+              prose-ul:pl-4 prose-ol:pl-4">
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
           ) : (
             <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>
           )}
