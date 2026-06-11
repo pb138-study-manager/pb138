@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2, X, CheckCircle, Circle } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
@@ -11,6 +10,7 @@ import TaskCard from '@/components/tasks/tasks-card';
 import NewAssignmentDialog from '@/components/courses/new-assignment-dialog';
 import EditAssignmentDialog from '@/components/courses/edit-assignment-dialog';
 import EvalDialog from '@/components/courses/eval-dialog';
+import CreateNoteDialog from '@/components/notes/create-note-dialog';
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: CourseDetailPage,
@@ -66,16 +66,12 @@ function CourseDetailPage() {
   const { courseId } = useParams({ from: '/courses/$courseId' });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { t } = useTranslation();
-
   const [activeTab, setActiveTab] = useState<'tasks' | 'notes' | 'materials'>('tasks');
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [showNewNote, setShowNewNote] = useState(false);
-  const [newNoteTitle, setNewNoteTitle] = useState('');
-  const [savingNote, setSavingNote] = useState(false);
 
   const { data: course, isPending: courseLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -275,21 +271,13 @@ function CourseDetailPage() {
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
-  async function handleCreateNote() {
-    if (!newNoteTitle.trim()) return;
-    setSavingNote(true);
-    try {
-      await api.post('/notes', {
-        title: newNoteTitle.trim(),
-        description: '',
-        courseId: Number(courseId),
-      });
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-      setNewNoteTitle('');
-      setShowNewNote(false);
-    } finally {
-      setSavingNote(false);
-    }
+  async function handleCreateNote(title: string) {
+    await api.post('/notes', {
+      title,
+      description: '',
+      courseId: Number(courseId),
+    });
+    queryClient.invalidateQueries({ queryKey: ['notes'] });
   }
 
   async function createTask() {
@@ -480,51 +468,29 @@ function CourseDetailPage() {
             </Button>
           </div>
 
-          {notes.length === 0 && !showNewNote && (
+          {notes.length === 0 && (
             <p className="text-sm text-gray-400 py-4 text-center">No notes for this course</p>
           )}
 
           {notes.length > 0 && (
             <div className="space-y-2 mb-3">
               {notes.map((note) => (
-                <div
+                <button
                   key={note.id}
-                  className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm"
+                  onClick={() => navigate({ to: '/notes' })}
+                  className="w-full text-left flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                 >
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
-                </div>
+                </button>
               ))}
             </div>
           )}
 
-          {showNewNote && (
-            <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-900/10">
-              <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">{t('notes.newNote')}</p>
-              <input
-                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white mb-3"
-                placeholder={t('notes.noteTitlePlaceholder')}
-                value={newNoteTitle}
-                onChange={(e) => setNewNoteTitle(e.target.value)}
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateNote();
-                  if (e.key === 'Escape') { setShowNewNote(false); setNewNoteTitle(''); }
-                }}
-              />
-              <div className="flex gap-2 justify-end">
-                <Button variant="ghost" size="sm" onClick={() => { setShowNewNote(false); setNewNoteTitle(''); }}>
-                  {t('dialog.cancel')}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleCreateNote}
-                  disabled={savingNote || !newNoteTitle.trim()}
-                >
-                  {savingNote ? t('notes.saving') : t('dialog.createNote')}
-                </Button>
-              </div>
-            </div>
-          )}
+          <CreateNoteDialog
+            isOpen={showNewNote}
+            onOpenChange={setShowNewNote}
+            onSubmit={handleCreateNote}
+          />
         </div>
       )}
 

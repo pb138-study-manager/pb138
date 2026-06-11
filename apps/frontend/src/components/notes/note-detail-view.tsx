@@ -253,11 +253,7 @@ export default function NoteDetailView({
           title={t('notes.clickToEdit')}
         >
           {content ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed
-              prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
-              prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:rounded prose-code:px-1 prose-code:text-sm
-              prose-pre:bg-gray-100 dark:prose-pre:bg-gray-700 prose-pre:rounded-lg prose-pre:p-3
-              prose-ul:pl-4 prose-ol:pl-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown>{content}</ReactMarkdown>
             </div>
           ) : (
