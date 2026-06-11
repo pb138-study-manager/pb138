@@ -66,6 +66,7 @@ export interface Note {
   title: string;
   description: string;
   folderId?: number | null;
+  courseId?: number | null;
   deletedAt: string | null;
 }
 
