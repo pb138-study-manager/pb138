@@ -39,6 +39,7 @@ export default function NoteDetailView({
   const [quizOpen, setQuizOpen] = useState(false);
   const [aiChatOpen, setAiChatOpen] = useState(false);
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [linkedCourseId, setLinkedCourseId] = useState<number | null>(note.courseId ?? null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isSavingRef = useRef(false);
@@ -69,7 +70,7 @@ export default function NoteDetailView({
     queryFn: () => api.get<Course[]>('/courses').catch(() => []),
   });
 
-  const currentCourse = courses.find((c) => c.id === note.courseId);
+  const currentCourse = courses.find((c) => c.id === linkedCourseId);
 
   const handleAutoSave = useCallback(async () => {
     if (isSavingRef.current) return;
@@ -101,6 +102,7 @@ export default function NoteDetailView({
       queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
         prev.map((n) => (n.id === note.id ? { ...n, courseId } : n))
       );
+      setLinkedCourseId(courseId);
     } catch (err) {
       console.error('Failed to link course', err);
     } finally {
@@ -150,7 +152,7 @@ export default function NoteDetailView({
       {/* Stats + course badge + AI buttons */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <span className="text-xs text-gray-400 dark:text-gray-500">
-          {words} slov · ~{minutes} min čítania
+          {t('notes.wordCount', { words, minutes })}
           {isSaving && <span className="ml-2 text-indigo-400">{t('notes.saving')}</span>}
         </span>
         <div className="flex items-center gap-2 flex-wrap">
@@ -178,13 +180,13 @@ export default function NoteDetailView({
                     key={c.id}
                     onClick={() => handleLinkCourse(c.id)}
                     className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                      note.courseId === c.id
+                      linkedCourseId === c.id
                         ? 'text-indigo-600 dark:text-indigo-400 font-medium'
                         : 'text-gray-700 dark:text-gray-300'
                     }`}
                   >
-                    {note.courseId === c.id && <span>✓</span>}
-                    {note.courseId !== c.id && <span className="inline-block w-4" />}
+                    {linkedCourseId === c.id && <span>✓</span>}
+                    {linkedCourseId !== c.id && <span className="inline-block w-4" />}
                     {c.code}
                     {c.name ? ` — ${c.name}` : ''}
                   </button>
@@ -207,7 +209,7 @@ export default function NoteDetailView({
             disabled={words < 20}
           >
             <BrainCircuit size={14} />
-            Quiz me
+            {t('notes.quizMe')}
           </Button>
           <Button
             variant="outline"
@@ -217,7 +219,7 @@ export default function NoteDetailView({
             disabled={words < 5}
           >
             <Sparkles size={14} />
-            Ask AI
+            {t('notes.askAI')}
           </Button>
         </div>
       </div>
@@ -232,7 +234,7 @@ export default function NoteDetailView({
             <span># Nadpis</span>
             <span>- zoznam</span>
             <span>`kód`</span>
-            <span className="ml-auto text-indigo-400 font-sans font-medium">Esc = uložiť</span>
+            <span className="ml-auto text-indigo-400 font-sans font-medium">{t('notes.escToSave')}</span>
           </div>
           <textarea
             ref={textareaRef}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2, X, CheckCircle, Circle } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
@@ -65,6 +66,7 @@ function CourseDetailPage() {
   const { courseId } = useParams({ from: '/courses/$courseId' });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<'tasks' | 'notes' | 'materials'>('tasks');
   const [showNewTask, setShowNewTask] = useState(false);
@@ -497,10 +499,10 @@ function CourseDetailPage() {
 
           {showNewNote && (
             <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-900/10">
-              <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">Nová note</p>
+              <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">{t('notes.newNote')}</p>
               <input
                 className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white mb-3"
-                placeholder="Názov note..."
+                placeholder={t('notes.noteTitlePlaceholder')}
                 value={newNoteTitle}
                 onChange={(e) => setNewNoteTitle(e.target.value)}
                 autoFocus
@@ -511,14 +513,14 @@ function CourseDetailPage() {
               />
               <div className="flex gap-2 justify-end">
                 <Button variant="ghost" size="sm" onClick={() => { setShowNewNote(false); setNewNoteTitle(''); }}>
-                  Zrušiť
+                  {t('dialog.cancel')}
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleCreateNote}
                   disabled={savingNote || !newNoteTitle.trim()}
                 >
-                  {savingNote ? 'Ukladám…' : 'Vytvoriť'}
+                  {savingNote ? t('notes.saving') : t('dialog.createNote')}
                 </Button>
               </div>
             </div>

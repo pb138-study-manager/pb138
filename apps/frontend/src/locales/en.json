@@ -63,7 +63,13 @@
     "linkCourse": "+ Course",
     "assignCourse": "Assign to course",
     "noCourse": "— No course",
-    "clickToEdit": "Click to edit"
+    "clickToEdit": "Click to edit",
+    "wordCount": "{{words}} words · ~{{minutes}} min read",
+    "escToSave": "Esc = save",
+    "quizMe": "Quiz me",
+    "askAI": "Ask AI",
+    "newNote": "New note",
+    "noteTitlePlaceholder": "Note title..."
   },
   "ai": {
     "error": "An error occurred. Please try again.",

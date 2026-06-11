@@ -63,7 +63,13 @@
     "linkCourse": "+ Kurz",
     "assignCourse": "Priradiť ku kurzu",
     "noCourse": "— Bez kurzu",
-    "clickToEdit": "Klikni pre editáciu"
+    "clickToEdit": "Klikni pre editáciu",
+    "wordCount": "{{words}} slov · ~{{minutes}} min čítania",
+    "escToSave": "Esc = uložiť",
+    "quizMe": "Quiz me",
+    "askAI": "Ask AI",
+    "newNote": "Nová note",
+    "noteTitlePlaceholder": "Názov note..."
   },
   "ai": {
     "error": "Nastala chyba. Skús znova.",
