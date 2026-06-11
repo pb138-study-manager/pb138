@@ -20,7 +20,7 @@ function CustomNavPage() {
   const handleSave = async () => {
     const success = await saveSettings();
     if (success) {
-      navigate({ to: '/profile' });
+      navigate({ to: '/others' });
     }
   };
 
@@ -34,7 +34,7 @@ function CustomNavPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate({ to: '/profile' })}
+          onClick={() => navigate({ to: '/others' })}
           className="-ml-2 mr-2 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <ChevronLeft className="w-6 h-6" />
