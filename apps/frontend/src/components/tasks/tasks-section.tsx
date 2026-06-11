@@ -55,7 +55,7 @@ export default function TaskSection({
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(variant === 'done');
 
   const borderClass = showBorder
     ? variant === 'backlog'
