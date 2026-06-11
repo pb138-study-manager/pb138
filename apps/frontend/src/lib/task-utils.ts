@@ -46,3 +46,20 @@ export function splitTasks(tasks: Task[]) {
 
   return { overdue, today, thisWeek, later, done };
 }
+
+export function filterTasks(
+  tasks: Task[],
+  priorities: Set<'LOW' | 'MEDIUM' | 'HIGH'>,
+  tags: Set<string>
+): Task[] {
+  return tasks.filter((t) => {
+    if (priorities.size > 0 && (!t.priority || !priorities.has(t.priority))) return false;
+    if (tags.size > 0) {
+      if (!t.tags || t.tags.length === 0) return false;
+      for (const tag of tags) {
+        if (!t.tags.includes(tag)) return false;
+      }
+    }
+    return true;
+  });
+}

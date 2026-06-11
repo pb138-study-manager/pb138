@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { getUrgency, getCountdown, splitTasks } from './task-utils';
+import { getUrgency, getCountdown, splitTasks, filterTasks } from './task-utils';
 import type { Task } from '@/types';
 
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -186,5 +186,85 @@ describe('splitTasks', () => {
     const input = [task];
     splitTasks(input);
     expect(input).toHaveLength(1);
+  });
+});
+
+describe('filterTasks', () => {
+  it('returns all tasks when both sets are empty', () => {
+    const tasks = [
+      makeTask({ id: 1, priority: 'HIGH', tags: ['math'] }),
+      makeTask({ id: 2, priority: null }),
+      makeTask({ id: 3, tags: [] }),
+    ];
+    expect(filterTasks(tasks, new Set(), new Set())).toHaveLength(3);
+  });
+
+  it('filters by a single priority', () => {
+    const tasks = [
+      makeTask({ id: 1, priority: 'HIGH' }),
+      makeTask({ id: 2, priority: 'LOW' }),
+      makeTask({ id: 3, priority: null }),
+    ];
+    const result = filterTasks(tasks, new Set(['HIGH']), new Set());
+    expect(result.map((t) => t.id)).toEqual([1]);
+  });
+
+  it('filters by multiple priorities (OR within priority set)', () => {
+    const tasks = [
+      makeTask({ id: 1, priority: 'HIGH' }),
+      makeTask({ id: 2, priority: 'LOW' }),
+      makeTask({ id: 3, priority: 'MEDIUM' }),
+    ];
+    const result = filterTasks(tasks, new Set(['HIGH', 'LOW']), new Set());
+    expect(result.map((t) => t.id)).toContain(1);
+    expect(result.map((t) => t.id)).toContain(2);
+    expect(result.map((t) => t.id)).not.toContain(3);
+  });
+
+  it('filters by a single tag', () => {
+    const tasks = [
+      makeTask({ id: 1, tags: ['math', 'hw'] }),
+      makeTask({ id: 2, tags: ['science'] }),
+      makeTask({ id: 3, tags: [] }),
+    ];
+    const result = filterTasks(tasks, new Set(), new Set(['math']));
+    expect(result.map((t) => t.id)).toEqual([1]);
+  });
+
+  it('requires all selected tags to be present (AND)', () => {
+    const tasks = [
+      makeTask({ id: 1, tags: ['math', 'hw'] }),
+      makeTask({ id: 2, tags: ['math'] }),
+    ];
+    const result = filterTasks(tasks, new Set(), new Set(['math', 'hw']));
+    expect(result.map((t) => t.id)).toEqual([1]);
+  });
+
+  it('combines priority AND tag filters', () => {
+    const tasks = [
+      makeTask({ id: 1, priority: 'HIGH', tags: ['math'] }),
+      makeTask({ id: 2, priority: 'HIGH', tags: ['science'] }),
+      makeTask({ id: 3, priority: 'LOW', tags: ['math'] }),
+    ];
+    const result = filterTasks(tasks, new Set(['HIGH']), new Set(['math']));
+    expect(result.map((t) => t.id)).toEqual([1]);
+  });
+
+  it('excludes tasks with no priority when priority filter is active', () => {
+    const tasks = [
+      makeTask({ id: 1, priority: null }),
+      makeTask({ id: 2, priority: undefined }),
+    ];
+    const result = filterTasks(tasks, new Set(['HIGH']), new Set());
+    expect(result).toHaveLength(0);
+  });
+
+  it('excludes tasks with no tags when tag filter is active', () => {
+    const tasks = [
+      makeTask({ id: 1, tags: [] }),
+      makeTask({ id: 2, tags: undefined }),
+    ];
+    const result = filterTasks(tasks, new Set(), new Set(['math']));
+    expect(result).toHaveLength(0);
   });
 });
