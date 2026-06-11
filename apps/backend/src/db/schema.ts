@@ -192,6 +192,7 @@ export const tasks = pgTable('tasks', {
   description: text('description'),
   dueDate: timestamp('due_date'),
   status: taskStatusEnum('status').notNull().default('TODO'),
+  completedAt: timestamp('completed_at'),
   priority: taskPriorityEnum('priority'),
   tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),

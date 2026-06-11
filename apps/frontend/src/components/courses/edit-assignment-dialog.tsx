@@ -16,6 +16,7 @@ interface AssignmentStudent {
   avatar: string | null;
   status: 'TODO' | 'IN PROGRESS' | 'DONE';
   evalScore: number | null;
+  evalFeedback: string | null;
 }
 
 interface AssignmentSubtask {
@@ -33,7 +34,7 @@ interface Props {
   initialDueDate: string;
   initialEvalType: 'none' | 'pass_fail' | 'graded';
   onClose: () => void;
-  onEval: (taskId: number, evalScore: number | null, evalType: 'pass_fail' | 'graded') => void;
+  onEval: (taskId: number, evalScore: number | null, evalFeedback: string | null, evalType: 'pass_fail' | 'graded') => void;
 }
 
 const EVAL_LABELS: Record<string, string> = {
@@ -124,6 +125,7 @@ export default function EditAssignmentDialog({
 
   const totalStudents = students.length;
   const doneCount = students.filter((s) => s.status === 'DONE').length;
+  const deadlinePassed = selectedDate !== null && selectedDate < new Date();
 
   const pills = [
     {
@@ -292,15 +294,27 @@ export default function EditAssignmentDialog({
                           </span>
                           {s.status === 'DONE' ? (
                             <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : deadlinePassed ? (
+                            <Circle className="w-4 h-4 text-red-400 shrink-0" />
                           ) : (
                             <Circle className="w-4 h-4 text-gray-300 shrink-0" />
                           )}
-                          {s.status === 'DONE' && evalType !== 'none' && (
+                          {evalType !== 'none' && (s.status === 'DONE' || deadlinePassed) && (
                             <button
-                              onClick={() => onEval(s.taskId, s.evalScore, evalType as 'pass_fail' | 'graded')}
-                              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 shrink-0"
+                              onClick={() => onEval(s.taskId, s.evalScore, s.evalFeedback, evalType as 'pass_fail' | 'graded')}
+                              className="shrink-0"
                             >
-                              {s.evalScore !== null ? 'Edit' : 'Eval'}
+                              {evalType === 'pass_fail' && s.evalScore !== null ? (
+                                s.evalScore === 1 ? (
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 text-green-700">✓ Pass</span>
+                                ) : (
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700">✗ Fail</span>
+                                )
+                              ) : evalType === 'graded' && s.evalScore !== null ? (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">{s.evalScore}/100</span>
+                              ) : (
+                                <span className="text-xs font-medium text-indigo-600 hover:text-indigo-800">Eval</span>
+                              )}
                             </button>
                           )}
                         </div>

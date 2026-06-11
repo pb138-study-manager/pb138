@@ -66,7 +66,7 @@ function CourseDetailPage() {
   const { courseId } = useParams({ from: '/courses/$courseId' });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'tasks' | 'notes' | 'materials'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'notes' | 'materials' | 'evaluations'>('tasks');
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
@@ -93,6 +93,20 @@ function CourseDetailPage() {
     queryFn: () => api.get<StudyMaterial[]>(`/courses/${courseId}/materials`).catch(() => []),
   });
 
+  interface CourseEval {
+    assignmentTitle: string;
+    dueDate: string;
+    evalType: 'none' | 'pass_fail' | 'graded';
+    score: number;
+    feedback: string;
+    evaluatedAt: string;
+  }
+
+  const { data: myEvals = [], isError: evalsError } = useQuery({
+    queryKey: ['myEvals', courseId],
+    queryFn: () => api.get<CourseEval[]>(`/courses/${courseId}/my-evals`),
+    enabled: activeTab === 'evaluations',
+  });
 
   const { mode } = useRoleMode();
   const isTeacher = mode === 'teacher';
@@ -172,6 +186,7 @@ function CourseDetailPage() {
     taskId: number;
     evalType: 'pass_fail' | 'graded';
     currentScore: number | null;
+    currentFeedback: string;
   } | null>(null);
 
   // Student detail modal
@@ -206,8 +221,10 @@ function CourseDetailPage() {
     { id: number; name: string | null; email: string }[]
   >([]);
   const [addingStudent, setAddingStudent] = useState(false);
+  const [studentError, setStudentError] = useState<string | null>(null);
 
   useEffect(() => {
+    setStudentError(null);
     if (studentQuery.length < 2) {
       setStudentResults([]);
       return;
@@ -225,14 +242,22 @@ function CourseDetailPage() {
 
   async function handleAddStudent(userId: number) {
     setAddingStudent(true);
+    setStudentError(null);
     try {
       await api.post(`/courses/${courseId}/students`, { userId });
       queryClient.invalidateQueries({ queryKey: ['courseStudents', courseId] });
       setShowAddStudent(false);
       setStudentQuery('');
       setStudentResults([]);
-    } catch {
-      // silently ignore
+    } catch (err: unknown) {
+      const e = err as { error?: string; message?: string };
+      if (e?.error === 'ALREADY_ENROLLED') {
+        setStudentError('This student is already enrolled.');
+      } else if (e?.error === 'SELF_ENROLLMENT_FORBIDDEN') {
+        setStudentError('You cannot add yourself to a course.');
+      } else {
+        setStudentError('Failed to add student.');
+      }
     } finally {
       setAddingStudent(false);
     }
@@ -250,7 +275,7 @@ function CourseDetailPage() {
 
   async function handleEditFull(
     id: number,
-    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    data: { title: string; dueDate?: string; description?: string; status?: TaskStatus; priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null; tags?: string[]; courseId?: number | null },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) {
@@ -367,7 +392,7 @@ function CourseDetailPage() {
         </div>
       ) : (
         <div className="flex border-b border-gray-200 px-4">
-          {(['tasks', 'notes', 'materials'] as const).map((tab) => (
+          {(['tasks', 'notes', 'materials', 'evaluations'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -521,6 +546,48 @@ function CourseDetailPage() {
                       <p className="text-xs text-gray-400 mt-0.5">{material.description}</p>
                     )}
                   </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Evaluations */}
+      {!isTeacher && activeTab === 'evaluations' && (
+        <div className="px-4 mt-6 mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <ClipboardCheck className="w-5 h-5 text-indigo-500" />
+            <span className="font-semibold text-gray-900 dark:text-white">Evaluations</span>
+            <span className="text-gray-400 text-sm">{myEvals.length}</span>
+          </div>
+          {evalsError && (
+            <p className="text-sm text-red-400 py-4 text-center">Failed to load evaluations.</p>
+          )}
+          {!evalsError && myEvals.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">No evaluations yet</p>
+          ) : (
+            <div className="space-y-2">
+              {myEvals.map((e, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{e.assignmentTitle}</p>
+                    {e.evalType === 'pass_fail' ? (
+                      e.score === 1 ? (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 text-green-700 shrink-0">✓ Pass</span>
+                      ) : (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700 shrink-0">✗ Fail</span>
+                      )
+                    ) : e.evalType === 'graded' ? (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">{e.score}/100</span>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Due {new Date(e.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  {e.feedback && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 pt-1">{e.feedback}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -705,19 +772,24 @@ function CourseDetailPage() {
                 onChange={(e) => setStudentQuery(e.target.value)}
                 autoFocus
               />
-              {studentResults.length > 0 && (
+              {studentError && (
+                <p className="text-xs text-red-500 mt-1 px-1">{studentError}</p>
+              )}
+              {studentResults.filter((u) => !courseStudents.some((s) => s.id === u.id)).length > 0 && (
                 <div className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 overflow-hidden">
-                  {studentResults.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => handleAddStudent(u.id)}
-                      disabled={addingStudent}
-                      className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
-                    >
-                      <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
-                      {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
-                    </button>
-                  ))}
+                  {studentResults
+                    .filter((u) => !courseStudents.some((s) => s.id === u.id))
+                    .map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => handleAddStudent(u.id)}
+                        disabled={addingStudent}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                      >
+                        <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
+                        {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
+                      </button>
+                    ))}
                 </div>
               )}
             </div>
@@ -792,8 +864,8 @@ function CourseDetailPage() {
           initialDueDate={editingAssignment.dueDate}
           initialEvalType={editingAssignment.evalType}
           onClose={() => setEditingAssignment(null)}
-          onEval={(taskId, currentScore, evalType) =>
-            setEvalDialogState({ taskId, evalType, currentScore })
+          onEval={(taskId, currentScore, currentFeedback, evalType) =>
+            setEvalDialogState({ taskId, evalType, currentScore, currentFeedback: currentFeedback ?? '' })
           }
         />
       )}
@@ -804,6 +876,7 @@ function CourseDetailPage() {
           taskId={evalDialogState.taskId}
           evalType={evalDialogState.evalType}
           currentScore={evalDialogState.currentScore}
+          currentFeedback={evalDialogState.currentFeedback}
           onClose={() => setEvalDialogState(null)}
           onSubmit={handleSubmitEval}
         />
