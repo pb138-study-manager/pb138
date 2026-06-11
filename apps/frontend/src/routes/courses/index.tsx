@@ -16,17 +16,17 @@ function CourseProgressBar({ courseId, accentClass }: { courseId: number; accent
     queryKey: ['course-progress', courseId],
     queryFn: () =>
       api
-        .get<{ completed: number; total: number }>(`/courses/${courseId}/progress`)
-        .catch(() => ({ completed: 0, total: 0 })),
+        .get<{ done: number; total: number; percent: number }>(`/courses/${courseId}/progress`)
+        .catch(() => ({ done: 0, total: 0, percent: 0 })),
   })
 
   if (!data || data.total === 0) return null
-  const pct = Math.round((data.completed / data.total) * 100)
+  const pct = data.percent
 
   return (
     <div className="mt-1">
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-        <span>{data.completed}/{data.total} úloh</span>
+        <span>{data.done}/{data.total} tasks</span>
         <span>{pct}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-white/50 dark:bg-black/20 overflow-hidden">
