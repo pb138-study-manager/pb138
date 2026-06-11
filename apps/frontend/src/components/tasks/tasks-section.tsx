@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Star, Package, ClipboardCheck, Plus, AlertCircle, CalendarDays, Clock } from 'lucide-react';
+import { Star, Package, ClipboardCheck, Plus, AlertCircle, CalendarDays, Clock, ChevronDown, ChevronRight } from 'lucide-react';
 import { Task } from '@/types';
 import { Button } from '@/components/ui/button';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
@@ -55,6 +55,7 @@ export default function TaskSection({
   };
 
   const [openCreateTaskDialog, setOpenCreateTaskDialog] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const borderClass = showBorder
     ? variant === 'backlog'
@@ -65,27 +66,35 @@ export default function TaskSection({
   return (
     <div className={`mb-6 ${borderClass}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`ml-4 flex items-center gap-2 text-lg font-semibold ${colors[variant]}`}>
+        <h3
+          className={`ml-4 flex items-center gap-2 text-lg font-semibold cursor-pointer select-none ${colors[variant]}`}
+          onClick={() => setCollapsed((c) => !c)}
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           <span className="mr-1">{icons[variant]}</span>
           <span>{title}</span>
           <span className="ml-1 text-gray-400 dark:text-gray-500 py-1 text-base font-medium">
             {count}
           </span>
         </h3>
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full mr-3 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
-          onClick={() => setOpenCreateTaskDialog(true)}
-        >
-          <Plus className="h-8" />
-        </Button>
+        {variant !== 'done' && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full mr-3 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
+            onClick={() => setOpenCreateTaskDialog(true)}
+          >
+            <Plus className="h-8" />
+          </Button>
+        )}
       </div>
-      <div>
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
-        ))}
-      </div>
+      {!collapsed && (
+        <div>
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
+          ))}
+        </div>
+      )}
       <NewTaskDialog
         isOpen={openCreateTaskDialog}
         onOpenChange={setOpenCreateTaskDialog}
