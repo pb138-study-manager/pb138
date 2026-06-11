@@ -33,17 +33,19 @@ export default function EditTaskDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (data: {
     title: string;
-    dueDate: string;
+    dueDate?: string;
     description?: string;
     status?: TaskStatus;
     priority?: Priority;
     tags?: string[];
+    courseId?: number | null;
     subtasksToAdd: string[];
     subtaskIdsToDelete: number[];
   }) => Promise<void>;
 }) {
   const { t } = useTranslation();
   const isSubtask = task.parentId !== null;
+  const isAssignmentTask = task.assignmentId !== null;
 
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? '');
@@ -113,17 +115,18 @@ export default function EditTaskDialog({
     debounceRef.current = setTimeout(() => {
       onSave({
         title: title.trim(),
-        dueDate: selectedDate.toISOString(),
+        dueDate: selectedDate?.toISOString(),
         description: description.trim() || undefined,
         status,
         priority,
         tags,
+        courseId: selectedCourse?.id ?? null,
         subtasksToAdd: [],
         subtaskIdsToDelete: [],
       });
     }, 800);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [title, description, selectedDate, status, priority, tags, onSave]);
+  }, [title, description, selectedDate, status, priority, tags, selectedCourse, onSave]);
 
   function cyclePriority() {
     const idx = PRIORITY_CYCLE.indexOf(priority);
@@ -154,14 +157,15 @@ export default function EditTaskDialog({
   }
 
   async function saveSubtasks() {
-    if (!title.trim() || !selectedDate || saving) return;
+    if (!title.trim() || saving) return;
     await onSave({
       title: title.trim(),
-      dueDate: selectedDate.toISOString(),
+      dueDate: selectedDate?.toISOString(),
       description: description.trim() || undefined,
       status,
       priority,
       tags,
+      courseId: selectedCourse?.id ?? null,
       subtasksToAdd: newSubTitles,
       subtaskIdsToDelete: deletedSubIds,
     });
@@ -195,7 +199,7 @@ export default function EditTaskDialog({
             <div className="border-t" />
 
             <div className="flex flex-wrap gap-2 pt-4">
-              {/* Date pill */}
+              {/* Date pill — student's personal due date */}
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
@@ -205,6 +209,14 @@ export default function EditTaskDialog({
                 <Calendar className="w-3.5 h-3.5" />
                 {selectedDate ? selectedDate.toLocaleDateString() : 'Date'}
               </button>
+
+              {/* Assignment deadline — read-only info badge */}
+              {isAssignmentTask && task.assignmentDeadline && (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium bg-red-50 text-red-500 select-none" title="Teacher-set deadline">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Due {new Date(task.assignmentDeadline).toLocaleDateString()}
+                </span>
+              )}
 
               {/* Tags pill */}
               <button
@@ -300,51 +312,62 @@ export default function EditTaskDialog({
               </div>
             )}
 
-            {/* Subtasks section */}
-            {subtasksExpanded && !isSubtask && (
-              <>
-                <div className="border-t my-3" />
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add a subtask..."
-                      value={newSubInput}
-                      onChange={(e) => setNewSubInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewSub(); } }}
-                      className="text-sm"
-                    />
-                    <Button onClick={() => { addNewSub(); setTimeout(saveSubtasks, 0); }} size="icon" variant="outline" className="flex-shrink-0">
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-1 max-h-36 overflow-y-auto">
-                    {existingSubs.map((sub) => (
-                      <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 rounded-xl text-sm">
-                        <span className="truncate mr-2 text-gray-700">{sub.title}</span>
-                        <button onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    {newSubTitles.map((subTitle, i) => (
-                      <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 rounded-xl text-sm">
-                        <span className="truncate mr-2 text-indigo-700">{subTitle}</span>
-                        <button onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    {existingSubs.length === 0 && newSubTitles.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center py-2">No subtasks yet.</p>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Subtasks Dialog */}
+      {!isSubtask && (
+        <Dialog open={subtasksExpanded} onOpenChange={(open) => {
+          if (!open) saveSubtasks();
+          setSubtasksExpanded(open);
+        }}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Subtasks</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add a subtask..."
+                  value={newSubInput}
+                  onChange={(e) => setNewSubInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewSub(); } }}
+                  className="text-sm"
+                  autoFocus
+                />
+                <Button onClick={addNewSub} size="icon" variant="outline" className="flex-shrink-0">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="space-y-1 max-h-[40vh] overflow-y-auto">
+                {existingSubs.map((sub) => (
+                  <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
+                    <span className="truncate mr-2 text-gray-700 dark:text-gray-300">{sub.title}</span>
+                    <button onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {newSubTitles.map((subTitle, i) => (
+                  <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm">
+                    <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">{subTitle}</span>
+                    <button onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {existingSubs.length === 0 && newSubTitles.length === 0 && (
+                  <p className="text-xs text-gray-400 text-center py-4">No subtasks yet.</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button onClick={() => { saveSubtasks(); setSubtasksExpanded(false); }}>Save</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <DatePickerDialog
         isOpen={isDateOpen}

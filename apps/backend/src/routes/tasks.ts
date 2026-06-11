@@ -29,6 +29,7 @@ const UpdateTaskSchema = z.object({
   dueDate: z.string().optional(),
   status: z.enum(['TODO', 'IN PROGRESS', 'DONE']).optional(),
   parentId: z.number().nullable().optional(),
+  courseId: z.number().nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).nullable().optional(),
   tags: z.array(z.string().min(1).max(50)).max(20).optional(),
 });
@@ -186,6 +187,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
           ...(body.dueDate !== undefined && { dueDate: new Date(body.dueDate) }),
           ...(body.status !== undefined && { status: body.status }),
           ...('parentId' in body && { parentId: body.parentId }),
+          ...('courseId' in body && { courseId: body.courseId }),
           ...('priority' in body && { priority: body.priority ?? null }),
           ...(body.tags !== undefined && { tags: body.tags }),
         })
@@ -243,7 +245,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
     const newStatus = existing.status === 'DONE' ? 'TODO' : 'DONE';
     const [updated] = await db
       .update(tasks)
-      .set({ status: newStatus })
+      .set({ status: newStatus, completedAt: newStatus === 'DONE' ? new Date() : null })
       .where(eq(tasks.id, existing.id))
       .returning();
     await logAction(db, (user as AuthUser).id, `Toggled task ${existing.id} to ${newStatus}`);
@@ -264,10 +266,6 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       if (!task) {
         set.status = 404;
         return { error: 'NOT_FOUND', message: 'Task not found' };
-      }
-      if (task.status !== 'DONE') {
-        set.status = 400;
-        return { error: 'NOT_DONE', message: 'Task must be DONE before evaluating' };
       }
       const [existing] = await db.select().from(evals).where(eq(evals.taskId, task.id));
       let evalRow;
