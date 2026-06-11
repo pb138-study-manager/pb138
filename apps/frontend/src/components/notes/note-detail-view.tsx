@@ -40,6 +40,7 @@ export default function NoteDetailView({
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isSavingRef = useRef(false);
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -70,12 +71,15 @@ export default function NoteDetailView({
   const currentCourse = courses.find((c) => c.id === note.courseId);
 
   const handleAutoSave = useCallback(async () => {
+    if (isSavingRef.current) return;
     if (!title.trim()) return;
+    isSavingRef.current = true;
     setIsSaving(true);
     try {
       await onSave(note.id, title.trim(), content);
       setIsEditing(false);
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
     }
   }, [note.id, title, content, onSave]);
@@ -91,11 +95,16 @@ export default function NoteDetailView({
   }
 
   async function handleLinkCourse(courseId: number | null) {
-    await api.patch(`/notes/${note.id}`, { courseId });
-    queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
-      prev.map((n) => (n.id === note.id ? { ...n, courseId } : n))
-    );
-    setCourseDropdownOpen(false);
+    try {
+      await api.patch(`/notes/${note.id}`, { courseId });
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.map((n) => (n.id === note.id ? { ...n, courseId } : n))
+      );
+    } catch (err) {
+      console.error('Failed to link course', err);
+    } finally {
+      setCourseDropdownOpen(false);
+    }
   }
 
   function handleTextareaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -122,13 +131,14 @@ export default function NoteDetailView({
             className="text-xl font-bold truncate flex-1 text-gray-900 dark:text-white cursor-text"
             onClick={() => setIsEditing(true)}
           >
-            {note.title}
+            {title}
           </h2>
         )}
         <Button
           variant="ghost"
           size="icon"
           className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => setIsDeleteDialogOpen(true)}
           disabled={isDeleting}
         >
@@ -154,13 +164,13 @@ export default function NoteDetailView({
               }`}
             >
               <span>📚</span>
-              <span>{currentCourse ? currentCourse.code : '+ Kurz'}</span>
+              <span>{currentCourse ? currentCourse.code : t('notes.linkCourse')}</span>
               {currentCourse && <span className="text-gray-400">▾</span>}
             </button>
             {courseDropdownOpen && (
               <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-10 overflow-hidden">
                 <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide border-b dark:border-gray-700">
-                  Priradiť ku kurzu
+                  {t('notes.assignCourse')}
                 </div>
                 {courses.map((c) => (
                   <button
@@ -173,7 +183,7 @@ export default function NoteDetailView({
                     }`}
                   >
                     {note.courseId === c.id && <span>✓</span>}
-                    {note.courseId !== c.id && <span className="w-4" />}
+                    {note.courseId !== c.id && <span className="inline-block w-4" />}
                     {c.code}
                     {c.name ? ` — ${c.name}` : ''}
                   </button>
@@ -182,7 +192,7 @@ export default function NoteDetailView({
                   onClick={() => handleLinkCourse(null)}
                   className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 border-t dark:border-gray-700 transition-colors"
                 >
-                  — Bez kurzu
+                  {t('notes.noCourse')}
                 </button>
               </div>
             )}
@@ -237,7 +247,7 @@ export default function NoteDetailView({
         <div
           className="flex-1 cursor-text rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors p-2 -mx-2"
           onClick={() => setIsEditing(true)}
-          title="Klikni pre editáciu"
+          title={t('notes.clickToEdit')}
         >
           {content ? (
             <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">

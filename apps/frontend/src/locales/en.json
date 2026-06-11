@@ -59,7 +59,11 @@
     "startWriting": "Start writing your note...",
     "save": "Save",
     "saving": "Saving...",
-    "edit": "Edit"
+    "edit": "Edit",
+    "linkCourse": "+ Course",
+    "assignCourse": "Assign to course",
+    "noCourse": "— No course",
+    "clickToEdit": "Click to edit"
   },
   "ai": {
     "error": "An error occurred. Please try again.",

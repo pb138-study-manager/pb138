@@ -59,7 +59,11 @@
     "startWriting": "Začněte psát...",
     "save": "Uložit",
     "saving": "Ukládání...",
-    "edit": "Upravit"
+    "edit": "Upravit",
+    "linkCourse": "+ Kurz",
+    "assignCourse": "Priradiť ku kurzu",
+    "noCourse": "— Bez kurzu",
+    "clickToEdit": "Klikni pre editáciu"
   },
   "ai": {
     "error": "Nastala chyba. Skús znova.",
