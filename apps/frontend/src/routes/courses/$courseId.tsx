@@ -71,6 +71,9 @@ function CourseDetailPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showNewNote, setShowNewNote] = useState(false);
+  const [newNoteTitle, setNewNoteTitle] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   const { data: course, isPending: courseLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -270,6 +273,23 @@ function CourseDetailPage() {
     queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id));
   }
 
+  async function handleCreateNote() {
+    if (!newNoteTitle.trim()) return;
+    setSavingNote(true);
+    try {
+      await api.post('/notes', {
+        title: newNoteTitle.trim(),
+        description: '',
+        courseId: Number(courseId),
+      });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      setNewNoteTitle('');
+      setShowNewNote(false);
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
   async function createTask() {
     if (!newTaskTitle.trim() || !newTaskDate) return;
     setSaving(true);
@@ -450,22 +470,57 @@ function CourseDetailPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-yellow-500" />
-              <span className="font-semibold text-gray-900">Notes</span>
+              <span className="font-semibold text-gray-900 dark:text-white">Notes</span>
               <span className="text-gray-400 text-sm">{notes.length}</span>
             </div>
+            <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowNewNote(true)}>
+              <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </Button>
           </div>
-          {notes.length === 0 ? (
+
+          {notes.length === 0 && !showNewNote && (
             <p className="text-sm text-gray-400 py-4 text-center">No notes for this course</p>
-          ) : (
-            <div className="space-y-2">
+          )}
+
+          {notes.length > 0 && (
+            <div className="space-y-2 mb-3">
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl px-4 py-3 shadow-sm"
+                  className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm"
                 >
-                  <p className="text-sm font-medium text-gray-900">{note.title}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {showNewNote && (
+            <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-900/10">
+              <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">Nová note</p>
+              <input
+                className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white mb-3"
+                placeholder="Názov note..."
+                value={newNoteTitle}
+                onChange={(e) => setNewNoteTitle(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateNote();
+                  if (e.key === 'Escape') { setShowNewNote(false); setNewNoteTitle(''); }
+                }}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" size="sm" onClick={() => { setShowNewNote(false); setNewNoteTitle(''); }}>
+                  Zrušiť
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCreateNote}
+                  disabled={savingNote || !newNoteTitle.trim()}
+                >
+                  {savingNote ? 'Ukladám…' : 'Vytvoriť'}
+                </Button>
+              </div>
             </div>
           )}
         </div>
