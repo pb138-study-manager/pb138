@@ -45,7 +45,8 @@
     "priorityMedium": "Medium",
     "priorityHigh": "High",
     "tags": "Tags",
-    "addTag": "Add tag..."
+    "addTag": "Add tag...",
+    "clearFilters": "Clear"
   },
   "notes": {
     "loading": "Loading notes...",

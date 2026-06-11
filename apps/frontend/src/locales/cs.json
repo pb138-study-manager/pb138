@@ -45,7 +45,8 @@
     "priorityMedium": "Střední",
     "priorityHigh": "Vysoká",
     "tags": "Štítky",
-    "addTag": "Přidat štítek..."
+    "addTag": "Přidat štítek...",
+    "clearFilters": "Zrušit"
   },
   "notes": {
     "loading": "Načítání poznámek...",
