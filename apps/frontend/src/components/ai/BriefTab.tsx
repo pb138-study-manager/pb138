@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
@@ -69,7 +70,21 @@ export function BriefTab() {
 
   return (
     <div className="p-4 space-y-4">
-      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{data?.brief}</p>
+      <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed space-y-1.5">
+        <ReactMarkdown
+          components={{
+            p: ({ children }) => <p className="mb-1.5 leading-relaxed">{children}</p>,
+            strong: ({ children }) => <strong className="font-semibold text-gray-900 dark:text-white">{children}</strong>,
+            em: ({ children }) => <em className="italic">{children}</em>,
+            ul: ({ children }) => <ul className="list-disc pl-4 space-y-0.5 mb-1.5">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal pl-4 space-y-0.5 mb-1.5">{children}</ol>,
+            li: ({ children }) => <li>{children}</li>,
+            code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 text-xs font-mono">{children}</code>,
+          }}
+        >
+          {data?.brief ?? ''}
+        </ReactMarkdown>
+      </div>
 
       {data && data.priorities.length > 0 && (
         <div className="space-y-2">
