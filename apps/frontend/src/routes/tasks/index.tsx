@@ -1,8 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskSidebar from '@/components/tasks/tasks-sidebar';
+import TaskFilterBar from '@/components/tasks/task-filter-bar';
 import { useTranslation } from 'react-i18next';
 import { useTasksManager } from '@/hooks/useTasksManager';
+import { filterTasks } from '@/lib/task-utils';
 
 export const Route = createFileRoute('/tasks/')({
   component: TasksPage,
@@ -24,6 +27,36 @@ export function TasksPage() {
     handleDelete,
   } = useTasksManager();
 
+  type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+  const [activePriorities, setActivePriorities] = useState<Set<Priority>>(new Set());
+  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
+
+  function togglePriority(p: Priority) {
+    setActivePriorities((prev) => {
+      const next = new Set(prev);
+      next.has(p) ? next.delete(p) : next.add(p);
+      return next;
+    });
+  }
+
+  function toggleTag(tag: string) {
+    setActiveTags((prev) => {
+      const next = new Set(prev);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return next;
+    });
+  }
+
+  const allTasks = [...overdue, ...today, ...thisWeek, ...later, ...done];
+
+  const filtered = {
+    overdue: filterTasks(overdue, activePriorities, activeTags),
+    today: filterTasks(today, activePriorities, activeTags),
+    thisWeek: filterTasks(thisWeek, activePriorities, activeTags),
+    later: filterTasks(later, activePriorities, activeTags),
+    done: filterTasks(done, activePriorities, activeTags),
+  };
+
   if (isPending) {
     return (
       <div className="flex-1 w-full bg-gray-50 dark:bg-gray-900 px-4 py-8 space-y-3">
@@ -42,12 +75,24 @@ export function TasksPage() {
           <div className="flex-1" />
         </div>
 
+        <TaskFilterBar
+          allTasks={allTasks}
+          activePriorities={activePriorities}
+          activeTags={activeTags}
+          onTogglePriority={togglePriority}
+          onToggleTag={toggleTag}
+          onClear={() => {
+            setActivePriorities(new Set());
+            setActiveTags(new Set());
+          }}
+        />
+
         <div>
-          {counts.overdue > 0 && (
+          {filtered.overdue.length > 0 && (
             <TaskSection
               title={t('tasks.overdue')}
-              count={counts.overdue}
-              tasks={overdue}
+              count={filtered.overdue.length}
+              tasks={filtered.overdue}
               variant="overdue"
               onTaskCreated={handleCreate}
               onToggle={handleToggle}
@@ -57,8 +102,8 @@ export function TasksPage() {
           )}
           <TaskSection
             title={t('tasks.today')}
-            count={counts.today}
-            tasks={today}
+            count={filtered.today.length}
+            tasks={filtered.today}
             variant="default"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
@@ -67,8 +112,8 @@ export function TasksPage() {
           />
           <TaskSection
             title={t('tasks.thisWeek')}
-            count={counts.thisWeek}
-            tasks={thisWeek}
+            count={filtered.thisWeek.length}
+            tasks={filtered.thisWeek}
             variant="thisWeek"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
@@ -77,8 +122,8 @@ export function TasksPage() {
           />
           <TaskSection
             title={t('tasks.later')}
-            count={counts.later}
-            tasks={later}
+            count={filtered.later.length}
+            tasks={filtered.later}
             variant="later"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
@@ -87,8 +132,8 @@ export function TasksPage() {
           />
           <TaskSection
             title={t('tasks.done')}
-            count={counts.done}
-            tasks={done}
+            count={filtered.done.length}
+            tasks={filtered.done}
             variant="done"
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
