@@ -1,8 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
 import TaskSection from '@/components/tasks/tasks-section';
+import TaskFilterBar from '@/components/tasks/task-filter-bar';
 import { useTranslation } from 'react-i18next';
 import { useTodayManager } from '@/hooks/useTodayManager';
 import { EventCard } from '@/components/timeline/EventCard';
+import { filterTasks } from '@/lib/task-utils';
 
 export const Route = createFileRoute('/today/')({
   component: TodayPage,
@@ -23,6 +26,30 @@ function TodayPage() {
     handleDelete,
     editEvent,
   } = useTodayManager();
+
+  type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+  const [activePriorities, setActivePriorities] = useState<Set<Priority>>(new Set());
+  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
+
+  function togglePriority(p: Priority) {
+    setActivePriorities((prev) => {
+      const next = new Set(prev);
+      next.has(p) ? next.delete(p) : next.add(p);
+      return next;
+    });
+  }
+
+  function toggleTag(tag: string) {
+    setActiveTags((prev) => {
+      const next = new Set(prev);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return next;
+    });
+  }
+
+  const allTasks = [...todayTasks, ...backlogTasks, ...doneTasks];
+  const filteredToday = filterTasks(todayTasks, activePriorities, activeTags);
+  const filteredBacklog = filterTasks(backlogTasks, activePriorities, activeTags);
 
   const h = new Date().getHours();
   const greeting =
@@ -115,10 +142,21 @@ function TodayPage() {
 
       {/* Task sections */}
       <div className="px-4 py-6">
+        <TaskFilterBar
+          allTasks={allTasks}
+          activePriorities={activePriorities}
+          activeTags={activeTags}
+          onTogglePriority={togglePriority}
+          onToggleTag={toggleTag}
+          onClear={() => {
+            setActivePriorities(new Set());
+            setActiveTags(new Set());
+          }}
+        />
         <TaskSection
           title={t('tasks.today')}
-          count={counts.today}
-          tasks={todayTasks}
+          count={filteredToday.length}
+          tasks={filteredToday}
           variant="default"
           onTaskCreated={handleCreate}
           onToggle={handleToggle}
@@ -127,8 +165,8 @@ function TodayPage() {
         />
         <TaskSection
           title={t('tasks.backlog')}
-          count={counts.backlog}
-          tasks={backlogTasks}
+          count={filteredBacklog.length}
+          tasks={filteredBacklog}
           variant="backlog"
           onTaskCreated={handleCreate}
           onToggle={handleToggle}
