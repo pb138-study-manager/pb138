@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { api } from '@/lib/api';
 import CreateFolderDialog from '@/components/notes/create-folder-dialog';
@@ -11,11 +12,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useNotesManager } from '@/hooks/useNotesManager';
 
 export const Route = createFileRoute('/notes/')({
+  validateSearch: (search: Record<string, unknown>): { open?: number } => {
+    const raw = search.open;
+    const parsed = typeof raw === 'string' ? parseInt(raw, 10) : undefined;
+    return parsed && !isNaN(parsed) ? { open: parsed } : {};
+  },
   component: NotesPage,
 });
 
 function NotesPage() {
   const { t } = useTranslation();
+  const { open } = Route.useSearch();
   const {
     folders,
     view,
@@ -38,6 +45,10 @@ function NotesPage() {
     updateNote,
     deleteNote,
   } = useNotesManager();
+
+  useEffect(() => {
+    if (open && !isPending) openNote(open);
+  }, [open, isPending]);
 
   useQuery({
     queryKey: ['settings'],

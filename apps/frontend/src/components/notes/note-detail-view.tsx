@@ -253,8 +253,24 @@ export default function NoteDetailView({
           title={t('notes.clickToEdit')}
         >
           {content ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{content}</ReactMarkdown>
+            <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm space-y-1.5">
+              <ReactMarkdown
+                components={{
+                  h1: ({ children }) => <h1 className="text-xl font-bold mt-3 mb-1 text-gray-900 dark:text-white">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-lg font-bold mt-3 mb-1 text-gray-900 dark:text-white">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-base font-semibold mt-2 mb-1 text-gray-800 dark:text-gray-100">{children}</h3>,
+                  p: ({ children }) => <p className="mb-1.5 leading-relaxed">{children}</p>,
+                  strong: ({ children }) => <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 text-xs font-mono">{children}</code>,
+                  ul: ({ children }) => <ul className="list-disc pl-5 mb-1.5 space-y-0.5">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-5 mb-1.5 space-y-0.5">{children}</ol>,
+                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                  blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-3 italic text-gray-500 dark:text-gray-400 my-2">{children}</blockquote>,
+                }}
+              >
+                {content}
+              </ReactMarkdown>
             </div>
           ) : (
             <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>

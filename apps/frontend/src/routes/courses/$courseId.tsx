@@ -477,8 +477,8 @@ function CourseDetailPage() {
               {notes.map((note) => (
                 <button
                   key={note.id}
-                  onClick={() => navigate({ to: '/notes' })}
-                  className="w-full text-left flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                  onClick={() => navigate({ to: '/notes', search: { open: note.id } })}
+                  className="w-full text-left flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
                 </button>
