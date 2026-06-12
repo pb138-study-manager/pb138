@@ -3,13 +3,13 @@ import { NavItem } from '@/types';
 import { useProfileManager } from '@/hooks/useProfileManager';
 
 export const AVAILABLE_ITEMS = [
-  { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
   { id: 'today', label: 'nav.today', href: '/today' },
+  { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
+  { id: 'courses', label: 'nav.courses', href: '/courses' },
   { id: 'notes', label: 'nav.notes', href: '/notes' },
+  { id: 'timeline', label: 'nav.timeline', href: '/timeline' },
   { id: 'profile', label: 'nav.profile', href: '/profile' },
   { id: 'others', label: 'nav.others', href: '/others' },
-  { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
-  { id: 'teachers', label: 'profile.teachers', href: '/teachers' },
 ];
 
 export function useCustomNavManager() {

@@ -226,6 +226,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     return { success: true };
   })
   .post('/:id/enroll', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
     const [course] = await db
       .select()
       .from(courses)
@@ -234,11 +235,15 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Course not found' };
     }
+    if (course.lectureTeacherId === authUser.id || course.seminarTeacherId === authUser.id) {
+      set.status = 400;
+      return { error: 'SELF_ENROLLMENT_FORBIDDEN', message: 'Teacher cannot enroll in their own course' };
+    }
     await db
       .insert(userCourses)
-      .values({ userId: (user as AuthUser).id, courseId: course.id })
+      .values({ userId: authUser.id, courseId: course.id })
       .onConflictDoNothing();
-    await logAction(db, (user as AuthUser).id, `Enrolled in course ${course.id}`);
+    await logAction(db, authUser.id, `Enrolled in course ${course.id}`);
     return { success: true };
   })
   .delete('/:id/enroll', async ({ params, user, set }) => {
@@ -526,6 +531,10 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         set.status = 403;
         return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
       }
+      if (body.userId === authUser.id) {
+        set.status = 400;
+        return { error: 'SELF_ENROLLMENT_FORBIDDEN', message: 'Teacher cannot add themselves to a course' };
+      }
       const [targetUser] = await db
         .select()
         .from(users)
@@ -695,6 +704,31 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     await logAction(db, authUser.id, `Deleted subtask ${subtaskId} from assignment ${assignmentId}`);
     return { success: true };
   })
+  .get('/:id/my-evals', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const courseId = Number(params.id);
+    try {
+      const rows = await db
+        .select({
+          assignmentTitle: assignments.title,
+          dueDate: assignments.dueDate,
+          evalType: assignments.evalType,
+          score: evals.score,
+          feedback: evals.feedback,
+          evaluatedAt: evals.evaluatedAt,
+        })
+        .from(tasks)
+        .innerJoin(assignments, and(eq(tasks.assignmentId, assignments.id), isNull(assignments.deletedAt)))
+        .innerJoin(evals, eq(evals.taskId, tasks.id))
+        .where(and(eq(tasks.userId, authUser.id), eq(tasks.courseId, courseId), isNull(tasks.deletedAt)))
+        .orderBy(sql`${assignments.dueDate} DESC`);
+      return rows;
+    } catch (err) {
+      console.error('my-evals error:', err);
+      set.status = 500;
+      return { error: 'INTERNAL', message: String(err) };
+    }
+  })
   .get('/:id/assignments/:assignmentId/students', async ({ params, user, set }) => {
     const authUser = user as AuthUser;
     if (!authUser.roles.includes('TEACHER')) {
@@ -715,7 +749,15 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       set.status = 403;
       return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
     }
-    return db
+    const [assignment] = await db
+      .select({ dueDate: assignments.dueDate })
+      .from(assignments)
+      .where(and(eq(assignments.id, assignmentId), isNull(assignments.deletedAt)));
+    if (!assignment) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Assignment not found' };
+    }
+    const rows = await db
       .select({
         taskId: tasks.id,
         userId: users.id,
@@ -723,7 +765,9 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         email: users.email,
         avatar: userProfiles.avatar,
         status: tasks.status,
+        completedAt: tasks.completedAt,
         evalScore: evals.score,
+        evalFeedback: evals.feedback,
       })
       .from(tasks)
       .innerJoin(users, and(eq(tasks.userId, users.id), isNull(users.deletedAt)))
@@ -732,5 +776,12 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .where(
         and(eq(tasks.assignmentId, assignmentId), eq(tasks.courseId, courseId), isNull(tasks.deletedAt))
       );
+    return rows.map(({ completedAt, ...row }) => ({
+      ...row,
+      status:
+        row.status === 'DONE' && (completedAt === null || completedAt > assignment.dueDate)
+          ? ('TODO' as const)
+          : row.status,
+    }));
   })
 ;

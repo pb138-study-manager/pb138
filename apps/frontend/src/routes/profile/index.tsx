@@ -54,7 +54,6 @@ function ProfilePage() {
           theme={theme}
           language={language}
           notificationsEnabled={notificationsEnabled}
-          isTeacher={userData.roles.includes('TEACHER')}
           onUpdateSettings={updateSettings}
           onChangeLanguage={changeLanguage}
         />

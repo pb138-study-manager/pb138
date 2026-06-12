@@ -9,11 +9,12 @@ import { getUrgency, getCountdown } from '@/lib/task-utils';
 
 type EditData = {
   title: string;
-  dueDate: string;
+  dueDate?: string;
   description?: string;
   status?: TaskStatus;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
   tags?: string[];
+  courseId?: number | null;
   subtasksToAdd: string[];
   subtaskIdsToDelete: number[];
 };
@@ -31,11 +32,12 @@ export default function TaskCard({
     id: number,
     data: {
       title: string;
-      dueDate: string;
+      dueDate?: string;
       description?: string;
       status?: TaskStatus;
       priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
       tags?: string[];
+      courseId?: number | null;
     },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
@@ -69,8 +71,9 @@ export default function TaskCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtasksOpen, task.id, indent]);
 
-  const dueTime = task.dueDate
-    ? `${t('tasks.due')} ${new Date(task.dueDate).toLocaleString('sk-SK', {
+  const effectiveDueDate = task.dueDate ?? task.assignmentDeadline ?? null;
+  const dueTime = effectiveDueDate
+    ? `${task.dueDate ? t('tasks.due') : 'Deadline'} ${new Date(effectiveDueDate).toLocaleString('sk-SK', {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
@@ -78,8 +81,8 @@ export default function TaskCard({
       })}`
     : t('tasks.noDueDate');
   const hasUsers = task.assignmentId !== null;
-  const urgency = getUrgency(task.dueDate);
-  const countdown = getCountdown(task.dueDate, t('tasks.noDate'));
+  const urgency = getUrgency(effectiveDueDate);
+  const countdown = getCountdown(effectiveDueDate, t('tasks.noDate'));
   const urgencyColors = {
     high: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
     medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
@@ -132,11 +135,12 @@ export default function TaskCard({
     subId: number,
     data: {
       title: string;
-      dueDate: string;
+      dueDate?: string;
       description?: string;
       status?: TaskStatus;
       priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
       tags?: string[];
+      courseId?: number | null;
     },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
@@ -161,6 +165,7 @@ export default function TaskCard({
         status: data.status,
         priority: data.priority,
         tags: data.tags,
+        courseId: data.courseId,
       },
       data.subtasksToAdd,
       data.subtaskIdsToDelete

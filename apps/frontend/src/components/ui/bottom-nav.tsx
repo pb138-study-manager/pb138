@@ -7,6 +7,7 @@ import {
   BookOpen,
   GraduationCap,
   ArrowLeftRight,
+  CalendarDays,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -14,13 +15,26 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useRoleMode } from '@/lib/roleMode';
+import { AVAILABLE_ITEMS } from '@/hooks/useCustomNavManager';
+
+const ICON_MAP: Record<string, JSX.Element> = {
+  today: <Clock className="w-5 h-5" />,
+  tasks: <ClipboardCheck className="w-5 h-5" />,
+  courses: <BookOpen className="w-5 h-5" />,
+  notes: <ClipboardList className="w-5 h-5" />,
+  timeline: <CalendarDays className="w-5 h-5" />,
+  profile: <Users className="w-5 h-5" />,
+  others: <Menu className="w-5 h-5" />,
+  teachers: <GraduationCap className="w-5 h-5" />,
+};
 
 interface NavItem {
   id: string;
   label: string;
   href: string;
-  icon: JSX.Element;
 }
+
+const DEFAULT_STUDENT_IDS = ['today', 'tasks', 'courses', 'notes', 'others'];
 
 export default function BottomNav({ active }: { active: string }) {
   const { t } = useTranslation();
@@ -29,26 +43,35 @@ export default function BottomNav({ active }: { active: string }) {
 
   const { data: me } = useQuery({
     queryKey: ['userMe'],
-    queryFn: () => api.get<{ roles: string[] }>('/users/me').catch(() => null),
+    queryFn: () =>
+      api.get<{ roles: string[]; settings: { customNav?: NavItem[] | null } }>('/users/me').catch(() => null),
   });
 
   const isTeacher = me?.roles?.includes('TEACHER') ?? false;
-
-  const studentItems: NavItem[] = [
-    { id: 'today', label: t('nav.today'), href: '/today', icon: <Clock className="w-5 h-5" /> },
-    { id: 'tasks', label: t('nav.tasks'), href: '/tasks', icon: <ClipboardCheck className="w-5 h-5" /> },
-    { id: 'courses', label: t('nav.courses'), href: '/courses', icon: <BookOpen className="w-5 h-5" /> },
-    { id: 'notes', label: t('nav.notes'), href: '/notes', icon: <ClipboardList className="w-5 h-5" /> },
-    { id: 'others', label: t('nav.others'), href: '/others', icon: <Menu className="w-5 h-5" /> },
-  ];
+  const isTeacherMode = isTeacher && mode === 'teacher';
 
   const teacherItems: NavItem[] = [
-    { id: 'teachers', label: 'My Classes', href: '/teachers', icon: <GraduationCap className="w-5 h-5" /> },
-    { id: 'profile', label: t('nav.profile'), href: '/profile', icon: <Users className="w-5 h-5" /> },
+    { id: 'teachers', label: 'My Classes', href: '/teachers' },
+    { id: 'profile', label: t('nav.profile'), href: '/profile' },
   ];
 
-  const isTeacherMode = isTeacher && mode === 'teacher';
-  const items = isTeacherMode ? teacherItems : studentItems;
+  function buildStudentItems(): NavItem[] {
+    const saved = me?.settings?.customNav;
+    const ids: string[] = saved && Array.isArray(saved) && saved.length > 0
+      ? saved.map((n) => n.id)
+      : DEFAULT_STUDENT_IDS;
+
+    return ids
+      .map((id) => AVAILABLE_ITEMS.find((item) => item.id === id))
+      .filter((item): item is typeof AVAILABLE_ITEMS[number] => item !== undefined)
+      .map((item) => ({
+        id: item.id,
+        label: item.label.includes('.') ? t(item.label) : item.label,
+        href: item.href,
+      }));
+  }
+
+  const items = isTeacherMode ? teacherItems : buildStudentItems();
 
   function handleToggle() {
     toggle();
@@ -64,7 +87,7 @@ export default function BottomNav({ active }: { active: string }) {
           className="flex flex-col items-center justify-center py-3 px-4 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
         >
           <span className={cn('mb-1', active === item.id ? 'text-indigo-600 dark:text-indigo-400' : '')}>
-            {item.icon}
+            {ICON_MAP[item.id] ?? <Menu className="w-5 h-5" />}
           </span>
           <span className={cn('text-xs font-medium', active === item.id ? 'text-indigo-600 dark:text-indigo-400' : '')}>
             {item.label}

@@ -124,13 +124,10 @@ function TimelinePage() {
                 <div
                   className={`
                   w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
-                  ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
+                  ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : isToday ? 'bg-gray-100 dark:bg-gray-700 border-red-400 text-gray-900 dark:text-white' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
                 `}
                 >
                   <span className="font-bold">{date.getDate()}</span>
-                  {isToday && !isActive && !hasEvent && !hasDeadline && (
-                    <div className="w-1 h-1 rounded-full bg-red-500" />
-                  )}
                   {(hasEvent || hasDeadline) && !isActive && (
                     <div className="flex gap-0.5">
                       {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
