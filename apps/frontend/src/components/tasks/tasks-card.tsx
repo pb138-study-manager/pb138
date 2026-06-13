@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Clock, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
 import { cn } from '@/lib/utils';
@@ -54,22 +55,25 @@ export default function TaskCard({
   const [editOpen, setEditOpen] = useState(false);
   const { t } = useTranslation();
 
+  const { data: fetchedSubtasks = [], isSuccess: subtasksLoadedLocal } = useQuery({
+    queryKey: ['tasks', task.id, 'subtasks'],
+    queryFn: async () => {
+      const data = await api.get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`);
+      return data.subtasks ?? [];
+    },
+    enabled: !indent && subtasksOpen && !subtasksLoaded,
+  });
+
+  useEffect(() => {
+    if (subtasksLoadedLocal && !subtasksLoaded) {
+      setSubtasks(fetchedSubtasks);
+      setSubtasksLoaded(true);
+    }
+  }, [subtasksLoadedLocal, fetchedSubtasks, subtasksLoaded]);
+
   useEffect(() => {
     setIsChecked(task.status === 'DONE');
   }, [task.status]);
-
-  // Load subtasks when expanded
-  useEffect(() => {
-    if (indent || !subtasksOpen || subtasksLoaded) return;
-    api
-      .get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`)
-      .then((data) => {
-        setSubtasks(data.subtasks ?? []);
-        setSubtasksLoaded(true);
-      })
-      .catch(() => { setSubtasksLoaded(true); });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtasksOpen, task.id, indent]);
 
   const effectiveDueDate = task.dueDate ?? task.assignmentDeadline ?? null;
   const dueTime = effectiveDueDate
@@ -149,7 +153,7 @@ export default function TaskCard({
     setSubtasks((prev) =>
       prev.map((s) =>
         s.id === subId
-          ? { ...s, title: data.title, dueDate: data.dueDate, description: data.description ?? s.description, status: data.status ?? s.status }
+          ? { ...s, title: data.title, dueDate: data.dueDate ?? null, description: data.description ?? s.description, status: data.status ?? s.status }
           : s
       )
     );

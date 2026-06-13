@@ -33,7 +33,20 @@ export default function TaskSection({
     tags?: string[]
   ) => Promise<void>;
   onToggle: (id: number) => Promise<void>;
-  onEditFull: (id: number, data: { title: string; dueDate: string; description?: string; status?: import('@/types').TaskStatus }, subtasksToAdd: string[], subtaskIdsToDelete: number[]) => Promise<void>;
+  onEditFull: (
+    id: number,
+    data: {
+      title: string;
+      dueDate?: string;
+      description?: string;
+      status?: import('@/types').TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+      courseId?: number | null;
+    },
+    subtasksToAdd: string[],
+    subtaskIdsToDelete: number[]
+  ) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }) {
   const icons: Record<SectionVariant, React.ReactNode> = {

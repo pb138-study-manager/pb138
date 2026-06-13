@@ -1,11 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskFilterBar from '@/components/tasks/task-filter-bar';
 import { useTranslation } from 'react-i18next';
 import { useTodayManager } from '@/hooks/useTodayManager';
 import { EventCard } from '@/components/timeline/EventCard';
-import { filterTasks } from '@/lib/task-utils';
 
 export const Route = createFileRoute('/today/')({
   component: TodayPage,
@@ -15,49 +13,26 @@ function TodayPage() {
   const { t } = useTranslation();
   const {
     isPending,
-    todayTasks,
-    backlogTasks,
     doneTasks,
-    todayEvents,
     counts,
     handleCreate,
     handleToggle,
     handleEditFull,
     handleDelete,
     editEvent,
+    activePriorities,
+    activeTags,
+    togglePriority,
+    toggleTag,
+    clearFilters,
+    allTasks,
+    filteredToday,
+    filteredBacklog,
+    greeting,
+    todayTotal,
+    progressPct,
+    visibleEvents,
   } = useTodayManager();
-
-  type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
-  const [activePriorities, setActivePriorities] = useState<Set<Priority>>(new Set());
-  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
-
-  function togglePriority(p: Priority) {
-    setActivePriorities((prev) => {
-      const next = new Set(prev);
-      next.has(p) ? next.delete(p) : next.add(p);
-      return next;
-    });
-  }
-
-  function toggleTag(tag: string) {
-    setActiveTags((prev) => {
-      const next = new Set(prev);
-      next.has(tag) ? next.delete(tag) : next.add(tag);
-      return next;
-    });
-  }
-
-  const allTasks = [...todayTasks, ...backlogTasks, ...doneTasks];
-  const filteredToday = filterTasks(todayTasks, activePriorities, activeTags);
-  const filteredBacklog = filterTasks(backlogTasks, activePriorities, activeTags);
-
-  const h = new Date().getHours();
-  const greeting =
-    h >= 5 && h < 12
-      ? t('today.greetingMorning')
-      : h >= 12 && h < 18
-        ? t('today.greetingAfternoon')
-        : t('today.greetingEvening');
 
   if (isPending) {
     return (
@@ -72,18 +47,12 @@ function TodayPage() {
     );
   }
 
-  const todayTotal = counts.today + counts.doneToday;
-  const progressPct = todayTotal > 0 ? Math.round((counts.doneToday / todayTotal) * 100) : 0;
-  const visibleEvents = todayEvents.slice(0, 2);
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 overflow-y-auto">
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
         {/* Greeting + progress */}
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">
-          {greeting} 👋
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">{greeting} 👋</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
           {t('today.progress', { done: counts.doneToday, total: todayTotal })}
         </p>
@@ -148,10 +117,7 @@ function TodayPage() {
           activeTags={activeTags}
           onTogglePriority={togglePriority}
           onToggleTag={toggleTag}
-          onClear={() => {
-            setActivePriorities(new Set());
-            setActiveTags(new Set());
-          }}
+          onClear={clearFilters}
         />
         <TaskSection
           title={t('tasks.today')}

@@ -1,29 +1,35 @@
-import { useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTimelineManager } from '@/hooks/useTimelineManager'
-import { EventCard } from '@/components/timeline/EventCard'
-import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard'
-import NewEventDialog from '@/components/timeline/NewEventDialog'
+import { useState } from 'react';
+import { createFileRoute } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTimelineManager } from '@/hooks/useTimelineManager';
+import { EventCard } from '@/components/timeline/EventCard';
+import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard';
+import NewEventDialog from '@/components/timeline/NewEventDialog';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/timeline/')({
   component: TimelinePage,
-})
+});
 
-const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+function formatTime(iso: string, lang: string): string {
+  return new Date(iso).toLocaleTimeString(lang, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: lang !== 'cs-CZ',
+  });
 }
 
-function formatMonthYear(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+function formatMonthYear(date: Date, lang: string): string {
+  return date.toLocaleDateString(lang, { month: 'short', year: 'numeric' });
 }
 
-function formatDayHeader(date: Date): string {
-  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+function formatDayHeader(date: Date, lang: string): string {
+  return date.toLocaleDateString(lang, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 function TimelinePage() {
@@ -43,27 +49,40 @@ function TimelinePage() {
     toggleTask,
     editTaskFull,
     editEvent,
-  } = useTimelineManager()
+  } = useTimelineManager();
 
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const today = new Date()
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language === 'cs' ? 'cs-CZ' : 'en-US';
+
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const today = new Date();
 
   type TimelineItem =
     | { kind: 'event'; time: number; data: (typeof eventsForSelectedDate)[0] }
-    | { kind: 'task'; time: number; data: (typeof tasksForSelectedDate)[0] }
+    | { kind: 'task'; time: number; data: (typeof tasksForSelectedDate)[0] };
 
   const timelineItems: TimelineItem[] = [
-    ...eventsForSelectedDate.map((e) => ({ kind: 'event' as const, time: new Date(e.startDate).getTime(), data: e })),
-    ...tasksForSelectedDate.map((t) => ({ kind: 'task' as const, time: new Date(t.dueDate!).getTime(), data: t })),
-  ].sort((a, b) => a.time - b.time)
+    ...eventsForSelectedDate.map((e) => ({
+      kind: 'event' as const,
+      time: new Date(e.startDate).getTime(),
+      data: e,
+    })),
+    ...tasksForSelectedDate.map((t) => ({
+      kind: 'task' as const,
+      time: new Date(t.dueDate!).getTime(),
+      data: t,
+    })),
+  ].sort((a, b) => a.time - b.time);
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-24">
       {/* HEADER */}
       <div className="px-6 pt-8 pb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Timeline</h1>
-          <p className="text-sm text-gray-400">{formatDayHeader(selectedDate)}</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            {t('nav.timeline', 'Timeline')}
+          </h1>
+          <p className="text-sm text-gray-400">{formatDayHeader(selectedDate, lang)}</p>
         </div>
 
         <Button
@@ -94,7 +113,9 @@ function TimelinePage() {
           >
             <ChevronLeft className="w-4 h-4 text-gray-400" />
           </Button>
-          <span className="font-bold text-sm dark:text-white">{formatMonthYear(weekStart)}</span>
+          <span className="font-bold text-sm dark:text-white">
+            {formatMonthYear(weekStart, lang)}
+          </span>
           <Button
             variant="ghost"
             size="icon"
@@ -120,7 +141,9 @@ function TimelinePage() {
                 onClick={() => selectDate(date)}
                 className="flex flex-col items-center gap-2"
               >
-                <span className="text-xs font-semibold text-gray-400">{DAY_LABELS[i]}</span>
+                <span className="text-xs font-semibold text-gray-400">
+                  {t(`timeline.days.${DAY_KEYS[i]}`, DAY_LABELS[i])}
+                </span>
                 <div
                   className={`
                   w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
@@ -143,9 +166,9 @@ function TimelinePage() {
 
       {/* LEGEND */}
       <div className="px-4 flex gap-2 overflow-x-auto no-scrollbar mb-8">
-        <LegendBadge color="bg-green-500" label="Event" />
-        <LegendBadge color="bg-red-500" label="Deadline" />
-        <LegendBadge color="bg-blue-500" label="Tasks" />
+        <LegendBadge color="bg-green-500" label={t('timeline.event', 'Event')} />
+        <LegendBadge color="bg-red-500" label={t('timeline.deadline', 'Deadline')} />
+        <LegendBadge color="bg-blue-500" label={t('timeline.tasks', 'Tasks')} />
       </div>
 
       {/* TIMELINE CONTENT */}
@@ -163,8 +186,12 @@ function TimelinePage() {
 
         {!isPending && timelineItems.length === 0 && (
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center">
-            <p className="text-sm text-gray-400">No events for this day</p>
-            <p className="text-xs text-gray-300 mt-1">Tap + to add one</p>
+            <p className="text-sm text-gray-400">
+              {t('timeline.noEvents', 'No events for this day')}
+            </p>
+            <p className="text-xs text-gray-300 mt-1">
+              {t('timeline.tapToAdd', 'Tap + to add one')}
+            </p>
           </div>
         )}
 
@@ -180,7 +207,7 @@ function TimelinePage() {
             <TaskTimelineCard
               key={`task-${item.data.id}`}
               task={item.data}
-              timeLabel={formatTime(item.data.dueDate ?? '')}
+              timeLabel={formatTime(item.data.dueDate ?? '', lang)}
               onToggle={() => toggleTask(item.data.id)}
               onEditFull={editTaskFull}
             />
@@ -193,9 +220,12 @@ function TimelinePage() {
 
 function LegendBadge({ color, label }: { color: string; label: string }) {
   return (
-    <Badge variant="secondary" className="bg-gray-50 text-gray-500 border-none px-3 py-1 flex gap-2 items-center rounded-full whitespace-nowrap font-medium text-[10px]">
+    <Badge
+      variant="secondary"
+      className="bg-gray-50 text-gray-500 border-none px-3 py-1 flex gap-2 items-center rounded-full whitespace-nowrap font-medium text-[10px]"
+    >
       <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
       {label}
     </Badge>
-  )
+  );
 }

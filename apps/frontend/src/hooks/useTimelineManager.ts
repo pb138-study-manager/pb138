@@ -82,7 +82,15 @@ export function useTimelineManager() {
 
   async function editTaskFull(
     id: number,
-    data: { title: string; dueDate: string; description?: string; status?: Task['status'] },
+    data: {
+      title: string;
+      dueDate?: string;
+      description?: string;
+      status?: Task['status'];
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+      courseId?: number | null;
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) {

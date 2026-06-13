@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import { Task, TaskStatus } from '@/types';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 
@@ -69,8 +70,33 @@ export default function EditTaskDialog({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
 
-  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ['courses', 'enrolled'],
+    queryFn: () => api.get<Course[]>('/courses/enrolled'),
+    enabled: isOpen,
+  });
+
+  const { data: fetchedTaskData } = useQuery({
+    queryKey: ['tasks', task.id],
+    queryFn: () => api.get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`),
+    enabled: isOpen && !isSubtask,
+  });
+
+  useEffect(() => {
+    if (courses.length > 0 && task.courseId && isOpen) {
+      setSelectedCourse(courses.find((c) => c.id === task.courseId) ?? null);
+    }
+  }, [courses, task.courseId, isOpen]);
+
+  useEffect(() => {
+    if (fetchedTaskData && isOpen && !isSubtask) {
+      const subs = (fetchedTaskData.subtasks ?? []).map((s) => ({ id: s.id, title: s.title }));
+      setExistingSubs(subs);
+      setOriginalSubIds(subs.map((s) => s.id));
+    }
+  }, [fetchedTaskData, isOpen, isSubtask]);
 
   useEffect(() => {
     if (!isOpen) { initializedRef.current = false; return; }
@@ -84,23 +110,10 @@ export default function EditTaskDialog({
     setNewSubTitles([]);
     setNewSubInput('');
     setSubtasksExpanded(false);
-    api.get<Course[]>('/courses/enrolled').then((all) => {
-      setCourses(all);
-      setSelectedCourse(task.courseId ? (all.find((c) => c.id === task.courseId) ?? null) : null);
-    }).catch(() => {});
+    if (!task.courseId) setSelectedCourse(null);
 
-    if (!isSubtask) {
-      api
-        .get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`)
-        .then((data) => {
-          const subs = (data.subtasks ?? []).map((s) => ({ id: s.id, title: s.title }));
-          setExistingSubs(subs);
-          setOriginalSubIds(subs.map((s) => s.id));
-        })
-        .catch(() => {});
-    }
     setTimeout(() => { initializedRef.current = true; }, 100);
-  }, [isOpen, task, isSubtask]);
+  }, [isOpen, task]);
 
   useEffect(() => {
     if (tagInputOpen) tagInputRef.current?.focus();

@@ -34,18 +34,63 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
   const isTeacher = me?.roles?.includes('TEACHER') ?? false;
 
   const studentNavItems = [
-    { id: 'today', icon: <Clock className="w-5 h-5 shrink-0" />, label: t('nav.today'), href: '/today' },
-    { id: 'tasks', icon: <ClipboardCheck className="w-5 h-5 shrink-0" />, label: t('nav.tasks'), href: '/tasks' },
-    { id: 'courses', icon: <BookOpen className="w-5 h-5 shrink-0" />, label: t('nav.courses'), href: '/courses' },
-    { id: 'notes', icon: <ClipboardList className="w-5 h-5 shrink-0" />, label: t('nav.notes'), href: '/notes' },
-    { id: 'timeline', icon: <CalendarDays className="w-5 h-5 shrink-0" />, label: t('nav.timeline'), href: '/timeline' },
-    { id: 'profile', icon: <Users className="w-5 h-5 shrink-0" />, label: t('nav.profile'), href: '/profile' },
-    { id: 'others', icon: <Menu className="w-5 h-5 shrink-0" />, label: t('nav.others'), href: '/others' },
+    {
+      id: 'today',
+      icon: <Clock className="w-5 h-5 shrink-0" />,
+      label: t('nav.today'),
+      href: '/today',
+    },
+    {
+      id: 'tasks',
+      icon: <ClipboardCheck className="w-5 h-5 shrink-0" />,
+      label: t('nav.tasks'),
+      href: '/tasks',
+    },
+    {
+      id: 'courses',
+      icon: <BookOpen className="w-5 h-5 shrink-0" />,
+      label: t('nav.courses'),
+      href: '/courses',
+    },
+    {
+      id: 'notes',
+      icon: <ClipboardList className="w-5 h-5 shrink-0" />,
+      label: t('nav.notes'),
+      href: '/notes',
+    },
+    {
+      id: 'timeline',
+      icon: <CalendarDays className="w-5 h-5 shrink-0" />,
+      label: t('nav.timeline'),
+      href: '/timeline',
+    },
+    {
+      id: 'profile',
+      icon: <Users className="w-5 h-5 shrink-0" />,
+      label: t('nav.profile'),
+      href: '/profile',
+    },
+    {
+      id: 'others',
+      icon: <Menu className="w-5 h-5 shrink-0" />,
+      label: t('nav.others'),
+      href: '/others',
+    },
   ];
 
   const teacherNavItems = [
-    { id: 'teachers', icon: <GraduationCap className="w-5 h-5 shrink-0" />, label: 'My Classes', href: '/teachers' },
-    { id: 'profile', icon: <Users className="w-5 h-5 shrink-0" />, label: t('nav.profile'), href: '/profile' },
+    {
+      id: 'teachers',
+      icon: <GraduationCap className="w-5 h-5 shrink-0" />,
+      label: t('nav.myClasses', 'My Classes'),
+      href: '/teachers',
+    },
+    {
+      id: 'profile',
+      icon: <Users className="w-5 h-5 shrink-0" />,
+      label: t('nav.profile'),
+      href: '/profile',
+    },
   ];
 
   const isTeacherMode = isTeacher && mode === 'teacher';
@@ -74,7 +119,7 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
             to="/tasks"
             className="text-lg font-bold text-indigo-600 dark:text-indigo-400 truncate"
           >
-            Study Manager
+            {t('nav.appTitle', 'Study Manager')}
           </Link>
         )}
         <Button
@@ -87,8 +132,7 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
         </Button>
       </div>
 
-
-<div className={cn('flex-1 py-6 space-y-2', isCollapsed ? 'px-3' : 'px-4')}>
+      <div className={cn('flex-1 py-6 space-y-2', isCollapsed ? 'px-3' : 'px-4')}>
         {navItems.map((item) => (
           <Link
             key={item.id}
@@ -112,7 +156,11 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
         <div className={cn('border-t border-gray-200 dark:border-gray-800 p-3')}>
           <button
             onClick={handleToggle}
-            title={isTeacherMode ? 'Switch to Student' : 'Switch to Teacher'}
+            title={
+              isTeacherMode
+                ? t('nav.switchToStudent', 'Switch to Student')
+                : t('nav.switchToTeacher', 'Switch to Teacher')
+            }
             className={cn(
               'flex items-center rounded-lg transition-colors font-medium w-full text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
               isCollapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5'
@@ -120,7 +168,11 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
           >
             <ArrowLeftRight className="w-5 h-5 shrink-0" />
             {!isCollapsed && (
-              <span>{isTeacherMode ? 'Switch to Student' : 'Switch to Teacher'}</span>
+              <span>
+                {isTeacherMode
+                  ? t('nav.switchToStudent', 'Switch to Student')
+                  : t('nav.switchToTeacher', 'Switch to Teacher')}
+              </span>
             )}
           </button>
         </div>

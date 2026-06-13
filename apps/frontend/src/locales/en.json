@@ -20,7 +20,11 @@
     "notes": "Notes",
     "timeline": "Timeline",
     "profile": "Profile",
-    "others": "Others"
+    "others": "Others",
+    "myClasses": "My Classes",
+    "appTitle": "Study Manager",
+    "switchToStudent": "Switch to Student",
+    "switchToTeacher": "Switch to Teacher"
   },
   "others": {
     "title": "Others"
@@ -104,5 +108,62 @@
     "greetingAfternoon": "Good afternoon",
     "greetingEvening": "Good evening",
     "progress": "{{done}} of {{total}} tasks done today"
+  },
+  "common": {
+    "creating": "Creating...",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "add": "Add",
+    "title": "Title",
+    "descriptionOptional": "Description (optional)"
+  },
+  "courses": {
+    "title": "Courses",
+    "newCourse": "New Course",
+    "createCourse": "Create Course",
+    "courseCode": "Course Code",
+    "courseCodePlaceholder": "e.g. PB138",
+    "courseName": "Course Name",
+    "courseNamePlaceholder": "Full name of the course",
+    "semester": "Semester",
+    "semesterPlaceholder": "e.g. Spring 2026",
+    "createError": "Failed to create course. Make sure you have the TEACHER role.",
+    "noCoursesTeacher": "No courses yet",
+    "noCoursesStudent": "You are not enrolled in any courses yet",
+    "tasks": "Tasks",
+    "materials": "Study Materials",
+    "noMaterials": "No materials for this course",
+    "noMaterialsTeacher": "No materials yet",
+    "addMaterial": "Add Material",
+    "urlOptional": "URL (optional)",
+    "evaluations": "Evaluations",
+    "evaluationsError": "Failed to load evaluations.",
+    "noEvaluations": "No evaluations yet",
+    "evalPass": "Pass",
+    "evalFail": "Fail",
+    "assignments": "Assignments",
+    "noAssignments": "No assignments yet",
+    "students": "Students",
+    "searchStudent": "Search by name or email...",
+    "noStudents": "No students enrolled",
+    "errorAlreadyEnrolled": "This student is already enrolled.",
+    "errorSelfEnroll": "You cannot add yourself to a course.",
+    "errorAddStudent": "Failed to add student.",
+    "done": "done",
+    "student": "Student",
+    "assigned": "Assigned",
+    "createdByMe": "Created by me",
+    "noNotes": "No notes for this course",
+    "noTasks": "No tasks for this course",
+    "notFound": "Course not found",
+    "unknownTeacher": "Unknown teacher",
+    "tabs": {
+      "tasks": "tasks",
+      "notes": "notes",
+      "materials": "materials",
+      "evaluations": "evaluations",
+      "assignments": "assignments",
+      "students": "students"
+    }
   }
 }

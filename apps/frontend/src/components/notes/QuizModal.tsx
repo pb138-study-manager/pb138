@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
@@ -18,36 +19,43 @@ interface QuizModalProps {
 }
 
 export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps) {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [done, setDone] = useState(false);
   const { i18n } = useTranslation();
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const { data: questions = [], isFetching: isLoading, refetch } = useQuery({
+    queryKey: ['ai-quiz', noteId, i18n.language],
+    queryFn: async () => {
+      const result = await api.post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, { lang: i18n.language });
+      return result.questions ?? [];
+    },
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+  });
+
   useEffect(() => {
-    if (!isOpen) return;
-    setQuestions([]);
+    if (isOpen && questions.length > 0) {
+      if (answers.length !== questions.length) {
+        setAnswers(new Array(questions.length).fill(null));
+      }
+    } else if (!isOpen) {
+      setCurrent(0);
+      setSelected(null);
+      setAnswers([]);
+      setDone(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, questions.length]);
+
+  function load() {
     setCurrent(0);
     setSelected(null);
     setAnswers([]);
     setDone(false);
-    load();
-  }, [isOpen, noteId]);
-
-  async function load() {
-    setIsLoading(true);
-    try {
-      const result = await api.post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, { lang: i18n.language });
-      setQuestions(result.questions ?? []);
-      setAnswers(new Array(result.questions?.length ?? 0).fill(null));
-    } catch {
-      setQuestions([]);
-    } finally {
-      setIsLoading(false);
-    }
+    refetch();
   }
 
   function selectAnswer(idx: number) {

@@ -1,10 +1,18 @@
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Event, EventType, Task, TaskStatus } from '@/types';
 import { isSameDay } from './timeline-utils';
+import { filterTasks } from '@/lib/task-utils';
 
 export function useTodayManager() {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
+
+  type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+  const [activePriorities, setActivePriorities] = useState<Set<Priority>>(new Set());
+  const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
 
   const { data: tasks = [], isPending } = useQuery({
     queryKey: ['tasks'],
@@ -49,6 +57,43 @@ export function useTodayManager() {
     done: doneTasks.length,
     doneToday: doneTodayTasks.length,
   };
+
+  function togglePriority(p: Priority) {
+    setActivePriorities((prev) => {
+      const next = new Set(prev);
+      next.has(p) ? next.delete(p) : next.add(p);
+      return next;
+    });
+  }
+
+  function toggleTag(tag: string) {
+    setActiveTags((prev) => {
+      const next = new Set(prev);
+      next.has(tag) ? next.delete(tag) : next.add(tag);
+      return next;
+    });
+  }
+
+  function clearFilters() {
+    setActivePriorities(new Set());
+    setActiveTags(new Set());
+  }
+
+  const allTasks = useMemo(() => [...todayTasks, ...backlogTasks, ...doneTasks], [todayTasks, backlogTasks, doneTasks]);
+  const filteredToday = useMemo(() => filterTasks(todayTasks, activePriorities, activeTags), [todayTasks, activePriorities, activeTags]);
+  const filteredBacklog = useMemo(() => filterTasks(backlogTasks, activePriorities, activeTags), [backlogTasks, activePriorities, activeTags]);
+
+  const h = new Date().getHours();
+  const greeting =
+    h >= 5 && h < 12
+      ? t('today.greetingMorning')
+      : h >= 12 && h < 18
+        ? t('today.greetingAfternoon')
+        : t('today.greetingEvening');
+
+  const todayTotal = counts.today + counts.doneToday;
+  const progressPct = todayTotal > 0 ? Math.round((counts.doneToday / todayTotal) * 100) : 0;
+  const visibleEvents = todayEvents.slice(0, 2);
 
   async function handleCreate(
     title: string,
@@ -117,15 +162,24 @@ export function useTodayManager() {
 
   return {
     isPending,
-    todayTasks,
-    backlogTasks,
     doneTasks,
-    todayEvents,
     counts,
     handleCreate,
     handleToggle,
     handleEditFull,
     handleDelete,
     editEvent,
+    activePriorities,
+    activeTags,
+    togglePriority,
+    toggleTag,
+    clearFilters,
+    allTasks,
+    filteredToday,
+    filteredBacklog,
+    greeting,
+    todayTotal,
+    progressPct,
+    visibleEvents,
   };
 }
