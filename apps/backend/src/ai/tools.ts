@@ -1,8 +1,6 @@
 import type OpenAI from 'openai';
 
-// Catalogue of tools the AI agent may call.
-// `description` is what the model reads to decide WHEN to use a tool — keep it clear.
-export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   // --- Tasks ---
   {
     type: 'function',
@@ -24,9 +22,20 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           title: { type: 'string', description: 'Short task title' },
           description: { type: 'string', description: 'Optional longer details' },
-          dueDate: { type: 'string', description: 'Due date in ISO format, e.g. 2026-06-15. Default: today' },
-          priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'], description: 'Default: LOW' },
-          courseId: { type: 'number', description: 'Optional course ID to link this task to a course. Use list_courses first to find the ID.' },
+          dueDate: {
+            type: 'string',
+            description: 'Due date in ISO format, e.g. 2026-06-15. Default: today',
+          },
+          priority: {
+            type: 'string',
+            enum: ['LOW', 'MEDIUM', 'HIGH'],
+            description: 'Default: LOW',
+          },
+          courseId: {
+            type: 'number',
+            description:
+              'Optional course ID to link this task to a course. Use list_courses first to find the ID.',
+          },
         },
         required: ['title'],
       },
@@ -36,7 +45,8 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'update_task',
-      description: 'Update an existing task. Use when the user wants to change a task title, due date, priority, or description.',
+      description:
+        'Update an existing task. Use when the user wants to change a task title, due date, priority, or description.',
       parameters: {
         type: 'object',
         properties: {
@@ -85,7 +95,8 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'list_notes',
-      description: "List the current user's notes (title, folderId). Use to find notes or answer questions about them.",
+      description:
+        "List the current user's notes (title, folderId). Use to find notes or answer questions about them.",
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -114,7 +125,10 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           title: { type: 'string', description: 'Note title' },
           description: { type: 'string', description: 'Note content (markdown supported)' },
           folderId: { type: 'number', description: 'Optional folder ID to put the note in' },
-          courseId: { type: 'number', description: 'Optional course ID to link this note to a course. Use list_courses first to find the ID.' },
+          courseId: {
+            type: 'number',
+            description: 'Optional course ID to link this note to a course.',
+          },
         },
         required: ['title'],
       },
@@ -184,8 +198,25 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'list_courses',
-      description: "List the courses the current user is enrolled in.",
+      description: 'List the courses the current user is enrolled in.',
       parameters: { type: 'object', properties: {} },
+    },
+  },
+
+  // --- Materials (read-only, both roles) ---
+  {
+    type: 'function',
+    function: {
+      name: 'list_course_materials',
+      description:
+        'List study materials for a specific course. Use list_courses first to find the courseId.',
+      parameters: {
+        type: 'object',
+        properties: {
+          courseId: { type: 'number', description: 'Course ID' },
+        },
+        required: ['courseId'],
+      },
     },
   },
 
@@ -206,9 +237,90 @@ export const AGENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   },
 ];
 
-// Which tools CHANGE data → must be confirmed by the user before running.
-// Read-only tools run immediately; mutating tools wait for confirmation.
+const TEACHER_ONLY_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'list_groups',
+      description: 'List all groups the current teacher manages.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_group_members',
+      description: 'List members of a specific group by groupId.',
+      parameters: {
+        type: 'object',
+        properties: {
+          groupId: { type: 'number', description: 'Group ID' },
+        },
+        required: ['groupId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'list_students',
+      description: 'Search for students by name or email. Returns a list of matching users.',
+      parameters: {
+        type: 'object',
+        properties: {
+          q: { type: 'string', description: 'Name or email fragment to search for' },
+        },
+        required: ['q'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'create_assignment',
+      description:
+        'Create an assignment for a group. This creates one task for every member of the group. Use list_groups and list_group_members first to find the right groupId.',
+      parameters: {
+        type: 'object',
+        properties: {
+          groupId: { type: 'number', description: 'Group ID' },
+          title: { type: 'string', description: 'Assignment title' },
+          dueDate: { type: 'string', description: 'Due date in ISO format, e.g. 2026-07-01' },
+          description: { type: 'string', description: 'Optional assignment description' },
+        },
+        required: ['groupId', 'title', 'dueDate'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'assign_task_to_student',
+      description:
+        'Assign a task directly to a single student. Use list_students first to find the studentId.',
+      parameters: {
+        type: 'object',
+        properties: {
+          studentId: { type: 'number', description: 'Student user ID' },
+          title: { type: 'string', description: 'Task title' },
+          dueDate: { type: 'string', description: 'Due date in ISO format' },
+          description: { type: 'string', description: 'Optional details' },
+          courseId: { type: 'number', description: 'Optional course ID to link the task to' },
+        },
+        required: ['studentId', 'title'],
+      },
+    },
+  },
+];
+
+export const TEACHER_TOOLS = [...STUDENT_TOOLS, ...TEACHER_ONLY_TOOLS];
+
+export function getToolsForRole(roles: string[]): OpenAI.Chat.Completions.ChatCompletionTool[] {
+  return roles.includes('TEACHER') ? TEACHER_TOOLS : STUDENT_TOOLS;
+}
+
 export const TOOL_MUTATES: Record<string, boolean> = {
+  // Student tools
   list_tasks: false,
   create_task: true,
   update_task: true,
@@ -222,5 +334,12 @@ export const TOOL_MUTATES: Record<string, boolean> = {
   create_event: true,
   delete_event: true,
   list_courses: false,
+  list_course_materials: false,
   search: false,
+  // Teacher tools
+  list_groups: false,
+  list_group_members: false,
+  list_students: false,
+  create_assignment: true,
+  assign_task_to_student: true,
 };

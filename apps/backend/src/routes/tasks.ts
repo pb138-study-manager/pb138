@@ -6,6 +6,7 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
+import { users } from '../db/schema';
 
 const EvalSchema = z.object({
   score: z.number().int().min(0),
@@ -32,6 +33,14 @@ const UpdateTaskSchema = z.object({
   courseId: z.number().nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).nullable().optional(),
   tags: z.array(z.string().min(1).max(50)).max(20).optional(),
+});
+
+const AssignTaskSchema = z.object({
+  studentId: z.number().int().positive(),
+  title: z.string().min(1),
+  dueDate: z.string().optional(),
+  description: z.string().optional(),
+  courseId: z.number().optional(),
 });
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
@@ -67,7 +76,9 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
     const allSubtasks = await db
       .select({ parentId: tasks.parentId, status: tasks.status })
       .from(tasks)
-      .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNotNull(tasks.parentId)));
+      .where(
+        and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNotNull(tasks.parentId))
+      );
 
     const subtaskMap = new Map<number, { total: number; done: number }>();
     for (const sub of allSubtasks) {
@@ -284,7 +295,12 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       } else {
         const [created] = await db
           .insert(evals)
-          .values({ taskId: task.id, score: body.score, feedback: body.feedback, evaluatedAt: new Date() })
+          .values({
+            taskId: task.id,
+            score: body.score,
+            feedback: body.feedback,
+            evaluatedAt: new Date(),
+          })
           .returning();
         evalRow = created;
         await logAction(db, authUser.id, `Created eval for task ${task.id}`);
@@ -313,4 +329,39 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       return { error: 'NOT_FOUND', message: 'No evaluation yet' };
     }
     return evalRow;
-  });
+  })
+  .post(
+    '/assign',
+    async ({ body, user, set }) => {
+      const authUser = user as AuthUser;
+      if (!authUser.roles.includes('TEACHER')) {
+        set.status = 403;
+        return { error: 'FORBIDDEN', message: 'Only teachers can assign tasks to students' };
+      }
+      const [student] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, body.studentId));
+      if (!student) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'Student not found' };
+      }
+      const [task] = await db
+        .insert(tasks)
+        .values({
+          userId: body.studentId,
+          title: body.title,
+          ...(body.dueDate !== undefined && { dueDate: new Date(body.dueDate) }),
+          description: body.description,
+          courseId: body.courseId,
+        })
+        .returning();
+      await logAction(
+        db,
+        authUser.id,
+        `Teacher assigned task ${task.id} to student ${body.studentId}`
+      );
+      return task;
+    },
+    zodBody(AssignTaskSchema)
+  );
