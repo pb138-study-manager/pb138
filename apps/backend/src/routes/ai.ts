@@ -351,9 +351,16 @@ Respond in ${langLabel}. Never expose raw JSON.`;
 
       // Only the first list-tool result becomes display cards — later calls don't overwrite.
       if (LIST_DISPLAY_TOOLS[toolName] && !lastDisplay) {
+        const now = new Date();
         let items = Array.isArray(result) ? result : [];
         if (toolName === 'list_tasks') {
           items = items.filter((t: unknown) => (t as Record<string, unknown>).status !== 'DONE');
+        }
+        if (toolName === 'list_events') {
+          items = items.filter((e: unknown) => {
+            const start = (e as Record<string, unknown>).startDate;
+            return start && new Date(String(start)) >= now;
+          });
         }
         if (items.length > 0) lastDisplay = { type: LIST_DISPLAY_TOOLS[toolName], items };
       }
