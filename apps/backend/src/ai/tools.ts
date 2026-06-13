@@ -7,7 +7,7 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: 'list_tasks',
       description:
-        "List the current user's tasks (title, status, dueDate, priority). Use to answer questions about what the user has to do.",
+        "List the current user's incomplete tasks (title, dueDate, priority). Use ONLY when the user asks about their to-do list or tasks. Do NOT use this for questions about deadlines, schedule, or calendar — use list_events for those.",
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -157,7 +157,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'list_events',
-      description: "List the current user's calendar events and deadlines.",
+      description:
+        "List the current user's calendar events and deadline events. Use when the user asks about their schedule, upcoming deadlines, calendar, or termíny (Slovak for deadlines/due dates). Prefer this over list_tasks for time/schedule questions.",
       parameters: { type: 'object', properties: {} },
     },
   },
