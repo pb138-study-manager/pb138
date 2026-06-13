@@ -14,6 +14,13 @@ test('AI panel toggle button existuje na /today', async ({ page }) => {
 
   await page.goto('/today');
 
+  // Wait for client-side routing to settle (auth redirect may be async)
+  try {
+    await page.waitForURL('**/login', { timeout: 3000 });
+  } catch {
+    // Not redirected — user is authenticated, continue
+  }
+
   const url = page.url();
   if (url.includes('/login')) {
     expect(url).toContain('/login');
