@@ -32,6 +32,19 @@ async function req(url: string, init: RequestInit = {}): Promise<Request> {
 
 beforeAll(async () => {
   authHeader = await makeAuthHeader();
+
+  // Clean up any leftover state from a previously failed run.
+  const [stale] = await db.select({ id: users.id }).from(users).where(eq(users.authId, TEST_AUTH_ID));
+  if (stale) {
+    const staleTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, stale.id));
+    for (const t of staleTasks) {
+      await db.delete(evals).where(eq(evals.taskId, t.id));
+    }
+    await db.delete(tasks).where(eq(tasks.userId, stale.id));
+    await db.delete(auditLogs).where(eq(auditLogs.actorId, stale.id));
+    await db.delete(users).where(eq(users.id, stale.id));
+  }
+
   const [user] = await db
     .insert(users)
     .values({
@@ -48,6 +61,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await db.delete(auditLogs).where(eq(auditLogs.actorId, testUserId));
+  const userTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, testUserId));
+  for (const t of userTasks) {
+    await db.delete(evals).where(eq(evals.taskId, t.id));
+  }
   await db.delete(tasks).where(eq(tasks.userId, testUserId));
   await db.delete(users).where(eq(users.id, testUserId));
 });
@@ -265,11 +282,10 @@ describe('POST /tasks/:id/eval', () => {
     // Clean up any leftover data from previous runs
     const [staleTeacher] = await db.select().from(users).where(eq(users.authId, TEACHER_AUTH));
     if (staleTeacher) {
-      await db.delete(evals).where(
-        eq(evals.taskId,
-          (await db.select().from(tasks).where(eq(tasks.userId, staleTeacher.id)))[0]?.id ?? -1
-        )
-      );
+      const staleTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, staleTeacher.id));
+      for (const t of staleTasks) {
+        await db.delete(evals).where(eq(evals.taskId, t.id));
+      }
       await db.delete(tasks).where(eq(tasks.userId, staleTeacher.id));
       await db.delete(auditLogs).where(eq(auditLogs.actorId, staleTeacher.id));
       await db.delete(userRoles).where(eq(userRoles.userId, staleTeacher.id));
@@ -358,11 +374,10 @@ describe('GET /tasks/:id/eval', () => {
     // Clean up any leftover data from previous runs
     const [staleTeacher2] = await db.select().from(users).where(eq(users.authId, TEACHER_AUTH2));
     if (staleTeacher2) {
-      await db.delete(evals).where(
-        eq(evals.taskId,
-          (await db.select().from(tasks).where(eq(tasks.userId, staleTeacher2.id)))[0]?.id ?? -1
-        )
-      );
+      const staleTasks2 = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, staleTeacher2.id));
+      for (const t of staleTasks2) {
+        await db.delete(evals).where(eq(evals.taskId, t.id));
+      }
       await db.delete(tasks).where(eq(tasks.userId, staleTeacher2.id));
       await db.delete(auditLogs).where(eq(auditLogs.actorId, staleTeacher2.id));
       await db.delete(userRoles).where(eq(userRoles.userId, staleTeacher2.id));

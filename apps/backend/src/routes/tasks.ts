@@ -267,6 +267,10 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
         set.status = 404;
         return { error: 'NOT_FOUND', message: 'Task not found' };
       }
+      if (task.status !== 'DONE') {
+        set.status = 400;
+        return { error: 'TASK_NOT_DONE', message: 'Task must be DONE before it can be evaluated' };
+      }
       const [existing] = await db.select().from(evals).where(eq(evals.taskId, task.id));
       let evalRow;
       if (existing) {
