@@ -7,7 +7,7 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: 'list_tasks',
       description:
-        "List the current user's incomplete tasks (title, dueDate, priority). Use for to-do list questions. For 'next/nearest deadline' questions, pass limit: 1 and onlyWithDueDate: true to get only the single nearest task with a due date.",
+        "List the current user's incomplete to-do tasks (title, dueDate, priority). Use ONLY for questions about tasks or to-do items. Tasks are NOT deadlines — for deadlines use list_events.",
       parameters: {
         type: 'object',
         properties: {
@@ -170,7 +170,7 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: 'list_events',
       description:
-        "List the current user's calendar events and deadline events. Use when the user asks about their schedule, upcoming deadlines, calendar, or termíny (Slovak for deadlines/due dates). Prefer this over list_tasks for time/schedule questions. Pass limit: 1 when the user asks for the nearest/next deadline only.",
+        "List the current user's calendar events. In this app, DEADLINES are calendar events with type='DEADLINE' — they are NOT tasks. Always use this tool when the user asks about deadlines (termíny in Slovak), their schedule, or upcoming calendar items. Pass limit: 1 when the user asks for the single nearest/next deadline.",
       parameters: {
         type: 'object',
         properties: {

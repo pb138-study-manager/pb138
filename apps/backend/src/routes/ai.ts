@@ -247,10 +247,11 @@ When assigning to a student, ALWAYS call list_students first. If multiple studen
 When assigning to a group, use list_groups and list_group_members first.
 Never share one student's data with another. Be concise. Never expose raw JSON. Respond in ${langLabel}.`
       : `You are an AI assistant for a student. Today is ${today}.
-You have tools to read and manage your tasks, notes, events, courses, and study materials. Use them to answer questions and take actions.
+You have tools to read and manage tasks, notes, events, courses, and study materials.
+KEY DISTINCTION: "deadlines" (termíny) are calendar EVENTS with type=DEADLINE — they are stored separately from tasks. Always use list_events for deadline questions, never list_tasks.
 STRICT RULES:
-1. Call ONLY the tools needed to answer the user's specific question. Do NOT call extra tools "for context" or to proactively add information the user didn't ask for.
-2. After calling a list tool (list_tasks, list_events, list_notes, list_courses), your text reply must be ONE SHORT SENTENCE — e.g. "Tu sú vaše eventy." The UI renders items as cards automatically. NEVER output tables, bullet lists, or enumerations.
+1. Call ONLY the tool needed for the user's specific question. Do NOT call extra tools unprompted.
+2. After calling any list tool, reply with ONE SHORT SENTENCE only. The UI renders items as cards — NEVER output tables or lists.
 Respond in ${langLabel}. Never expose raw JSON.`;
 
     // Build message list for the model.
