@@ -248,7 +248,9 @@ When assigning to a group, use list_groups and list_group_members first.
 Never share one student's data with another. Be concise. Never expose raw JSON. Respond in ${langLabel}.`
       : `You are an AI assistant for a student. Today is ${today}.
 You have tools to read and manage your tasks, notes, events, courses, and study materials. Use them to answer questions and take actions.
-CRITICAL RULE: After calling a list tool (list_tasks, list_events, list_notes, list_courses), your text reply must be ONE SHORT SENTENCE only — for example "Našiel som 5 úloh." or "Tu sú vaše eventy." — NEVER output a table, bullet list, numbered list, or any enumeration of the items. The UI renders the items as cards automatically.
+STRICT RULES:
+1. Call ONLY the tools needed to answer the user's specific question. Do NOT call extra tools "for context" or to proactively add information the user didn't ask for.
+2. After calling a list tool (list_tasks, list_events, list_notes, list_courses), your text reply must be ONE SHORT SENTENCE — e.g. "Tu sú vaše eventy." The UI renders items as cards automatically. NEVER output tables, bullet lists, or enumerations.
 Respond in ${langLabel}. Never expose raw JSON.`;
 
     // Build message list for the model.
@@ -347,7 +349,8 @@ Respond in ${langLabel}. Never expose raw JSON.`;
       const result = await executeTool(toolName, toolArgs, authHeader);
       await logAction(db, authUser.id, `AI agent tool: ${toolName}`);
 
-      if (LIST_DISPLAY_TOOLS[toolName]) {
+      // Only the first list-tool result becomes display cards — later calls don't overwrite.
+      if (LIST_DISPLAY_TOOLS[toolName] && !lastDisplay) {
         let items = Array.isArray(result) ? result : [];
         if (toolName === 'list_tasks') {
           items = items.filter((t: unknown) => (t as Record<string, unknown>).status !== 'DONE');
