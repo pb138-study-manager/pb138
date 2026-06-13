@@ -59,8 +59,16 @@ export async function executeTool(
     }
 
     // --- Events ---
-    case 'list_events':
-      return callApi('GET', '/events', authHeader);
+    case 'list_events': {
+      const events = await callApi('GET', '/events', authHeader);
+      if (!Array.isArray(events) || !args.limit) return events;
+      const sorted = [...events].sort(
+        (a, b) =>
+          new Date(String((a as Record<string, unknown>).startDate)).getTime() -
+          new Date(String((b as Record<string, unknown>).startDate)).getTime()
+      );
+      return sorted.slice(0, Number(args.limit));
+    }
     case 'create_event':
       return callApi('POST', '/events', authHeader, args);
     case 'delete_event':

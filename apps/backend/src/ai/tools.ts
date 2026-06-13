@@ -158,8 +158,16 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     function: {
       name: 'list_events',
       description:
-        "List the current user's calendar events and deadline events. Use when the user asks about their schedule, upcoming deadlines, calendar, or termíny (Slovak for deadlines/due dates). Prefer this over list_tasks for time/schedule questions.",
-      parameters: { type: 'object', properties: {} },
+        "List the current user's calendar events and deadline events. Use when the user asks about their schedule, upcoming deadlines, calendar, or termíny (Slovak for deadlines/due dates). Prefer this over list_tasks for time/schedule questions. Pass limit: 1 when the user asks for the nearest/next deadline only.",
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number',
+            description: 'Maximum number of events to return, sorted by nearest first. Omit to return all.',
+          },
+        },
+      },
     },
   },
   {
