@@ -16,13 +16,24 @@ async function mockAuthentication(page: Page) {
   });
   
   await page.addInitScript(() => {
-    window.localStorage.setItem('supabase.auth.token', JSON.stringify({
-      currentSession: {
-        access_token: 'fake-token',
-        user: { id: '123', email: 'test@example.com' }
-      }
-    }));
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify({ access_token: 'fake-token' }));
+    const expiresAt = Math.floor(Date.now() / 1000) + 3600
+    const session = {
+      access_token: 'fake-token',
+      token_type: 'bearer',
+      expires_in: 3600,
+      expires_at: expiresAt,
+      refresh_token: 'fake-refresh-token',
+      user: {
+        id: '123',
+        aud: 'authenticated',
+        role: 'authenticated',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        created_at: '2024-01-01T00:00:00Z',
+      },
+    }
+    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
   });
 }
 
