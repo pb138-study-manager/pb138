@@ -85,7 +85,8 @@
     "generateBrief": "Generate brief",
     "briefSubtitle": "Let AI summarize your day",
     "refresh": "Refresh",
-    "context": "Context"
+    "context": "Context",
+    "aiSummary": "AI Summary"
   },
   "dialog": {
     "newFolder": "New Folder",

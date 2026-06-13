@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Event, Task } from '@/types';
 import { getWeekStart, isSameDay, shiftDate } from '@/hooks/timeline-utils';
+import { ViewTabs } from '@/components/ai/ViewTabs';
+import { AiSummaryView } from '@/components/ai/AiSummaryView';
 
 export const Route = createFileRoute('/timeline/')({
   component: TimelinePage,
@@ -69,6 +71,7 @@ function TimelinePage() {
   const lang = i18n.language === 'cs' ? 'cs-CZ' : 'en-US';
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [page_view, set_page_view] = useState<'standard' | 'ai'>('standard');
   const [view_mode, set_view_mode] = useState<'week' | 'month'>('week');
   const [month_start, set_month_start] = useState<Date>(() => {
     const d = new Date();
@@ -129,6 +132,25 @@ function TimelinePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-24">
+      {/* View tabs */}
+      <div className="px-4 pt-6">
+        <ViewTabs
+          tabs={[
+            { value: 'standard', label: t('nav.timeline', 'Timeline') },
+            { value: 'ai', label: t('ai.aiSummary') },
+          ]}
+          value={page_view}
+          onChange={(v) => set_page_view(v as 'standard' | 'ai')}
+        />
+      </div>
+
+      {/* AI summary (kept mounted to cache result across tab switches) */}
+      <div className={page_view === 'ai' ? '' : 'hidden'}>
+        <AiSummaryView endpoint="/ai/timeline_summary" active={page_view === 'ai'} />
+      </div>
+
+      {page_view === 'standard' && (
+        <>
       {/* HEADER */}
       <div className="px-6 pt-8 pb-4 flex justify-between items-center">
         <div>
@@ -304,6 +326,8 @@ function TimelinePage() {
           )
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

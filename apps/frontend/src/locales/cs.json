@@ -85,7 +85,8 @@
     "generateBrief": "Generovat shrnutí",
     "briefSubtitle": "Nechte AI shrnout váš den",
     "refresh": "Aktualizovat",
-    "context": "Kontext"
+    "context": "Kontext",
+    "aiSummary": "AI shrnutí"
   },
   "dialog": {
     "newFolder": "Nová složka",

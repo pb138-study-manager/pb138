@@ -5,7 +5,7 @@ import { db } from '../db';
 import { tasks, events, courses, notes, userCourses } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, lte } from 'drizzle-orm';
+import { eq, and, isNull, lte, gte } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 import { getToolsForRole, TOOL_MUTATES } from '../ai/tools';
 import { executeTool } from '../ai/executor';
@@ -338,4 +338,105 @@ Be concise. Never expose raw JSON.`;
     }
 
     return { reply: 'Nepodarilo sa dokončiť požiadavku.' };
-  }, zodBody(AgentSchema));
+  }, zodBody(AgentSchema))
+
+  // GET /ai/day_summary
+  .get('/day_summary', async ({ query, user, set }) => {
+    const auth_user = user as AuthUser;
+    if (!checkRateLimit(auth_user.id)) {
+      set.status = 429;
+      return { error: 'RATE_LIMITED', message: 'Max 10 AI requests per minute' };
+    }
+
+    const lang = (query.lang as string | undefined) ?? 'sk';
+    const lang_label = lang === 'en' ? 'English' : 'Slovak';
+
+    const now = new Date();
+    const day_start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const day_end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const today = now.toISOString().split('T')[0];
+
+    const due_tasks = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.userId, auth_user.id), isNull(tasks.deletedAt), lte(tasks.dueDate, day_end)));
+
+    const day_events = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.userId, auth_user.id),
+          isNull(events.deletedAt),
+          gte(events.startDate, day_start),
+          lte(events.startDate, day_end)
+        )
+      );
+
+    const context = JSON.stringify({ today, tasks: due_tasks, events: day_events });
+
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a student assistant. You receive a JSON with today's date, the student's tasks due today or earlier, and today's events.
+Today is ${today}. Tasks with dueDate before today are overdue.
+Write a concise, encouraging summary of the student's day: what is due today, what is overdue, which events are scheduled, and what the student should prioritize first.
+Use short Markdown sections with headings and bullet points. Keep it under ~150 words. Respond in ${lang_label}.`,
+        },
+        { role: 'user', content: context },
+      ],
+    });
+
+    await logAction(db, auth_user.id, 'Generated AI day summary');
+    return { summary: completion.choices[0].message.content ?? '' };
+  })
+
+  // GET /ai/timeline_summary
+  .get('/timeline_summary', async ({ query, user, set }) => {
+    const auth_user = user as AuthUser;
+    if (!checkRateLimit(auth_user.id)) {
+      set.status = 429;
+      return { error: 'RATE_LIMITED', message: 'Max 10 AI requests per minute' };
+    }
+
+    const lang = (query.lang as string | undefined) ?? 'sk';
+    const lang_label = lang === 'en' ? 'English' : 'Slovak';
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const all_tasks = await db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.userId, auth_user.id), isNull(tasks.deletedAt)));
+
+    const all_events = await db
+      .select()
+      .from(events)
+      .where(and(eq(events.userId, auth_user.id), isNull(events.deletedAt)));
+
+    const deadlines = all_tasks
+      .filter((t) => t.dueDate)
+      .map((t) => ({ title: t.title, dueDate: t.dueDate, status: t.status }));
+
+    const context = JSON.stringify({ today, deadlines, events: all_events });
+
+    const completion = await client.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a student planning assistant. You receive a JSON with today's date, the student's task deadlines, and their events.
+Today is ${today}.
+Analyze the structure of the timeline. Describe the overall workload distribution, identify peak periods (clusters of deadlines/events on the same days or weeks), and point out notable gaps (free stretches with no commitments).
+Give 1-2 short, actionable suggestions to balance the workload.
+Use short Markdown sections with headings and bullet points. Keep it under ~180 words. Respond in ${lang_label}.`,
+        },
+        { role: 'user', content: context },
+      ],
+    });
+
+    await logAction(db, auth_user.id, 'Generated AI timeline summary');
+    return { summary: completion.choices[0].message.content ?? '' };
+  });

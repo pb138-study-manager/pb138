@@ -13,6 +13,7 @@ import { materialsRoutes } from './routes/materials';
 import { adminRoutes } from './routes/admin';
 import { aiRoutes } from './routes/ai';
 import { searchRoutes } from './routes/search';
+import "dotenv/config";
 
 const PORT = process.env.PORT ?? 3001;
 
@@ -38,5 +39,4 @@ const app = new Elysia()
   .listen(PORT);
 
 console.log(`Backend running at http://localhost:${PORT}`);
-
 export type App = typeof app;

@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import TaskSection from '@/components/tasks/tasks-section';
 import TaskFilterBar from '@/components/tasks/task-filter-bar';
 import { useTranslation } from 'react-i18next';
 import { useTodayManager } from '@/hooks/useTodayManager';
 import { EventCard } from '@/components/timeline/EventCard';
+import { ViewTabs } from '@/components/ai/ViewTabs';
+import { AiSummaryView } from '@/components/ai/AiSummaryView';
 
 export const Route = createFileRoute('/today/')({
   component: TodayPage,
@@ -34,6 +37,8 @@ function TodayPage() {
     visibleEvents,
   } = useTodayManager();
 
+  const [view_mode, set_view_mode] = useState<'standard' | 'ai'>('standard');
+
   if (isPending) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 px-4 py-6 space-y-4">
@@ -49,6 +54,25 @@ function TodayPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 overflow-y-auto">
+      {/* View tabs */}
+      <div className="px-4 pt-4">
+        <ViewTabs
+          tabs={[
+            { value: 'standard', label: t('nav.today') },
+            { value: 'ai', label: t('ai.aiSummary') },
+          ]}
+          value={view_mode}
+          onChange={(v) => set_view_mode(v as 'standard' | 'ai')}
+        />
+      </div>
+
+      {/* AI summary (kept mounted to cache result across tab switches) */}
+      <div className={view_mode === 'ai' ? '' : 'hidden'}>
+        <AiSummaryView endpoint="/ai/day_summary" active={view_mode === 'ai'} />
+      </div>
+
+      {view_mode === 'standard' && (
+        <>
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
         {/* Greeting + progress */}
@@ -150,6 +174,8 @@ function TodayPage() {
           onDelete={handleDelete}
         />
       </div>
+        </>
+      )}
     </div>
   );
 }
