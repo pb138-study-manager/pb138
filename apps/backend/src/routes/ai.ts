@@ -287,6 +287,16 @@ Be concise. Never expose raw JSON.`;
       // Fall through to the loop — model can propose the next action.
     }
 
+    const LIST_DISPLAY_TOOLS: Record<string, 'tasks' | 'events' | 'notes' | 'courses'> = {
+      list_tasks: 'tasks',
+      list_events: 'events',
+      list_notes: 'notes',
+      list_courses: 'courses',
+    };
+    let lastDisplay:
+      | { type: 'tasks' | 'events' | 'notes' | 'courses'; items: unknown[] }
+      | undefined;
+
     // Agent loop: max 6 iterations to prevent runaway chains.
     for (let i = 0; i < 6; i++) {
       const completion = await client.chat.completions.create({
@@ -301,7 +311,7 @@ Be concise. Never expose raw JSON.`;
       // Model returned a text reply — we're done.
       if (choice.finish_reason === 'stop' || !msg.tool_calls?.length) {
         await logAction(db, authUser.id, 'AI agent chat');
-        return { reply: msg.content ?? '' };
+        return { reply: msg.content ?? '', display: lastDisplay };
       }
 
       // Model wants to call a tool.
@@ -325,6 +335,11 @@ Be concise. Never expose raw JSON.`;
       const result = await executeTool(toolName, toolArgs, authHeader);
       await logAction(db, authUser.id, `AI agent tool: ${toolName}`);
 
+      if (LIST_DISPLAY_TOOLS[toolName]) {
+        const items = Array.isArray(result) ? result : [];
+        if (items.length > 0) lastDisplay = { type: LIST_DISPLAY_TOOLS[toolName], items };
+      }
+
       messages.push({
         role: 'assistant',
         content: null,
@@ -337,7 +352,7 @@ Be concise. Never expose raw JSON.`;
       });
     }
 
-    return { reply: 'Nepodarilo sa dokončiť požiadavku.' };
+    return { reply: 'Nepodarilo sa dokončiť požiadavku.', display: lastDisplay };
   }, zodBody(AgentSchema))
 
   // GET /ai/day_summary
