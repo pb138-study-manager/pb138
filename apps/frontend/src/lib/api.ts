@@ -1,19 +1,17 @@
+import { supabase } from './supabase';
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-const SUPABASE_PROJECT = import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0] ?? '';
+async function getToken(): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-function getToken(): string | null {
-  try {
-    const raw = localStorage.getItem(`sb-${SUPABASE_PROJECT}-auth-token`);
-    if (!raw) return null;
-    return JSON.parse(raw)?.access_token ?? null;
-  } catch {
-    return null;
-  }
+  return session?.access_token ?? null;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = getToken();
+  const token = await getToken();
 
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
