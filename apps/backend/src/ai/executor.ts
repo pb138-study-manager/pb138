@@ -77,6 +77,8 @@ export async function executeTool(
     // --- Materials ---
     case 'list_course_materials':
       return callApi('GET', `/courses/${args.courseId}/materials`, authHeader);
+    case 'read_material_content':
+      return callApi('GET', `/courses/${args.courseId}/materials/${args.materialId}/content`, authHeader);
 
     // --- Teacher: Groups ---
     case 'list_groups':

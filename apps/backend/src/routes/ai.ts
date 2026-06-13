@@ -7,7 +7,7 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, lte } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
-import { AGENT_TOOLS, TOOL_MUTATES } from '../ai/tools';
+import { getToolsForRole, TOOL_MUTATES } from '../ai/tools';
 import { executeTool } from '../ai/executor';
 
 const client = new OpenAI({
@@ -238,15 +238,24 @@ ${note.description ?? note.title}`,
     const lang = body.lang ?? 'sk';
     const langLabel = lang === 'en' ? 'English' : 'Slovak';
     const today = new Date().toISOString().split('T')[0];
+    const isTeacher = authUser.roles.includes('TEACHER');
+
+    const systemPrompt = isTeacher
+      ? `You are an AI assistant for a university teacher. Today is ${today}.
+You can: assign tasks to groups (create_assignment) or individual students (assign_task_to_student), list groups and their members, search students by name or email, and browse study materials for courses.
+When assigning to a student, ALWAYS call list_students first. If multiple students match, do NOT guess — show the user their name and login (login is unique) and ask which one to assign to. Wait for clarification before calling assign_task_to_student.
+When assigning to a group, use list_groups and list_group_members first.
+Never share one student's data with another. Be concise. Never expose raw JSON. Respond in ${langLabel}.`
+      : `You are an AI assistant for a student. Today is ${today}.
+You have tools to read and manage your tasks, notes, events, courses, and study materials. Use them to answer questions and take actions.
+When you use a tool and get a result, summarize it clearly in ${langLabel}.
+Be concise. Never expose raw JSON.`;
 
     // Build message list for the model.
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content: `You are a student AI assistant. Today is ${today}.
-You have tools to read and manage the student's data. Use them to answer questions and take actions.
-When you use a tool and get a result, summarize it clearly in ${langLabel}.
-Be concise. Never expose raw JSON to the user.`,
+        content: systemPrompt,
       },
       ...body.messages,
     ];
@@ -283,7 +292,7 @@ Be concise. Never expose raw JSON to the user.`,
       const completion = await client.chat.completions.create({
         model: MODEL,
         messages,
-        tools: AGENT_TOOLS,
+        tools: getToolsForRole(authUser.roles),
       });
 
       const choice = completion.choices[0];

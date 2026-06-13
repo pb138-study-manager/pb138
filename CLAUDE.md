@@ -276,6 +276,27 @@ EINFRA_MODEL=llama3.3:latest
 
 ---
 
+## Backlog — Next features to implement
+
+### iCal export
+- `GET /events/ical` — returns iCal format (RFC 5545) of all user events + task deadlines
+- Frontend: "Add to Calendar" button on Timeline page → links to the endpoint
+- No auth token needed in URL (use signed URL or query param token)
+
+### Evaluation visibility for students
+- Student marks task DONE → teacher evaluates (score + feedback via POST /tasks/:id/eval)
+- Currently student can GET /tasks/:id/eval but there is no UI showing it
+- Add eval display on task detail / task card: score badge + feedback text
+- Teacher side: in course assignments view, list DONE tasks with "Evaluate" button
+
+### PDF reading for AI agent
+- Study materials often have PDF URLs; agent cannot read them
+- Add `read_material_content` tool: fetches PDF URL → extracts text → returns to model
+- Use `pdf-parse` npm package (works in Bun) for text extraction
+- Agent can then summarize, quiz, or answer questions about the PDF content
+
+---
+
 ## Auth Architecture (IMPORTANT — differs from original spec)
 
 **Auth is handled by Supabase**, not custom JWT. This changes several patterns:

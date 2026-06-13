@@ -16,6 +16,7 @@ const UpdateProfileSchema = z.object({
   title: z.string().optional(),
   organization: z.string().optional(),
   bio: z.string().optional(),
+  login: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_.-]+$/).optional(),
 });
 
 const UpdateSettingsSchema = z.object({
@@ -139,8 +140,19 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
   })
   .patch(
     '/me/profile',
-    async ({ body, user }) => {
+    async ({ body, user, set }) => {
       const uid = (user as AuthUser).id;
+      if (body.login !== undefined) {
+        const [existing] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(and(eq(users.login, body.login), isNull(users.deletedAt)));
+        if (existing && existing.id !== uid) {
+          set.status = 409;
+          return { error: 'CONFLICT', message: 'Login is already taken' };
+        }
+        await db.update(users).set({ login: body.login }).where(eq(users.id, uid));
+      }
       const values = {
         userId: uid,
         ...(body.name !== undefined && { name: body.name }),

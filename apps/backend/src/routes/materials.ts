@@ -6,6 +6,9 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
 
 const CreateMaterialSchema = z.object({
   title: z.string().min(1),
@@ -105,4 +108,36 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
       .where(eq(studyMaterials.id, material.id));
     await logAction(db, authUser.id, `Deleted material ${material.id}`);
     return { success: true };
+  })
+  .get('/:id/materials/:matId/content', async ({ params, set }) => {
+    const [material] = await db
+      .select()
+      .from(studyMaterials)
+      .where(and(eq(studyMaterials.id, Number(params.matId)), isNull(studyMaterials.deletedAt)));
+    if (!material) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Material not found' };
+    }
+    if (!material.url) {
+      set.status = 400;
+      return { error: 'NO_URL', message: 'Material has no URL to fetch' };
+    }
+    const res = await fetch(material.url);
+    if (!res.ok) {
+      set.status = 502;
+      return { error: 'FETCH_FAILED', message: `Could not fetch material URL: ${res.status}` };
+    }
+    const contentType = res.headers.get('content-type') ?? '';
+    if (!contentType.includes('pdf')) {
+      const text = await res.text();
+      return { text: text.slice(0, 8000) };
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const parsed = await pdfParse(buffer);
+    const text = parsed.text.trim();
+    if (!text) {
+      set.status = 422;
+      return { error: 'NO_TEXT', message: 'PDF appears to be scanned (image-only), cannot extract text' };
+    }
+    return { text: text.slice(0, 8000) };
   });

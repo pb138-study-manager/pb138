@@ -219,6 +219,22 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'read_material_content',
+      description:
+        'Read the text content of a study material (PDF or webpage) by its ID. Use list_course_materials first to get the materialId. Returns extracted text up to 8000 characters.',
+      parameters: {
+        type: 'object',
+        properties: {
+          courseId: { type: 'number', description: 'Course ID the material belongs to' },
+          materialId: { type: 'number', description: 'Material ID from list_course_materials' },
+        },
+        required: ['courseId', 'materialId'],
+      },
+    },
+  },
 
   // --- Search ---
   {
@@ -335,6 +351,7 @@ export const TOOL_MUTATES: Record<string, boolean> = {
   delete_event: true,
   list_courses: false,
   list_course_materials: false,
+  read_material_content: false,
   search: false,
   // Teacher tools
   list_groups: false,
