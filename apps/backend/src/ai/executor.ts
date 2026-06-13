@@ -75,7 +75,11 @@ export async function executeTool(
     case 'list_events': {
       const events = await callApi('GET', '/events', authHeader);
       if (!Array.isArray(events) || !args.limit) return events;
-      const sorted = [...events].sort(
+      const now = new Date();
+      const upcoming = events.filter(
+        (e) => new Date(String((e as Record<string, unknown>).startDate)) >= now
+      );
+      const sorted = [...upcoming].sort(
         (a, b) =>
           new Date(String((a as Record<string, unknown>).startDate)).getTime() -
           new Date(String((b as Record<string, unknown>).startDate)).getTime()
