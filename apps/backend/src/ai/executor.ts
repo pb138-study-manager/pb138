@@ -74,6 +74,27 @@ export async function executeTool(
     case 'search':
       return callApi('GET', `/search?q=${encodeURIComponent(String(args.q))}`, authHeader);
 
+    // --- Materials ---
+    case 'list_course_materials':
+      return callApi('GET', `/courses/${args.courseId}/materials`, authHeader);
+
+    // --- Teacher: Groups ---
+    case 'list_groups':
+      return callApi('GET', '/groups', authHeader);
+    case 'list_group_members':
+      return callApi('GET', `/groups/${args.groupId}`, authHeader);
+
+    // --- Teacher: Students ---
+    case 'list_students':
+      return callApi('GET', `/users/search?q=${encodeURIComponent(String(args.q))}`, authHeader);
+
+    // --- Teacher: Assignments ---
+    case 'create_assignment': {
+      const { groupId, ...rest } = args;
+      return callApi('POST', `/groups/${groupId}/assignments`, authHeader, rest);
+    }
+    case 'assign_task_to_student':
+      return callApi('POST', '/tasks/assign', authHeader, args);
     default:
       return { error: true, message: `Unknown tool: ${name}` };
   }
