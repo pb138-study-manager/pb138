@@ -30,8 +30,21 @@ export async function executeTool(
 ): Promise<unknown> {
   switch (name) {
     // --- Tasks ---
-    case 'list_tasks':
-      return callApi('GET', '/tasks', authHeader);
+    case 'list_tasks': {
+      const tasks = await callApi('GET', '/tasks', authHeader);
+      if (!Array.isArray(tasks)) return tasks;
+      let result = tasks as Record<string, unknown>[];
+      if (args.onlyWithDueDate) result = result.filter((t) => t.dueDate != null);
+      if (args.limit) {
+        result = [...result].sort((a, b) => {
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return new Date(String(a.dueDate)).getTime() - new Date(String(b.dueDate)).getTime();
+        });
+        result = result.slice(0, Number(args.limit));
+      }
+      return result;
+    }
     case 'create_task': {
       const today = new Date().toISOString().split('T')[0];
       const taskArgs = { dueDate: today, priority: 'LOW', ...args };
