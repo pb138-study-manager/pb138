@@ -7,6 +7,8 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, lte } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
+import { AGENT_TOOLS, TOOL_MUTATES } from '../ai/tools';
+import { executeTool } from '../ai/executor';
 
 const client = new OpenAI({
   apiKey: process.env.E_INFRA_API_TOKEN,
@@ -37,6 +39,12 @@ const ChatSchema = z.object({
 });
 
 const QuizLangSchema = z.object({
+  lang: z.string().optional(),
+});
+
+const AgentSchema = z.object({
+  messages: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })),
+  confirm: z.object({ name: z.string(), args: z.record(z.unknown()) }).optional(),
   lang: z.string().optional(),
 });
 
@@ -216,4 +224,109 @@ ${note.description ?? note.title}`,
 
     await logAction(db, authUser.id, `AI note chat for note ${note.id}`);
     return { reply: completion.choices[0].message.content ?? '' };
-  }, zodBody(ChatSchema));
+  }, zodBody(ChatSchema))
+
+  // POST /ai/agent
+  .post('/agent', async ({ body, user, set, request }) => {
+    const authUser = user as AuthUser;
+    if (!checkRateLimit(authUser.id)) {
+      set.status = 429;
+      return { error: 'RATE_LIMITED', message: 'Max 10 AI requests per minute' };
+    }
+
+    const authHeader = request.headers.get('authorization') ?? '';
+    const lang = body.lang ?? 'sk';
+    const langLabel = lang === 'en' ? 'English' : 'Slovak';
+    const today = new Date().toISOString().split('T')[0];
+
+    // Build message list for the model.
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      {
+        role: 'system',
+        content: `You are a student AI assistant. Today is ${today}.
+You have tools to read and manage the student's data. Use them to answer questions and take actions.
+When you use a tool and get a result, summarize it clearly in ${langLabel}.
+Be concise. Never expose raw JSON to the user.`,
+      },
+      ...body.messages,
+    ];
+
+    // If user confirmed a pending write action, execute it and re-enter the loop.
+    if (body.confirm) {
+      const confirmResult = await executeTool(
+        body.confirm.name,
+        body.confirm.args as Record<string, unknown>,
+        authHeader
+      );
+      await logAction(db, authUser.id, `AI agent executed tool: ${body.confirm.name}`);
+
+      // Add the tool call + result to history so model knows what happened.
+      messages.push({
+        role: 'assistant' as const,
+        content: null,
+        tool_calls: [{
+          id: 'confirmed',
+          type: 'function' as const,
+          function: { name: body.confirm.name, arguments: JSON.stringify(body.confirm.args) },
+        }],
+      });
+      messages.push({
+        role: 'tool' as const,
+        tool_call_id: 'confirmed',
+        content: JSON.stringify(confirmResult),
+      });
+      // Fall through to the loop — model can propose the next action.
+    }
+
+    // Agent loop: max 6 iterations to prevent runaway chains.
+    for (let i = 0; i < 6; i++) {
+      const completion = await client.chat.completions.create({
+        model: MODEL,
+        messages,
+        tools: AGENT_TOOLS,
+      });
+
+      const choice = completion.choices[0];
+      const msg = choice.message;
+
+      // Model returned a text reply — we're done.
+      if (choice.finish_reason === 'stop' || !msg.tool_calls?.length) {
+        await logAction(db, authUser.id, 'AI agent chat');
+        return { reply: msg.content ?? '' };
+      }
+
+      // Model wants to call a tool.
+      const toolCall = msg.tool_calls[0];
+      const toolName = toolCall.function.name;
+      const toolArgs = JSON.parse(toolCall.function.arguments ?? '{}');
+
+      // Mutating tool → stop and ask the user to confirm.
+      if (TOOL_MUTATES[toolName]) {
+        await logAction(db, authUser.id, `AI agent pending action: ${toolName}`);
+        return {
+          pendingAction: {
+            name: toolName,
+            args: toolArgs,
+            label: `Vykonať: ${toolName.replace(/_/g, ' ')} ${JSON.stringify(toolArgs)}`,
+          },
+        };
+      }
+
+      // Read-only tool → execute immediately, feed result back to model.
+      const result = await executeTool(toolName, toolArgs, authHeader);
+      await logAction(db, authUser.id, `AI agent tool: ${toolName}`);
+
+      messages.push({
+        role: 'assistant',
+        content: null,
+        tool_calls: msg.tool_calls,
+      });
+      messages.push({
+        role: 'tool',
+        tool_call_id: toolCall.id,
+        content: JSON.stringify(result),
+      });
+    }
+
+    return { reply: 'Nepodarilo sa dokončiť požiadavku.' };
+  }, zodBody(AgentSchema));

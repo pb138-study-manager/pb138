@@ -3,8 +3,9 @@ import { X, Sparkles, MessageSquare, Newspaper } from 'lucide-react';
 import { useAIPanel } from '@/context/AIPanelContext';
 import { BriefTab } from './BriefTab';
 import { ChatTab } from './ChatTab';
+import { AgentTab } from './AgentTab';
 
-type Tab = 'brief' | 'chat';
+type Tab = 'brief' | 'chat' | 'agent';
 
 interface AICopilotPanelProps {
   inline?: boolean;
@@ -54,6 +55,17 @@ export function AICopilotPanel({ inline = false }: AICopilotPanelProps) {
           <MessageSquare size={14} />
           Chat
         </button>
+        <button
+          onClick={() => setTab('agent')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+            tab === 'agent'
+              ? 'text-indigo-600 border-b-2 border-indigo-500'
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <Sparkles size={14} />
+          Agent
+        </button>
       </div>
 
       {/* Content — both tabs always mounted, hidden tab just invisible */}
@@ -63,6 +75,9 @@ export function AICopilotPanel({ inline = false }: AICopilotPanelProps) {
         </div>
         <div className={tab === 'chat' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
           <ChatTab />
+        </div>
+        <div className={tab === 'agent' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
+          <AgentTab />
         </div>
       </div>
     </div>
