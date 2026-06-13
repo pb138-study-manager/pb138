@@ -248,8 +248,8 @@ When assigning to a group, use list_groups and list_group_members first.
 Never share one student's data with another. Be concise. Never expose raw JSON. Respond in ${langLabel}.`
       : `You are an AI assistant for a student. Today is ${today}.
 You have tools to read and manage your tasks, notes, events, courses, and study materials. Use them to answer questions and take actions.
-When you use a tool and get a result, summarize it clearly in ${langLabel}.
-Be concise. Never expose raw JSON.`;
+CRITICAL RULE: After calling a list tool (list_tasks, list_events, list_notes, list_courses), your text reply must be ONE SHORT SENTENCE only — for example "Našiel som 5 úloh." or "Tu sú vaše eventy." — NEVER output a table, bullet list, numbered list, or any enumeration of the items. The UI renders the items as cards automatically.
+Respond in ${langLabel}. Never expose raw JSON.`;
 
     // Build message list for the model.
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -311,7 +311,17 @@ Be concise. Never expose raw JSON.`;
       // Model returned a text reply — we're done.
       if (choice.finish_reason === 'stop' || !msg.tool_calls?.length) {
         await logAction(db, authUser.id, 'AI agent chat');
-        return { reply: msg.content ?? '', display: lastDisplay };
+        const rawReply = msg.content ?? '';
+        // Strip markdown tables from the reply when items are shown as cards.
+        const reply = lastDisplay
+          ? rawReply
+              .split('\n')
+              .filter((line) => !line.match(/^\s*\|/))
+              .join('\n')
+              .replace(/\n{3,}/g, '\n\n')
+              .trim()
+          : rawReply;
+        return { reply, display: lastDisplay };
       }
 
       // Model wants to call a tool.
@@ -336,7 +346,10 @@ Be concise. Never expose raw JSON.`;
       await logAction(db, authUser.id, `AI agent tool: ${toolName}`);
 
       if (LIST_DISPLAY_TOOLS[toolName]) {
-        const items = Array.isArray(result) ? result : [];
+        let items = Array.isArray(result) ? result : [];
+        if (toolName === 'list_tasks') {
+          items = items.filter((t: unknown) => (t as Record<string, unknown>).status !== 'DONE');
+        }
         if (items.length > 0) lastDisplay = { type: LIST_DISPLAY_TOOLS[toolName], items };
       }
 
