@@ -299,6 +299,7 @@ Respond in ${langLabel}. Never expose raw JSON.`;
     let lastDisplay:
       | { type: 'tasks' | 'events' | 'notes' | 'courses'; items: unknown[] }
       | undefined;
+    let listToolCalled = false;
 
     // Agent loop: max 6 iterations to prevent runaway chains.
     for (let i = 0; i < 6; i++) {
@@ -322,8 +323,8 @@ Respond in ${langLabel}. Never expose raw JSON.`;
           .join('\n')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
-        // When cards are shown, keep only the first non-empty line as caption.
-        const reply = lastDisplay
+        // After any list tool call, keep only the first non-empty line.
+        const reply = listToolCalled
           ? (stripped.split('\n').find((l) => l.trim()) ?? stripped)
           : stripped;
         return { reply, display: lastDisplay };
@@ -351,6 +352,7 @@ Respond in ${langLabel}. Never expose raw JSON.`;
       await logAction(db, authUser.id, `AI agent tool: ${toolName}`);
 
       // Only the first list-tool result becomes display cards — later calls don't overwrite.
+      if (LIST_DISPLAY_TOOLS[toolName]) listToolCalled = true;
       if (LIST_DISPLAY_TOOLS[toolName] && !lastDisplay) {
         const now = new Date();
         let items = Array.isArray(result) ? result : [];
