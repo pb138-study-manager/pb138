@@ -121,6 +121,7 @@ function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
       {!isPublicRoute && (
         <button
           onClick={toggle}
+          title="AI Copilot"
           className={`fixed top-4 right-4 z-50 w-9 h-9 rounded-full items-center justify-center shadow-lg transition-colors ${
             isOpen ? 'hidden' : 'flex'
           } bg-white dark:bg-gray-800 text-indigo-500 border border-gray-200 dark:border-gray-700`}
