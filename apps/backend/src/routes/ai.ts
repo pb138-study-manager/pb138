@@ -312,13 +312,17 @@ Respond in ${langLabel}. Never expose raw JSON.`;
       if (choice.finish_reason === 'stop' || !msg.tool_calls?.length) {
         await logAction(db, authUser.id, 'AI agent chat');
         const rawReply = msg.content ?? '';
-        // Always strip markdown tables — agent chat is not a table-rendering context.
-        const reply = rawReply
+        // Strip markdown tables — agent chat is not a table-rendering context.
+        const stripped = rawReply
           .split('\n')
           .filter((line) => !line.match(/^\s*\|/))
           .join('\n')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
+        // When cards are shown, keep only the first non-empty line as caption.
+        const reply = lastDisplay
+          ? (stripped.split('\n').find((l) => l.trim()) ?? stripped)
+          : stripped;
         return { reply, display: lastDisplay };
       }
 
