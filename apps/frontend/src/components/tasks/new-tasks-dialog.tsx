@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import SubtasksDialog from '@/components/tasks/subtasks-dialog';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 
@@ -51,13 +52,13 @@ export default function NewTaskDialog({
   const [tagInput, setTagInput] = useState('');
   const tagInputRef = useRef<HTMLInputElement>(null);
 
-  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    api.get<Course[]>('/courses/enrolled').then(setCourses).catch(() => {});
-  }, [isOpen]);
+  const { data: courses = [] } = useQuery({
+    queryKey: ['courses', 'enrolled'],
+    queryFn: () => api.get<Course[]>('/courses/enrolled'),
+    enabled: isOpen,
+  });
 
   useEffect(() => {
     if (tagInputOpen) tagInputRef.current?.focus();

@@ -10,7 +10,15 @@ interface TaskTimelineCardProps {
   onToggle: () => void
   onEditFull: (
     id: number,
-    data: { title: string; dueDate: string; description?: string; status?: TaskStatus },
+    data: {
+      title: string;
+      dueDate?: string;
+      description?: string;
+      status?: TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+      courseId?: number | null;
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) => Promise<void>

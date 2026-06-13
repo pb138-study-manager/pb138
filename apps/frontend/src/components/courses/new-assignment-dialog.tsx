@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
 interface Student {
@@ -37,7 +38,7 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
   const [evalType, setEvalType] = useState<'none' | 'pass_fail' | 'graded'>('none');
   const [sendTo, setSendTo] = useState<'class' | 'student'>('class');
   const [studentQuery, setStudentQuery] = useState('');
-  const [studentResults, setStudentResults] = useState<Student[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -49,21 +50,25 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
       setEvalType('none');
       setSendTo('class');
       setStudentQuery('');
-      setStudentResults([]);
+      setDebouncedQuery('');
       setSelectedStudent(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (studentQuery.length < 2) { setStudentResults([]); return; }
-    const timer = setTimeout(async () => {
-      const results = await api
-        .get<Student[]>(`/users/search?q=${encodeURIComponent(studentQuery)}`)
-        .catch(() => []);
-      setStudentResults(results);
+    const timer = setTimeout(() => {
+      setDebouncedQuery(studentQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [studentQuery]);
+
+  const { data: fetchedResults = [] } = useQuery({
+    queryKey: ['users', 'search', debouncedQuery],
+    queryFn: () => api.get<Student[]>(`/users/search?q=${encodeURIComponent(debouncedQuery)}`),
+    enabled: debouncedQuery.length >= 2,
+  });
+
+  const studentResults = debouncedQuery.length >= 2 ? fetchedResults : [];
 
   async function handleSubmit() {
     if (!title.trim() || !selectedDate) return;
@@ -172,7 +177,7 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem
-                    onClick={() => { setSendTo('class'); setSelectedStudent(null); setStudentQuery(''); setStudentResults([]); }}
+                    onClick={() => { setSendTo('class'); setSelectedStudent(null); setStudentQuery(''); }}
                     className="flex items-center justify-between gap-4"
                   >
                     Whole class
@@ -223,7 +228,7 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                           {studentResults.map((u) => (
                             <button
                               key={u.id}
-                              onClick={() => { setSelectedStudent(u); setStudentQuery(''); setStudentResults([]); }}
+                              onClick={() => { setSelectedStudent(u); setStudentQuery(''); }}
                               className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
                             >
                               <span className="font-medium text-gray-900">{u.name ?? u.email}</span>

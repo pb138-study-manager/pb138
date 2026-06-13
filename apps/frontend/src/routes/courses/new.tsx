@@ -1,41 +1,45 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ChevronLeft } from 'lucide-react'
-import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ChevronLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/courses/new')({
   component: NewCoursePage,
-})
+});
 
 function NewCoursePage() {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
-  const [semester, setSemester] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [code, setCode] = useState('');
+  const [name, setName] = useState('');
+  const [semester, setSemester] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleCreate() {
-    if (!code.trim() || !semester.trim()) return
-    setSaving(true)
-    setError(null)
+    if (!code.trim() || !semester.trim()) return;
+    setSaving(true);
+    setError(null);
     try {
       await api.post('/courses', {
         code: code.trim(),
         name: name.trim() || undefined,
         semester: semester.trim(),
-      })
-      queryClient.invalidateQueries({ queryKey: ['courses'] })
-      navigate({ to: '/courses' })
+      });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      navigate({ to: '/courses' });
     } catch {
-      setError('Failed to create course. Make sure you have the TEACHER role.')
+      setError(
+        t('courses.createError', 'Failed to create course. Make sure you have the TEACHER role.')
+      );
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -51,17 +55,19 @@ function NewCoursePage() {
         >
           <ChevronLeft className="w-6 h-6 text-gray-900 dark:text-white" />
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">New Course</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('courses.newCourse', 'New Course')}
+        </h1>
       </div>
 
       {/* Form */}
       <div className="px-4 py-6 space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Course Code <span className="text-red-500">*</span>
+            {t('courses.courseCode', 'Course Code')} <span className="text-red-500">*</span>
           </label>
           <Input
-            placeholder="e.g. PB138"
+            placeholder={t('courses.courseCodePlaceholder', 'e.g. PB138')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
@@ -69,10 +75,10 @@ function NewCoursePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Course Name
+            {t('courses.courseName', 'Course Name')}
           </label>
           <Input
-            placeholder="Full name of the course"
+            placeholder={t('courses.courseNamePlaceholder', 'Full name of the course')}
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -80,10 +86,10 @@ function NewCoursePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Semester <span className="text-red-500">*</span>
+            {t('courses.semester', 'Semester')} <span className="text-red-500">*</span>
           </label>
           <Input
-            placeholder="e.g. Spring 2026"
+            placeholder={t('courses.semesterPlaceholder', 'e.g. Spring 2026')}
             value={semester}
             onChange={(e) => setSemester(e.target.value)}
           />
@@ -96,9 +102,9 @@ function NewCoursePage() {
           className="w-full mt-4"
           disabled={saving || !code.trim() || !semester.trim()}
         >
-          {saving ? 'Creating…' : 'Create Course'}
+          {saving ? t('common.creating', 'Creating…') : t('courses.createCourse', 'Create Course')}
         </Button>
       </div>
     </div>
-  )
+  );
 }

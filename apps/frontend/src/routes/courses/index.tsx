@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useRoleMode } from '@/lib/roleMode'
 import { getCourseColor } from '@/lib/courseColors'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/courses/')({
   component: CoursesPage,
@@ -12,6 +13,7 @@ export const Route = createFileRoute('/courses/')({
 
 // Samostatný komponent lebo volá hook — hooky sa nedajú volať vo vnútri .map()
 function CourseProgressBar({ courseId, accentClass }: { courseId: number; accentClass: string }) {
+  const { t } = useTranslation()
   const { data } = useQuery({
     queryKey: ['course-progress', courseId],
     queryFn: () =>
@@ -26,7 +28,7 @@ function CourseProgressBar({ courseId, accentClass }: { courseId: number; accent
   return (
     <div className="mt-1">
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-        <span>{data.done}/{data.total} tasks</span>
+        <span>{data.done}/{data.total} {t('courses.tasks', 'tasks')}</span>
         <span>{pct}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-white/50 dark:bg-black/20 overflow-hidden">
@@ -50,6 +52,7 @@ interface Course {
 function CoursesPage() {
   const navigate = useNavigate()
   const { mode } = useRoleMode()
+  const { t } = useTranslation()
   const isTeacher = mode === 'teacher'
 
   const { data: courses = [], isPending } = useQuery({
@@ -76,7 +79,7 @@ function CoursesPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Courses</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('courses.title', 'Courses')}</h1>
         {isTeacher && (
           <Button
             variant="ghost"
@@ -84,7 +87,7 @@ function CoursesPage() {
             onClick={() => navigate({ to: '/courses/new' })}
             className="p-0 h-auto w-auto"
           >
-            <Plus className="w-6 h-6 text-gray-900" />
+            <Plus className="w-6 h-6 text-gray-900 dark:text-white" />
           </Button>
         )}
       </div>
@@ -93,7 +96,7 @@ function CoursesPage() {
       <div className="px-4 py-6 grid grid-cols-2 gap-4">
         {visibleCourses.length === 0 ? (
           <div className="col-span-2 text-center text-gray-400 py-12">
-            {isTeacher ? 'No courses yet' : 'You are not enrolled in any courses yet'}
+            {isTeacher ? t('courses.noCoursesTeacher', 'No courses yet') : t('courses.noCoursesStudent', 'You are not enrolled in any courses yet')}
           </div>
         ) : (
           visibleCourses.map((course) => {

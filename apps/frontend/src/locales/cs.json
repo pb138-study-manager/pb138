@@ -20,7 +20,11 @@
     "notes": "Poznámky",
     "timeline": "Časová osa",
     "profile": "Profil",
-    "others": "Ostatní"
+    "others": "Ostatní",
+    "myClasses": "Moje třídy",
+    "appTitle": "Study Manager",
+    "switchToStudent": "Přepnout na Studenta",
+    "switchToTeacher": "Přepnout na Vyučujícího"
   },
   "others": {
     "title": "Ostatní"
@@ -104,5 +108,62 @@
     "greetingAfternoon": "Dobrý deň",
     "greetingEvening": "Dobrý večer",
     "progress": "{{done}} z {{total}} úloh hotových dnes"
+  },
+  "common": {
+    "creating": "Vytváření...",
+    "saving": "Ukládání...",
+    "cancel": "Zrušit",
+    "add": "Přidat",
+    "title": "Název",
+    "descriptionOptional": "Popis (volitelné)"
+  },
+  "courses": {
+    "title": "Kurzy",
+    "newCourse": "Nový kurz",
+    "createCourse": "Vytvořit kurz",
+    "courseCode": "Kód kurzu",
+    "courseCodePlaceholder": "např. PB138",
+    "courseName": "Název kurzu",
+    "courseNamePlaceholder": "Celý název kurzu",
+    "semester": "Semestr",
+    "semesterPlaceholder": "např. Jaro 2026",
+    "createError": "Nepodařilo se vytvořit kurz. Ujistěte se, že máte roli VYUČUJÍCÍ.",
+    "noCoursesTeacher": "Zatím žádné kurzy",
+    "noCoursesStudent": "Zatím nejste zapsáni v žádném kurzu",
+    "tasks": "Úkoly",
+    "materials": "Studijní materiály",
+    "noMaterials": "Žádné materiály pro tento kurz",
+    "noMaterialsTeacher": "Zatím žádné materiály",
+    "addMaterial": "Přidat materiál",
+    "urlOptional": "URL (volitelné)",
+    "evaluations": "Hodnocení",
+    "evaluationsError": "Nepodařilo se načíst hodnocení.",
+    "noEvaluations": "Zatím žádná hodnocení",
+    "evalPass": "Prospěl/a",
+    "evalFail": "Neprospěl/a",
+    "assignments": "Zadání",
+    "noAssignments": "Zatím žádná zadání",
+    "students": "Studenti",
+    "searchStudent": "Vyhledat podle jména nebo emailu...",
+    "noStudents": "Nejsou zapsáni žádní studenti",
+    "errorAlreadyEnrolled": "Tento student je již zapsán.",
+    "errorSelfEnroll": "Nemůžete se sami přidat do kurzu.",
+    "errorAddStudent": "Nepodařilo se přidat studenta.",
+    "done": "hotovo",
+    "student": "Student",
+    "assigned": "Přiřazeno",
+    "createdByMe": "Vytvořeno mnou",
+    "noNotes": "Žádné poznámky pro tento kurz",
+    "noTasks": "Žádné úkoly pro tento kurz",
+    "notFound": "Kurz nenalezen",
+    "unknownTeacher": "Neznámý vyučující",
+    "tabs": {
+      "tasks": "úkoly",
+      "notes": "poznámky",
+      "materials": "materiály",
+      "evaluations": "hodnocení",
+      "assignments": "zadání",
+      "students": "studenti"
+    }
   }
 }

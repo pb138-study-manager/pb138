@@ -1,5 +1,4 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { useTranslation } from 'react-i18next';
 import ThemeSetting from '@/components/profile/theme-setting';
 import LanguageSetting from '@/components/profile/language-setting';
 import NotificationSetting from '@/components/profile/notification-setting';
@@ -19,8 +18,6 @@ export default function SettingsCard({
   onUpdateSettings,
   onChangeLanguage,
 }: SettingsCardProps) {
-  const { t } = useTranslation();
-
   return (
     <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors overflow-hidden">
       <CardContent className="p-0">
