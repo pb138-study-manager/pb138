@@ -294,6 +294,23 @@ EINFRA_MODEL=llama3.3:latest
 - Add `read_material_content` tool: fetches PDF URL → extracts text → returns to model
 - Use `pdf-parse` npm package (works in Bun) for text extraction
 - Agent can then summarize, quiz, or answer questions about the PDF content
+- ✅ DONE (2026-06-13)
+
+### AI Copilot panel — remove Chat tab, keep only Brief + Agent
+- Chat tab (`ChatTab.tsx`) duplicates Agent tab functionality but with fewer features
+- Remove Chat tab from `AICopilotPanel.tsx`, update `type Tab = 'brief' | 'agent'`
+- Agent tab is the main AI interface going forward
+
+### Notes AI features — QuizModal + NoteAIChat
+- `QuizModal.tsx` — "🧠 Quiz me" button in notes toolbar → calls `POST /ai/notes/:id/quiz` → 5 MCQ questions, colored correct/incorrect answers. Backend endpoint exists.
+- `NoteAIChat.tsx` — "✦ Ask AI" button in notes toolbar → drawer with chat grounded in note context → calls `POST /ai/notes/:id/chat`. Backend endpoint exists.
+
+### MCP server
+- New Bun package `apps/mcp-server/` using `@modelcontextprotocol/sdk` (stdio transport)
+- Reads env `STUDENT_OS_API_URL`, `STUDENT_OS_TOKEN` (PAT)
+- Exposes same tools as AGENT_TOOLS, calls existing REST endpoints
+- Requires PAT auth system (Part A from original plan) to be implemented first
+- README: how to generate PAT in Profile + Claude Desktop config snippet
 
 ---
 
