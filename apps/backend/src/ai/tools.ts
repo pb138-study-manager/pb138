@@ -13,11 +13,15 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           limit: {
             type: 'number',
-            description: 'Maximum number of tasks to return. Pass 1 for nearest-deadline queries.',
+            description: 'Maximum number of tasks to return.',
           },
           onlyWithDueDate: {
             type: 'boolean',
             description: 'If true, exclude tasks without a due date.',
+          },
+          dueDateOn: {
+            type: 'string',
+            description: 'Filter tasks due on this specific date (YYYY-MM-DD). Use for "tasks for today" queries.',
           },
         },
       },

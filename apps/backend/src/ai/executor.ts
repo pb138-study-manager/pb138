@@ -35,6 +35,7 @@ export async function executeTool(
       if (!Array.isArray(tasks)) return tasks;
       let result = tasks as Record<string, unknown>[];
       if (args.onlyWithDueDate) result = result.filter((t) => t.dueDate != null);
+      if (args.dueDateOn) result = result.filter((t) => t.dueDate && String(t.dueDate).startsWith(String(args.dueDateOn)));
       if (args.limit) {
         result = [...result].sort((a, b) => {
           if (!a.dueDate) return 1;
