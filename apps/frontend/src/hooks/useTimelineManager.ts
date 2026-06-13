@@ -120,6 +120,7 @@ export function useTimelineManager() {
     events: allEvents,
     eventsForSelectedDate,
     tasksForSelectedDate,
+    tasks,
     isPending,
     selectDate,
     prevWeek,

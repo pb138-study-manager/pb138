@@ -109,6 +109,10 @@
     "greetingEvening": "Dobrý večer",
     "progress": "{{done}} z {{total}} úkolů hotových dnes"
   },
+  "timeline": {
+    "week": "Týden",
+    "month": "Měsíc"
+  },
   "common": {
     "creating": "Vytváření...",
     "saving": "Ukládání...",

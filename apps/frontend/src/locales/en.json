@@ -109,6 +109,10 @@
     "greetingEvening": "Good evening",
     "progress": "{{done}} of {{total}} tasks done today"
   },
+  "timeline": {
+    "week": "Week",
+    "month": "Month"
+  },
   "common": {
     "creating": "Creating...",
     "saving": "Saving...",

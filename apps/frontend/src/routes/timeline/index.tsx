@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -8,6 +9,9 @@ import { EventCard } from '@/components/timeline/EventCard';
 import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard';
 import NewEventDialog from '@/components/timeline/NewEventDialog';
 import { useTranslation } from 'react-i18next';
+import { api } from '@/lib/api';
+import { Event, Task } from '@/types';
+import { getWeekStart, isSameDay, shiftDate } from '@/hooks/timeline-utils';
 
 export const Route = createFileRoute('/timeline/')({
   component: TimelinePage,
@@ -32,14 +36,24 @@ function formatDayHeader(date: Date, lang: string): string {
   return date.toLocaleDateString(lang, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
+function get_month_grid(month_start: Date): Date[] {
+  const grid_start = getWeekStart(month_start);
+  const last_day = new Date(month_start.getFullYear(), month_start.getMonth() + 1, 0);
+  const day_of_week = last_day.getDay();
+  const days_to_sunday = day_of_week === 0 ? 0 : 7 - day_of_week;
+  const total_days =
+    Math.round((last_day.getTime() - grid_start.getTime()) / 86400000) + 1 + days_to_sunday;
+  return Array.from({ length: total_days }, (_, i) => shiftDate(grid_start, i));
+}
+
 function TimelinePage() {
   const {
     selectedDate,
     weekStart,
     weekDates,
     events,
-    eventsForSelectedDate,
     tasksForSelectedDate,
+    tasks,
     isPending,
     selectDate,
     prevWeek,
@@ -55,14 +69,53 @@ function TimelinePage() {
   const lang = i18n.language === 'cs' ? 'cs-CZ' : 'en-US';
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [view_mode, set_view_mode] = useState<'week' | 'month'>('week');
+  const [month_start, set_month_start] = useState<Date>(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+
   const today = new Date();
 
+  const month_end = new Date(
+    month_start.getFullYear(),
+    month_start.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  );
+
+  const { data: month_events = [], isPending: month_events_pending } = useQuery({
+    queryKey: ['events', 'month', month_start.toISOString()],
+    queryFn: () =>
+      api
+        .get<Event[]>(`/events?from=${month_start.toISOString()}&to=${month_end.toISOString()}`)
+        .catch(() => []),
+    enabled: view_mode === 'month',
+  });
+
+  function prev_month() {
+    set_month_start((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }
+
+  function next_month() {
+    set_month_start((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }
+
+  const active_events_for_selected_date = (view_mode === 'month' ? month_events : events).filter(
+    (e) => isSameDay(new Date(e.startDate), selectedDate)
+  );
+
+  const is_loading = view_mode === 'month' ? month_events_pending : isPending;
+
   type TimelineItem =
-    | { kind: 'event'; time: number; data: (typeof eventsForSelectedDate)[0] }
+    | { kind: 'event'; time: number; data: (typeof active_events_for_selected_date)[0] }
     | { kind: 'task'; time: number; data: (typeof tasksForSelectedDate)[0] };
 
   const timelineItems: TimelineItem[] = [
-    ...eventsForSelectedDate.map((e) => ({
+    ...active_events_for_selected_date.map((e) => ({
       kind: 'event' as const,
       time: new Date(e.startDate).getTime(),
       data: e,
@@ -85,15 +138,41 @@ function TimelinePage() {
           <p className="text-sm text-gray-400">{formatDayHeader(selectedDate, lang)}</p>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10"
-          type="button"
-          onClick={() => setIsAddOpen(true)}
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={() => set_view_mode('week')}
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                view_mode === 'week'
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                  : 'bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {t('timeline.week', 'Week')}
+            </button>
+            <button
+              type="button"
+              onClick={() => set_view_mode('month')}
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                view_mode === 'month'
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                  : 'bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+              }`}
+            >
+              {t('timeline.month', 'Month')}
+            </button>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            type="button"
+            onClick={() => setIsAddOpen(true)}
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        </div>
       </div>
 
       <NewEventDialog
@@ -102,66 +181,77 @@ function TimelinePage() {
         onSave={(data) => createEvent(data).then(() => {})}
       />
 
-      {/* CALENDAR STRIP */}
+      {/* CALENDAR STRIP / MONTH GRID */}
       <div className="px-4 mb-6">
         <div className="flex items-center justify-between mb-4 px-2">
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6 rounded-full bg-gray-50 dark:bg-gray-800 border-none"
-            onClick={prevWeek}
+            onClick={view_mode === 'month' ? prev_month : prevWeek}
           >
             <ChevronLeft className="w-4 h-4 text-gray-400" />
           </Button>
           <span className="font-bold text-sm dark:text-white">
-            {formatMonthYear(weekStart, lang)}
+            {formatMonthYear(view_mode === 'month' ? month_start : weekStart, lang)}
           </span>
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6 rounded-full bg-gray-50 dark:bg-gray-800 border-none"
-            onClick={nextWeek}
+            onClick={view_mode === 'month' ? next_month : nextWeek}
           >
             <ChevronRight className="w-4 h-4 text-gray-400" />
           </Button>
         </div>
 
-        <div className="flex justify-between gap-1">
-          {weekDates.map((date, i) => {
-            const isActive = date.toDateString() === selectedDate.toDateString();
-            const isToday = date.toDateString() === today.toDateString();
-            const dayEvents = events.filter(
-              (e) => e.startDate && new Date(e.startDate).toDateString() === date.toDateString()
-            );
-            const hasEvent = dayEvents.some((e) => e.type === 'EVENT');
-            const hasDeadline = dayEvents.some((e) => e.type === 'DEADLINE');
-            return (
-              <button
-                key={i}
-                onClick={() => selectDate(date)}
-                className="flex flex-col items-center gap-2"
-              >
-                <span className="text-xs font-semibold text-gray-400">
-                  {t(`timeline.days.${DAY_KEYS[i]}`, DAY_LABELS[i])}
-                </span>
-                <div
-                  className={`
-                  w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
-                  ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : isToday ? 'bg-gray-100 dark:bg-gray-700 border-red-400 text-gray-900 dark:text-white' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
-                `}
+        {view_mode === 'week' ? (
+          <div className="flex justify-between gap-1">
+            {weekDates.map((date, i) => {
+              const isActive = date.toDateString() === selectedDate.toDateString();
+              const isToday = date.toDateString() === today.toDateString();
+              const dayEvents = events.filter(
+                (e) => e.startDate && new Date(e.startDate).toDateString() === date.toDateString()
+              );
+              const hasEvent = dayEvents.some((e) => e.type === 'EVENT');
+              const hasDeadline = dayEvents.some((e) => e.type === 'DEADLINE');
+              return (
+                <button
+                  key={i}
+                  onClick={() => selectDate(date)}
+                  className="flex flex-col items-center gap-2"
                 >
-                  <span className="font-bold">{date.getDate()}</span>
-                  {(hasEvent || hasDeadline) && !isActive && (
-                    <div className="flex gap-0.5">
-                      {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-                      {hasDeadline && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  <span className="text-xs font-semibold text-gray-400">
+                    {t(`timeline.days.${DAY_KEYS[i]}`, DAY_LABELS[i])}
+                  </span>
+                  <div
+                    className={`
+                    w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
+                    ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : isToday ? 'bg-gray-100 dark:bg-gray-700 border-red-400 text-gray-900 dark:text-white' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
+                  `}
+                  >
+                    <span className="font-bold">{date.getDate()}</span>
+                    {(hasEvent || hasDeadline) && !isActive && (
+                      <div className="flex gap-0.5">
+                        {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                        {hasDeadline && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <MonthGrid
+            month_start={month_start}
+            active_events={month_events}
+            tasks={tasks}
+            selected_date={selectedDate}
+            on_select_date={selectDate}
+            today={today}
+          />
+        )}
       </div>
 
       {/* LEGEND */}
@@ -173,7 +263,7 @@ function TimelinePage() {
 
       {/* TIMELINE CONTENT */}
       <div className="px-4 space-y-4">
-        {isPending && (
+        {is_loading && (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -184,7 +274,7 @@ function TimelinePage() {
           </div>
         )}
 
-        {!isPending && timelineItems.length === 0 && (
+        {!is_loading && timelineItems.length === 0 && (
           <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center">
             <p className="text-sm text-gray-400">
               {t('timeline.noEvents', 'No events for this day')}
@@ -214,6 +304,88 @@ function TimelinePage() {
           )
         )}
       </div>
+    </div>
+  );
+}
+
+function MonthGrid({
+  month_start,
+  active_events,
+  tasks,
+  selected_date,
+  on_select_date,
+  today,
+}: {
+  month_start: Date;
+  active_events: Event[];
+  tasks: Task[];
+  selected_date: Date;
+  on_select_date: (date: Date) => void;
+  today: Date;
+}) {
+  const { t } = useTranslation();
+  const grid_dates = get_month_grid(month_start);
+  const weeks: Date[][] = [];
+  for (let i = 0; i < grid_dates.length; i += 7) {
+    weeks.push(grid_dates.slice(i, i + 7));
+  }
+  const current_month = month_start.getMonth();
+
+  return (
+    <div>
+      {/* Column headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAY_LABELS.map((label, i) => (
+          <div key={i} className="text-center text-xs font-semibold text-gray-400 pb-2">
+            {t(`timeline.days.${DAY_KEYS[i]}`, label)}
+          </div>
+        ))}
+      </div>
+      {/* Week rows */}
+      {weeks.map((week, wi) => (
+        <div key={wi} className="grid grid-cols-7">
+          {week.map((date, di) => {
+            const in_month = date.getMonth() === current_month;
+            const is_active = isSameDay(date, selected_date);
+            const is_today = isSameDay(date, today);
+            const day_events = active_events.filter((e) =>
+              isSameDay(new Date(e.startDate), date)
+            );
+            const has_event = day_events.some((e) => e.type === 'EVENT');
+            const has_deadline = day_events.some((e) => e.type === 'DEADLINE');
+            const has_task = tasks.some(
+              (tk) => tk.dueDate && isSameDay(new Date(tk.dueDate), date)
+            );
+
+            return (
+              <button
+                key={di}
+                type="button"
+                onClick={() => on_select_date(date)}
+                className={`flex flex-col items-center py-1 ${!in_month ? 'opacity-30' : ''}`}
+              >
+                <span
+                  className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold transition-colors
+                    ${is_active ? 'bg-red-500 text-white' : is_today ? 'border border-red-400 text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}
+                >
+                  {date.getDate()}
+                </span>
+                <div className="flex gap-0.5 h-2 items-center mt-0.5">
+                  {has_event && !is_active && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  )}
+                  {has_deadline && !is_active && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  )}
+                  {has_task && !is_active && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
