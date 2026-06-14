@@ -13,6 +13,7 @@ import StudentEvaluationsTab from '@/components/courses/student-evaluations-tab'
 import TeacherAssignmentsTab from '@/components/courses/teacher-assignments-tab';
 import TeacherMaterialsTab from '@/components/courses/teacher-materials-tab';
 import TeacherStudentsTab from '@/components/courses/teacher-students-tab';
+import TeacherEvaluationsTab from '@/components/courses/teacher-evaluations-tab';
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: CourseDetailPage,
@@ -47,7 +48,7 @@ function CourseDetailPage() {
   const { mode } = useRoleMode();
   const isTeacher = mode === 'teacher';
 
-  const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students'>(
+  const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students' | 'evaluations'>(
     'assignments'
   );
 
@@ -107,7 +108,7 @@ function CourseDetailPage() {
       {/* Tab bar */}
       {isTeacher ? (
         <div className="flex border-b border-gray-200 dark:border-gray-800 px-4">
-          {(['assignments', 'materials', 'students'] as const).map((tab) => (
+          {(['assignments', 'materials', 'students', 'evaluations'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setTeacherTab(tab)}
@@ -168,6 +169,11 @@ function CourseDetailPage() {
       {/* Teacher: Students tab */}
       {isTeacher && teacherTab === 'students' && (
         <TeacherStudentsTab courseId={courseId as string} />
+      )}
+
+      {/* Teacher: Evaluations tab */}
+      {isTeacher && teacherTab === 'evaluations' && (
+        <TeacherEvaluationsTab courseId={courseId as string} />
       )}
     </div>
   );

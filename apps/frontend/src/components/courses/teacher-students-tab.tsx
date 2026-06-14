@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users, X, CheckCircle, Circle } from 'lucide-react';
+import { Plus, Users, X, CheckCircle, Circle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
+import EvalDialog from '@/components/courses/eval-dialog';
 
 export interface CourseStudent {
   id: number;
@@ -19,6 +20,7 @@ export interface StudentTask {
   status: string;
   assignmentId: number;
   assignmentTitle: string;
+  evalType: 'none' | 'pass_fail' | 'graded';
   dueDate: string;
   evalScore: number | null;
   evalFeedback: string | null;
@@ -40,6 +42,22 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
     queryFn: () =>
       api.get<StudentTask[]>(`/courses/${courseId}/students/${selectedStudentId}`).catch(() => []),
     enabled: selectedStudentId !== null,
+  });
+
+  const [evalDialogState, setEvalDialogState] = useState<{
+    taskId: number;
+    evalType: 'pass_fail' | 'graded';
+    currentScore: number | null;
+    currentFeedback: string;
+  } | null>(null);
+
+  const submitEvalMutation = useMutation({
+    mutationFn: ({ taskId, score, feedback }: { taskId: number; score: number; feedback: string }) =>
+      api.post(`/tasks/${taskId}/eval`, { score, feedback }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['studentDetail', courseId, selectedStudentId] });
+      setEvalDialogState(null);
+    },
   });
 
   const [showAddStudent, setShowAddStudent] = useState(false);
@@ -193,6 +211,19 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
         </div>
       )}
 
+      {evalDialogState && (
+        <EvalDialog
+          taskId={evalDialogState.taskId}
+          evalType={evalDialogState.evalType}
+          currentScore={evalDialogState.currentScore}
+          currentFeedback={evalDialogState.currentFeedback}
+          onClose={() => setEvalDialogState(null)}
+          onSubmit={async (taskId, score, feedback) => {
+            submitEvalMutation.mutate({ taskId, score, feedback });
+          }}
+        />
+      )}
+
       {selectedStudentId !== null && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
           <div className="w-full max-w-sm bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-5 shadow-xl space-y-3 max-h-[70vh] flex flex-col">
@@ -234,10 +265,27 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
                         })}
                       </p>
                     </div>
-                    {taskItem.evalScore !== null && (
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">
-                        {taskItem.evalScore}
-                      </span>
+                    {taskItem.status === 'DONE' && taskItem.evalType !== 'none' && (
+                      <button
+                        onClick={() => setEvalDialogState({
+                          taskId: taskItem.taskId,
+                          evalType: taskItem.evalType as 'pass_fail' | 'graded',
+                          currentScore: taskItem.evalScore,
+                          currentFeedback: taskItem.evalFeedback ?? '',
+                        })}
+                        className="shrink-0"
+                      >
+                        {taskItem.evalScore !== null ? (
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">
+                            {taskItem.evalScore} b.
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+                            <Star className="w-3 h-3" />
+                            Hodnotiť
+                          </span>
+                        )}
+                      </button>
                     )}
                   </div>
                 ))
