@@ -51,8 +51,8 @@
     "tags": "Štítky",
     "addTag": "Přidat štítek...",
     "clearFilters": "Zrušit",
-    "evalLabel": "Hodnotenie",
-    "evalLabelFull": "Hodnotenie od učiteľa"
+    "evalLabel": "Hodnocení",
+    "evalLabelFull": "Hodnocení od učitele"
   },
   "notes": {
     "loading": "Načítání poznámek...",
@@ -115,9 +115,9 @@
   "timeline": {
     "week": "Týden",
     "month": "Měsíc",
-    "addToCalendar": "Pridať do kalendára",
-    "calendarSubscribeHint": "Skopíruj túto URL a vlož ju do Google Kalendára → \"Pridať podľa URL\", alebo otvor v Apple Kalendári / Outlooku.",
-    "calendarRegenerate": "Regenerovať (zruší starú URL)"
+    "addToCalendar": "Přidat do kalendáře",
+    "calendarSubscribeHint": "Zkopíruj tuto URL a vlož ji do Google Kalendáře → \"Přidat podle URL\", nebo otevři v Apple Kalendáři / Outlooku.",
+    "calendarRegenerate": "Obnovit (zruší starou URL)"
   },
   "common": {
     "creating": "Vytváření...",
@@ -167,6 +167,11 @@
     "noTasks": "Žádné úkoly pro tento kurz",
     "notFound": "Kurz nenalezen",
     "unknownTeacher": "Neznámý vyučující",
+    "evaluate": "Hodnotit",
+    "toBeGraded": "K hodnocení",
+    "waitingForSubmission": "Čeká na odevzdání",
+    "noGradeableAssignments": "Žádná hodnotitelná zadání. Nastav Graded nebo Pass/Fail v nastavení zadání.",
+    "setEvalTypeHint": "Nastav typ hodnocení (Graded / Pass/Fail)",
     "tabs": {
       "tasks": "úkoly",
       "notes": "poznámky",

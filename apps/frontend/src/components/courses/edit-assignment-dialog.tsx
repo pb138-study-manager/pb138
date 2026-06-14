@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Calendar, ClipboardCheck, Users, ListTodo, Check, CheckCircle, Circle, Plus, X, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -52,6 +53,7 @@ export default function EditAssignmentDialog({
   onClose,
   onEval,
 }: Props) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(initialTitle);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(initialDueDate));
@@ -302,7 +304,7 @@ export default function EditAssignmentDialog({
                           {evalType === 'none' ? (
                             <span
                               className="text-xs text-gray-300 px-2 py-0.5 rounded-lg border border-gray-200 shrink-0 cursor-default"
-                              title="Nastav typ hodnotenia (Graded / Pass/Fail)"
+                              title={t('courses.setEvalTypeHint')}
                             >
                               Eval
                             </span>
@@ -322,7 +324,7 @@ export default function EditAssignmentDialog({
                               ) : (
                                 <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
                                   <Star className="w-3 h-3" />
-                                  Hodnotiť
+                                  {t('courses.evaluate')}
                                 </span>
                               )}
                             </button>

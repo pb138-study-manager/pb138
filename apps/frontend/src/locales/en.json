@@ -167,6 +167,11 @@
     "noTasks": "No tasks for this course",
     "notFound": "Course not found",
     "unknownTeacher": "Unknown teacher",
+    "evaluate": "Grade",
+    "toBeGraded": "To be graded",
+    "waitingForSubmission": "Waiting for submission",
+    "noGradeableAssignments": "No gradeable assignments. Set Graded or Pass/Fail in the assignment settings.",
+    "setEvalTypeHint": "Set evaluation type (Graded / Pass/Fail)",
     "tabs": {
       "tasks": "tasks",
       "notes": "notes",

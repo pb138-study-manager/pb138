@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Star, CheckCircle, Circle, ClipboardCheck } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import EvalDialog from '@/components/courses/eval-dialog';
 
@@ -20,6 +21,7 @@ interface EvalRow {
 }
 
 export default function TeacherEvaluationsTab({ courseId }: { courseId: string }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data: rows = [], isLoading } = useQuery({
@@ -84,7 +86,7 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
         ) : (
           <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
             <Star className="w-3 h-3" />
-            Hodnotiť
+            {t('courses.evaluate')}
           </span>
         )}
       </button>
@@ -132,7 +134,7 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
   if (rows.length === 0) {
     return (
       <div className="px-4 mt-6 text-center py-12 text-gray-400 text-sm">
-        Žiadne hodnotiteľné zadania. Nastav <strong>Graded</strong> alebo <strong>Pass/Fail</strong> v nastaveniach zadania.
+        {t('courses.noGradeableAssignments')}
       </div>
     );
   }
@@ -157,7 +159,7 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
           <div className="flex items-center gap-2 mb-2">
             <ClipboardCheck className="w-4 h-4 text-green-500" />
             <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">
-              Na ohodnotenie ({done.filter((r) => r.evalScore === null).length})
+              {t('courses.toBeGraded')} ({done.filter((r) => r.evalScore === null).length})
             </span>
           </div>
           <div className="space-y-2">
@@ -171,7 +173,7 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
           <div className="flex items-center gap-2 mb-2">
             <Circle className="w-4 h-4 text-gray-300" />
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              Čaká na odovzdanie ({pending.length})
+              {t('courses.waitingForSubmission')} ({pending.length})
             </span>
           </div>
           <div className="space-y-2">
