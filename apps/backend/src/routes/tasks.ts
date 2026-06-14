@@ -165,7 +165,20 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       .select()
       .from(tasks)
       .where(and(eq(tasks.parentId, task.id), isNull(tasks.deletedAt)));
-    return { ...task, subtasks };
+    const [evalRow] = await db.select().from(evals).where(eq(evals.taskId, task.id));
+    return {
+      ...task,
+      subtasks,
+      eval: evalRow
+        ? {
+            id: evalRow.id,
+            taskId: evalRow.taskId,
+            score: evalRow.score,
+            feedback: evalRow.feedback,
+            evaluatedAt: evalRow.evaluatedAt.toISOString(),
+          }
+        : null,
+    };
   })
   .patch(
     '/:id',
