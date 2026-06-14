@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +13,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import { useDatePickerDialog } from '@/hooks/useDatePickerDialog';
 
 export default function DatePickerDialog({
   isOpen,
@@ -32,44 +32,28 @@ export default function DatePickerDialog({
   onEndDateSelect?: (date: Date) => void;
   showDuration?: boolean;
 }) {
-  const [date, setDate] = useState<Date | null>(new Date(Date.now()));
-  const [time, setTime] = useState<string>('08:30');
-  const [durationMinutes, setDurationMinutes] = useState<number>(60);
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setDate(currentDate || null);
-      if (currentDate) {
-        const d = new Date(currentDate);
-        setTime(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
-      }
-      if (currentDate && currentEndDate) {
-        const diffMs = new Date(currentEndDate).getTime() - new Date(currentDate).getTime();
-        setDurationMinutes(Math.max(15, Math.round(diffMs / 60000)));
-      } else {
-        setDurationMinutes(60);
-      }
-    }
-  }, [isOpen, currentDate, currentEndDate]);
-
-  const handleSave = () => {
-    if (onDateSelect) {
-      if (date) {
-        const finalDate = new Date(date);
-        const [hours, minutes] = time.split(':').map(Number);
-        finalDate.setHours(hours || 0, minutes || 0, 0, 0);
-        onDateSelect(finalDate);
-        if (onEndDateSelect) {
-          const endDate = new Date(finalDate.getTime() + durationMinutes * 60000);
-          onEndDateSelect(endDate);
-        }
-      } else {
-        onDateSelect(null);
-      }
-    }
-    onOpenChange(false);
-  };
+  const {
+    date,
+    durationMinutes,
+    handleSave,
+    open,
+    setDate,
+    setDurationMinutes,
+    setOpen,
+    setTime,
+    setDateToNextWeek,
+    setDateToToday,
+    setDateToTomorrow,
+    clearDate,
+    time,
+  } = useDatePickerDialog({
+    isOpen,
+    currentDate,
+    currentEndDate,
+    onDateSelect,
+    onEndDateSelect,
+    onOpenChange,
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -101,7 +85,7 @@ export default function DatePickerDialog({
             <Button
               variant="outline"
               className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all"
-              onClick={() => setDate(new Date(Date.now()))}
+              onClick={setDateToToday}
             >
               <CalendarIcon className="w-5 h-5 text-blue-500" />
               <span className="text-xs font-medium text-muted-foreground">Today</span>
@@ -110,7 +94,7 @@ export default function DatePickerDialog({
             <Button
               variant="outline"
               className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all"
-              onClick={() => setDate(new Date(Date.now() + 24 * 60 * 60 * 1000))}
+              onClick={setDateToTomorrow}
             >
               <CalendarDays className="w-5 h-5 text-purple-500" />
               <span className="text-xs font-medium text-muted-foreground">Tomorrow</span>
@@ -119,7 +103,7 @@ export default function DatePickerDialog({
             <Button
               variant="outline"
               className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-green-500/50 hover:bg-green-500/5 transition-all"
-              onClick={() => setDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}
+              onClick={setDateToNextWeek}
             >
               <ArrowRight className="w-5 h-5 text-green-500" />
               <span className="text-xs font-medium text-muted-foreground">Next week</span>
@@ -128,7 +112,7 @@ export default function DatePickerDialog({
             <Button
               variant="outline"
               className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-destructive/50 hover:bg-destructive/5 transition-all"
-              onClick={() => setDate(null)}
+              onClick={clearDate}
             >
               <X className="w-5 h-5 text-destructive/70" />
               <span className="text-xs font-medium text-muted-foreground">No date</span>
@@ -160,7 +144,7 @@ export default function DatePickerDialog({
                 <PopoverContent className="w-auto min-w-[280px] p-3" align="start">
                   <Calendar
                     mode="single"
-                    selected={date!}
+                    selected={date ?? undefined}
                     onSelect={(newDate) => {
                       if (newDate) {
                         setDate(newDate);
@@ -191,25 +175,27 @@ export default function DatePickerDialog({
             </div>
 
             {/* Duration Row */}
-            {showDuration && <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none hover:bg-muted/50 transition-colors group font-normal">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg dark:bg-purple-900/30 group-hover:scale-105 transition-transform">
-                  <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            {showDuration && (
+              <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none hover:bg-muted/50 transition-colors group font-normal">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg dark:bg-purple-900/30 group-hover:scale-105 transition-transform">
+                    <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">Duration</span>
                 </div>
-                <span className="text-sm font-medium text-foreground">Duration</span>
+                <div className="flex items-center gap-1">
+                  {[15, 30, 60, 90, 120].map((min) => (
+                    <button
+                      key={min}
+                      onClick={() => setDurationMinutes(min)}
+                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                    >
+                      {min < 60 ? `${min}m` : `${min / 60}h`}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                {[15, 30, 60, 90, 120].map((min) => (
-                  <button
-                    key={min}
-                    onClick={() => setDurationMinutes(min)}
-                    className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                  >
-                    {min < 60 ? `${min}m` : `${min / 60}h`}
-                  </button>
-                ))}
-              </div>
-            </div>}
+            )}
           </div>
         </div>
       </DialogContent>

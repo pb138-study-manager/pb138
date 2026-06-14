@@ -1,26 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
 import { Calendar, Tag, Flag, BookOpen, ListChecks, ArrowUp, Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import SubtasksDialog from '@/components/tasks/subtasks-dialog';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
-
-interface Course { id: number; code: string; name: string | null; }
-
-type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
-
-const PRIORITY_CYCLE: Priority[] = [null, 'LOW', 'MEDIUM', 'HIGH'];
-
-const PRIORITY_STYLES: Record<string, string> = {
-  LOW: 'bg-green-100 text-green-700',
-  MEDIUM: 'bg-amber-100 text-amber-700',
-  HIGH: 'bg-red-100 text-red-700',
-};
+import { PRIORITY_STYLES, useNewTaskDialog } from '@/hooks/useNewTaskDialog';
 
 export default function NewTaskDialog({
   isOpen,
@@ -35,83 +26,39 @@ export default function NewTaskDialog({
     subtasks: string[],
     description?: string,
     courseId?: number,
-    priority?: Priority,
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null,
     tags?: string[]
   ) => Promise<void>;
 }) {
   const { t } = useTranslation();
-  const [taskName, setTaskName] = useState('');
-  const [isDateOpen, setIsDateOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date());
-  const [isSubtasksOpen, setIsSubtasksOpen] = useState(false);
-  const [subtasks, setSubtasks] = useState<string[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [priority, setPriority] = useState<Priority>(null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInputOpen, setTagInputOpen] = useState(false);
-  const [tagInput, setTagInput] = useState('');
-  const tagInputRef = useRef<HTMLInputElement>(null);
-
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-
-  const { data: courses = [] } = useQuery({
-    queryKey: ['courses', 'enrolled'],
-    queryFn: () => api.get<Course[]>('/courses/enrolled'),
-    enabled: isOpen,
-  });
-
-  useEffect(() => {
-    if (tagInputOpen) tagInputRef.current?.focus();
-  }, [tagInputOpen]);
-
-  function cyclePriority() {
-    const idx = PRIORITY_CYCLE.indexOf(priority);
-    setPriority(PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length]);
-  }
-
-  function addTag(value: string) {
-    const trimmed = value.trim();
-    if (!trimmed || tags.length >= 20 || tags.includes(trimmed) || trimmed.length > 50) return;
-    setTags((prev) => [...prev, trimmed]);
-  }
-
-  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag(tagInput);
-      setTagInput('');
-    } else if (e.key === 'Escape') {
-      setTagInputOpen(false);
-      setTagInput('');
-    }
-  }
-
-  async function handleSubmit() {
-    if (!taskName.trim()) return;
-    setSaving(true);
-    try {
-      await onSubmit(
-        taskName.trim(),
-        selectedDate?.toISOString() ?? undefined,
-        subtasks,
-        undefined,
-        selectedCourse?.id,
-        priority,
-        tags
-      );
-      setTaskName('');
-      setSelectedDate(new Date());
-      setSubtasks([]);
-      setSelectedCourse(null);
-      setPriority(null);
-      setTags([]);
-      setTagInputOpen(false);
-      setTagInput('');
-      onOpenChange(false);
-    } finally {
-      setSaving(false);
-    }
-  }
+  const {
+    taskName,
+    setTaskName,
+    isDateOpen,
+    setIsDateOpen,
+    selectedDate,
+    setSelectedDate,
+    isSubtasksOpen,
+    setIsSubtasksOpen,
+    subtasks,
+    setSubtasks,
+    saving,
+    priority,
+    tags,
+    setTags,
+    tagInputOpen,
+    setTagInputOpen,
+    tagInput,
+    setTagInput,
+    tagInputRef,
+    selectedCourse,
+    setSelectedCourse,
+    courses,
+    cyclePriority,
+    addTag,
+    handleTagKeyDown,
+    handleSubmit,
+  } = useNewTaskDialog({ isOpen, onOpenChange, onSubmit });
 
   const priorityLabel = priority
     ? t(`tasks.priority${priority.charAt(0) + priority.slice(1).toLowerCase()}`)
@@ -141,52 +88,70 @@ export default function NewTaskDialog({
 
             <div className="flex flex-wrap gap-2 pt-4">
               {/* Date pill */}
-              <button
-                onClick={() => setIsDateOpen(true)}
+              <Button
+                type="button"
+                variant="outline"
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  selectedDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedDate
+                    ? 'bg-indigo-100 text-indigo-700 border-transparent'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
                 }`}
+                onClick={() => setIsDateOpen(true)}
               >
                 <Calendar className="w-3.5 h-3.5" />
                 {selectedDate ? selectedDate.toLocaleDateString() : 'Date'}
-              </button>
+              </Button>
 
               {/* Tags pill */}
-              <button
-                onClick={() => setTagInputOpen((v) => !v)}
+              <Button
+                type="button"
+                variant="outline"
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  tags.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  tags.length > 0
+                    ? 'bg-indigo-100 text-indigo-700 border-transparent'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
                 }`}
+                onClick={() => setTagInputOpen((v) => !v)}
               >
                 <Tag className="w-3.5 h-3.5" />
                 {tags.length > 0 ? `${tags.length} ${t('tasks.tags')}` : t('tasks.tags')}
-              </button>
+              </Button>
 
               {/* Priority pill */}
-              <button
-                onClick={cyclePriority}
+              <Button
+                type="button"
+                variant="outline"
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${priorityClass}`}
+                onClick={cyclePriority}
               >
                 <Flag className="w-3.5 h-3.5" />
                 {priorityLabel}
-              </button>
+              </Button>
 
               {/* Subtasks pill */}
-              <button
-                onClick={() => setIsSubtasksOpen(true)}
+              <Button
+                type="button"
+                variant="outline"
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  subtasks.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  subtasks.length > 0
+                    ? 'bg-indigo-100 text-indigo-700 border-transparent'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
                 }`}
+                onClick={() => setIsSubtasksOpen(true)}
               >
                 <ListChecks className="w-3.5 h-3.5" />
-                {subtasks.length > 0 ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}` : 'Subtasks'}
-              </button>
+                {subtasks.length > 0
+                  ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}`
+                  : 'Subtasks'}
+              </Button>
 
               {/* Course dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    selectedCourse ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    selectedCourse
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -203,7 +168,9 @@ export default function NewTaskDialog({
                         className="flex items-center justify-between gap-4"
                       >
                         {c.code}
-                        {selectedCourse?.id === c.id && <Check className="w-4 h-4 text-indigo-500" />}
+                        {selectedCourse?.id === c.id && (
+                          <Check className="w-4 h-4 text-indigo-500" />
+                        )}
                       </DropdownMenuItem>
                     ))
                   )}
@@ -221,9 +188,15 @@ export default function NewTaskDialog({
                       className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium"
                     >
                       {tag}
-                      <button onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}>
-                        <X className="w-3 h-3 text-gray-400 hover:text-red-500" />
-                      </button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-400 hover:text-red-500"
+                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
                     </span>
                   ))}
                 </div>

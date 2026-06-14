@@ -1,27 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
 import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import { Task, TaskStatus } from '@/types';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
-
-interface Course { id: number; code: string; name: string | null; }
-
-type ExistingSub = { id: number; title: string };
-type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
-
-const PRIORITY_CYCLE: Priority[] = [null, 'LOW', 'MEDIUM', 'HIGH'];
-
-const PRIORITY_STYLES: Record<string, string> = {
-  LOW: 'bg-green-100 text-green-700',
-  MEDIUM: 'bg-amber-100 text-amber-700',
-  HIGH: 'bg-red-100 text-red-700',
-};
+import { useEditTaskDialog, type Priority } from '@/hooks/useEditTaskDialog';
 
 export default function EditTaskDialog({
   task,
@@ -48,142 +38,40 @@ export default function EditTaskDialog({
   const isSubtask = task.parentId !== null;
   const isAssignmentTask = task.assignmentId !== null;
 
-  const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description ?? '');
-  const [status] = useState<TaskStatus>(task.status);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(
-    task.dueDate ? new Date(task.dueDate) : null
-  );
-  const [isDateOpen, setIsDateOpen] = useState(false);
-  const [subtasksExpanded, setSubtasksExpanded] = useState(false);
-  const [priority, setPriority] = useState<Priority>((task.priority as Priority) ?? null);
-  const [tags, setTags] = useState<string[]>(task.tags ?? []);
-  const [tagInputOpen, setTagInputOpen] = useState(false);
-  const [tagInput, setTagInput] = useState('');
-  const tagInputRef = useRef<HTMLInputElement>(null);
-
-  const [existingSubs, setExistingSubs] = useState<ExistingSub[]>([]);
-  const [originalSubIds, setOriginalSubIds] = useState<number[]>([]);
-  const [newSubTitles, setNewSubTitles] = useState<string[]>([]);
-  const [newSubInput, setNewSubInput] = useState('');
-  const [saving] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initializedRef = useRef(false);
-
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-
-  const { data: courses = [] } = useQuery({
-    queryKey: ['courses', 'enrolled'],
-    queryFn: () => api.get<Course[]>('/courses/enrolled'),
-    enabled: isOpen,
-  });
-
-  const { data: fetchedTaskData } = useQuery({
-    queryKey: ['tasks', task.id],
-    queryFn: () => api.get<Task & { subtasks: Task[] }>(`/tasks/${task.id}`),
-    enabled: isOpen && !isSubtask,
-  });
-
-  useEffect(() => {
-    if (courses.length > 0 && task.courseId && isOpen) {
-      setSelectedCourse(courses.find((c) => c.id === task.courseId) ?? null);
-    }
-  }, [courses, task.courseId, isOpen]);
-
-  useEffect(() => {
-    if (fetchedTaskData && isOpen && !isSubtask) {
-      const subs = (fetchedTaskData.subtasks ?? []).map((s) => ({ id: s.id, title: s.title }));
-      setExistingSubs(subs);
-      setOriginalSubIds(subs.map((s) => s.id));
-    }
-  }, [fetchedTaskData, isOpen, isSubtask]);
-
-  useEffect(() => {
-    if (!isOpen) { initializedRef.current = false; return; }
-    setTitle(task.title);
-    setDescription(task.description ?? '');
-    setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
-    setPriority((task.priority as Priority) ?? null);
-    setTags(task.tags ?? []);
-    setTagInputOpen(false);
-    setTagInput('');
-    setNewSubTitles([]);
-    setNewSubInput('');
-    setSubtasksExpanded(false);
-    if (!task.courseId) setSelectedCourse(null);
-
-    setTimeout(() => { initializedRef.current = true; }, 100);
-  }, [isOpen, task]);
-
-  useEffect(() => {
-    if (tagInputOpen) tagInputRef.current?.focus();
-  }, [tagInputOpen]);
-
-  const deletedSubIds = originalSubIds.filter((id) => !existingSubs.some((s) => s.id === id));
-  const totalSubtasks = existingSubs.length + newSubTitles.length;
-
-  useEffect(() => {
-    if (!initializedRef.current || !title.trim() || !selectedDate) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      onSave({
-        title: title.trim(),
-        dueDate: selectedDate?.toISOString(),
-        description: description.trim() || undefined,
-        status,
-        priority,
-        tags,
-        courseId: selectedCourse?.id ?? null,
-        subtasksToAdd: [],
-        subtaskIdsToDelete: [],
-      });
-    }, 800);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [title, description, selectedDate, status, priority, tags, selectedCourse, onSave]);
-
-  function cyclePriority() {
-    const idx = PRIORITY_CYCLE.indexOf(priority);
-    setPriority(PRIORITY_CYCLE[(idx + 1) % PRIORITY_CYCLE.length]);
-  }
-
-  function addTag(value: string) {
-    const trimmed = value.trim();
-    if (!trimmed || tags.length >= 20 || tags.includes(trimmed) || trimmed.length > 50) return;
-    setTags((prev) => [...prev, trimmed]);
-  }
-
-  function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag(tagInput);
-      setTagInput('');
-    } else if (e.key === 'Escape') {
-      setTagInputOpen(false);
-      setTagInput('');
-    }
-  }
-
-  function addNewSub() {
-    if (!newSubInput.trim()) return;
-    setNewSubTitles((prev) => [...prev, newSubInput.trim()]);
-    setNewSubInput('');
-  }
-
-  async function saveSubtasks() {
-    if (!title.trim() || saving) return;
-    await onSave({
-      title: title.trim(),
-      dueDate: selectedDate?.toISOString(),
-      description: description.trim() || undefined,
-      status,
-      priority,
-      tags,
-      courseId: selectedCourse?.id ?? null,
-      subtasksToAdd: newSubTitles,
-      subtaskIdsToDelete: deletedSubIds,
-    });
-    setNewSubTitles([]);
-  }
+  const {
+    title,
+    setTitle,
+    selectedDate,
+    setSelectedDate,
+    isDateOpen,
+    setIsDateOpen,
+    subtasksExpanded,
+    setSubtasksExpanded,
+    priority,
+    tags,
+    setTags,
+    tagInputOpen,
+    setTagInputOpen,
+    tagInput,
+    setTagInput,
+    tagInputRef,
+    existingSubs,
+    setExistingSubs,
+    newSubTitles,
+    setNewSubTitles,
+    newSubInput,
+    setNewSubInput,
+    selectedCourse,
+    setSelectedCourse,
+    courses,
+    cyclePriority,
+    addTag,
+    handleTagKeyDown,
+    addNewSub,
+    saveSubtasks,
+    totalSubtasks,
+    PRIORITY_STYLES,
+  } = useEditTaskDialog({ task, isOpen, onSave });
 
   const priorityLabel = priority
     ? t(`tasks.priority${priority.charAt(0) + priority.slice(1).toLowerCase()}`)
@@ -216,7 +104,9 @@ export default function EditTaskDialog({
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  selectedDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -225,7 +115,10 @@ export default function EditTaskDialog({
 
               {/* Assignment deadline — read-only info badge */}
               {isAssignmentTask && task.assignmentDeadline && (
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium bg-red-50 text-red-500 select-none" title="Teacher-set deadline">
+                <span
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium bg-red-50 text-red-500 select-none"
+                  title="Teacher-set deadline"
+                >
                   <Calendar className="w-3.5 h-3.5" />
                   Due {new Date(task.assignmentDeadline).toLocaleDateString()}
                 </span>
@@ -235,7 +128,9 @@ export default function EditTaskDialog({
               <button
                 onClick={() => setTagInputOpen((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  tags.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  tags.length > 0
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" />
@@ -256,11 +151,15 @@ export default function EditTaskDialog({
                 <button
                   onClick={() => setSubtasksExpanded((v) => !v)}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    totalSubtasks > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    totalSubtasks > 0
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <ListChecks className="w-3.5 h-3.5" />
-                  {totalSubtasks > 0 ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}` : 'Subtasks'}
+                  {totalSubtasks > 0
+                    ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}`
+                    : 'Subtasks'}
                 </button>
               )}
 
@@ -268,7 +167,9 @@ export default function EditTaskDialog({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    selectedCourse ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    selectedCourse
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -285,7 +186,9 @@ export default function EditTaskDialog({
                         className="flex items-center justify-between gap-4"
                       >
                         {c.code}
-                        {selectedCourse?.id === c.id && <Check className="w-4 h-4 text-indigo-500" />}
+                        {selectedCourse?.id === c.id && (
+                          <Check className="w-4 h-4 text-indigo-500" />
+                        )}
                       </DropdownMenuItem>
                     ))
                   )}
@@ -324,17 +227,19 @@ export default function EditTaskDialog({
                 />
               </div>
             )}
-
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Subtasks Dialog */}
       {!isSubtask && (
-        <Dialog open={subtasksExpanded} onOpenChange={(open) => {
-          if (!open) saveSubtasks();
-          setSubtasksExpanded(open);
-        }}>
+        <Dialog
+          open={subtasksExpanded}
+          onOpenChange={(open) => {
+            if (!open) saveSubtasks();
+            setSubtasksExpanded(open);
+          }}
+        >
           <DialogContent className="max-w-sm">
             <DialogHeader>
               <DialogTitle>Subtasks</DialogTitle>
@@ -345,7 +250,12 @@ export default function EditTaskDialog({
                   placeholder="Add a subtask..."
                   value={newSubInput}
                   onChange={(e) => setNewSubInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewSub(); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addNewSub();
+                    }
+                  }}
                   className="text-sm"
                   autoFocus
                 />
@@ -355,17 +265,33 @@ export default function EditTaskDialog({
               </div>
               <div className="space-y-1 max-h-[40vh] overflow-y-auto">
                 {existingSubs.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
-                    <span className="truncate mr-2 text-gray-700 dark:text-gray-300">{sub.title}</span>
-                    <button onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                  <div
+                    key={sub.id}
+                    className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
+                  >
+                    <span className="truncate mr-2 text-gray-700 dark:text-gray-300">
+                      {sub.title}
+                    </span>
+                    <button
+                      onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))}
+                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                    >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                 ))}
                 {newSubTitles.map((subTitle, i) => (
-                  <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm">
-                    <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">{subTitle}</span>
-                    <button onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                  <div
+                    key={`new-${i}`}
+                    className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm"
+                  >
+                    <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">
+                      {subTitle}
+                    </span>
+                    <button
+                      onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                    >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
@@ -376,7 +302,14 @@ export default function EditTaskDialog({
               </div>
             </div>
             <div className="flex justify-end pt-2">
-              <Button onClick={() => { saveSubtasks(); setSubtasksExpanded(false); }}>Save</Button>
+              <Button
+                onClick={() => {
+                  saveSubtasks();
+                  setSubtasksExpanded(false);
+                }}
+              >
+                Save
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

@@ -1,12 +1,25 @@
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
 import { Task } from '@/types';
 
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 const PRIORITY_PILLS: { value: Priority; labelKey: string; activeClass: string }[] = [
-  { value: 'LOW', labelKey: 'tasks.priorityLow', activeClass: 'bg-green-100 text-green-700 border-green-300' },
-  { value: 'MEDIUM', labelKey: 'tasks.priorityMedium', activeClass: 'bg-amber-100 text-amber-700 border-amber-300' },
-  { value: 'HIGH', labelKey: 'tasks.priorityHigh', activeClass: 'bg-red-100 text-red-700 border-red-300' },
+  {
+    value: 'LOW',
+    labelKey: 'tasks.priorityLow',
+    activeClass: 'bg-green-100 text-green-700 border-green-300',
+  },
+  {
+    value: 'MEDIUM',
+    labelKey: 'tasks.priorityMedium',
+    activeClass: 'bg-amber-100 text-amber-700 border-amber-300',
+  },
+  {
+    value: 'HIGH',
+    labelKey: 'tasks.priorityHigh',
+    activeClass: 'bg-red-100 text-red-700 border-red-300',
+  },
 ];
 
 const INACTIVE =
@@ -43,13 +56,15 @@ export default function TaskFilterBar({
         PRIORITY_PILLS.map(({ value, labelKey, activeClass }) => {
           const active = activePriorities.has(value);
           return (
-            <button
+            <Button
               key={value}
-              onClick={() => onTogglePriority(value)}
+              type="button"
+              variant="outline"
               className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? activeClass : INACTIVE}`}
+              onClick={() => onTogglePriority(value)}
             >
               {t(labelKey)}
-            </button>
+            </Button>
           );
         })}
 
@@ -57,23 +72,27 @@ export default function TaskFilterBar({
         allUniqueTags.map((tag) => {
           const active = activeTags.has(tag);
           return (
-            <button
+            <Button
               key={tag}
-              onClick={() => onToggleTag(tag)}
+              type="button"
+              variant="outline"
               className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : INACTIVE}`}
+              onClick={() => onToggleTag(tag)}
             >
               {tag}
-            </button>
+            </Button>
           );
         })}
 
       {isActive && (
-        <button
-          onClick={onClear}
+        <Button
+          type="button"
+          variant="outline"
           className="text-xs px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium transition-colors"
+          onClick={onClear}
         >
           {t('tasks.clearFilters')}
-        </button>
+        </Button>
       )}
     </div>
   );
