@@ -145,7 +145,7 @@ export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskD
     setIsSubtasksOpen,
     subtasks,
     setSubtasks,
-    saving: mutation.isLoading,
+    saving: mutation.isPending,
     priority,
     setPriority,
     tags,
