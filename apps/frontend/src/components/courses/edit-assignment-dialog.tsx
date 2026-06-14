@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ClipboardCheck, Users, ListTodo, Check, CheckCircle, Circle, Plus, X } from 'lucide-react';
+import { Calendar, ClipboardCheck, Users, ListTodo, Check, CheckCircle, Circle, Plus, X, Star } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -299,10 +299,17 @@ export default function EditAssignmentDialog({
                           ) : (
                             <Circle className="w-4 h-4 text-gray-300 shrink-0" />
                           )}
-                          {evalType !== 'none' && (s.status === 'DONE' || deadlinePassed) && (
+                          {evalType === 'none' ? (
+                            <span
+                              className="text-xs text-gray-300 px-2 py-0.5 rounded-lg border border-gray-200 shrink-0 cursor-default"
+                              title="Nastav typ hodnotenia (Graded / Pass/Fail)"
+                            >
+                              Eval
+                            </span>
+                          ) : (s.status === 'DONE' || deadlinePassed) ? (
                             <button
                               onClick={() => onEval(s.taskId, s.evalScore, s.evalFeedback, evalType as 'pass_fail' | 'graded')}
-                              className="shrink-0"
+                              className="shrink-0 flex items-center gap-1"
                             >
                               {evalType === 'pass_fail' && s.evalScore !== null ? (
                                 s.evalScore === 1 ? (
@@ -311,12 +318,15 @@ export default function EditAssignmentDialog({
                                   <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700">✗ Fail</span>
                                 )
                               ) : evalType === 'graded' && s.evalScore !== null ? (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">{s.evalScore}/100</span>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">{s.evalScore} b.</span>
                               ) : (
-                                <span className="text-xs font-medium text-indigo-600 hover:text-indigo-800">Eval</span>
+                                <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+                                  <Star className="w-3 h-3" />
+                                  Hodnotiť
+                                </span>
                               )}
                             </button>
-                          )}
+                          ) : null}
                         </div>
                       );
                     })
