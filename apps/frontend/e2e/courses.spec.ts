@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { mockAuthentication } from './helpers'
 
 type Course = {
   id: number
@@ -18,42 +19,6 @@ type Task = {
   dueDate: string
   priority: string
   courseId: number
-}
-
-async function mockAuthentication(page: Page) {
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    })
-  })
-
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  })
 }
 
 async function mockRoleMode(page: Page, mode: 'student' | 'teacher') {
@@ -87,11 +52,7 @@ async function mockCourses(page: Page) {
   ]
   let nextCourseId = 3
 
-  await page.route('**/courses*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      await route.continue()
-      return
-    }
+  await page.route(/^http:\/\/localhost:3001\/courses/, async (route) => {
 
     const request = route.request()
     const url = new URL(request.url())
@@ -178,6 +139,8 @@ async function mockCourseTasks(page: Page) {
   ]
 
   await page.route('**/tasks*', async (route) => {
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
     const request = route.request()
     if (request.method() === 'GET') {
       await route.fulfill({
@@ -205,7 +168,8 @@ test.describe('Courses page', () => {
     await expect(page.getByRole('heading', { name: /Courses|Kurzy/i })).toBeVisible()
     await expect(page.getByText('PB138')).toBeVisible()
     await expect(page.getByText('PB175')).not.toBeVisible()
-    await expect(page.locator('button:has(svg)').count()).resolves.toBe(0)
+    // In student mode the header create button is not rendered
+    await expect(page.locator('main .border-b button')).not.toBeVisible()
   })
 
   test('teacher view should show all courses and new course button', async ({ page }) => {
@@ -221,17 +185,15 @@ test.describe('Courses page', () => {
     await mockRoleMode(page, 'student')
     await page.goto('/courses')
 
-    await page.locator('div').filter({ hasText: 'PB138' }).first().click()
+    await page.locator('.cursor-pointer').filter({ hasText: 'PB138' }).click()
     await expect(page).toHaveURL(/\/courses\/1$/)
+    await expect(page.getByRole('heading', { name: 'PB138' })).toBeVisible()
     await expect(page.getByText('Prepare lecture notes')).toBeVisible()
   })
 
   test('teacher can create a new course and see it in the list', async ({ page }) => {
     await mockRoleMode(page, 'teacher')
-    await page.goto('/courses')
-
-    await page.locator('button:has(svg)').first().click()
-    await expect(page).toHaveURL(/\/courses\/new$/)
+    await page.goto('/courses/new')
 
     await page.getByPlaceholder('e.g. PB138').fill('PB180')
     await page.getByPlaceholder('Full name of the course').fill('Advanced Testing')

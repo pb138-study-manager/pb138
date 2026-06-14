@@ -1,41 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-// Pomocná funkcia pre nastavenie mockovanej autentifikácie
-async function mockAuthentication(page: Page) {
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    });
-  });
-  
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  });
-}
+import { mockAuthentication } from './helpers';
 
 // Funkcia pre namockovanie úloh
 async function mockData(page: Page) {
@@ -52,9 +16,9 @@ async function mockData(page: Page) {
   laterDate.setDate(laterDate.getDate() + 10);
 
   await page.route('**/tasks*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      await route.continue();
-      return;
+    const type = route.request().resourceType();
+    if (type !== 'fetch' && type !== 'xhr') {
+      return route.continue();
     }
 
     if (route.request().method() === 'GET') {
@@ -155,12 +119,10 @@ test.describe('Tasks Page', () => {
   test('displays loading state initially', async ({ page }) => {
     // Artificial delay
     await page.route('**/tasks*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      return route.continue();
-    }
-
+      const type = route.request().resourceType();
+      if (type !== 'fetch' && type !== 'xhr') return route.continue();
       await new Promise(r => setTimeout(r, 1000));
-      await route.fulfill({ status: 200, body: '[]' });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
     
     // Clear react-query cache by evaluating or just reload

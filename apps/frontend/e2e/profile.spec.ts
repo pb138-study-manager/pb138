@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { mockAuthentication } from './helpers'
 
 type UserProfileResponse = {
   id: number
@@ -16,42 +17,6 @@ type UserProfileResponse = {
     language: 'en' | 'cs'
     notificationsEnabled: boolean
   }
-}
-
-async function mockAuthentication(page: Page) {
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    })
-  })
-
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  })
 }
 
 async function mockProfileData(page: Page) {
@@ -74,6 +39,8 @@ async function mockProfileData(page: Page) {
   }
 
   await page.route('**/users/me', (route) => {
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
     route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -82,6 +49,8 @@ async function mockProfileData(page: Page) {
   })
 
   await page.route('**/users/me/settings', async (route) => {
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
     if (route.request().method() === 'PATCH') {
       const payload = route.request().postDataJSON() as Record<string, unknown>
       const updated = { ...user, settings: { ...user.settings, ...payload } }
@@ -115,7 +84,7 @@ test.describe('Profile page', () => {
   test('renders profile details and settings', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
     await expect(page.getByText('Demo Student')).toBeVisible()
-    await expect(page.getByText('demo.student')).toBeVisible()
+    await expect(page.getByText('demo@student.muni.cz')).toBeVisible()
   })
 
   test('changes language to Czech', async ({ page }) => {
@@ -125,13 +94,13 @@ test.describe('Profile page', () => {
   })
 
   test('toggles notifications setting', async ({ page }) => {
-    const notificationsToggle = page.getByText('Notifications').locator('..').locator('button')
+    const notificationsToggle = page.getByText('Notifications').locator('../..').locator('button')
     await notificationsToggle.click()
     await expect(notificationsToggle).toBeVisible()
   })
 
   test('logs out and navigates to login page', async ({ page }) => {
-    await page.getByRole('button', { name: 'Logout' }).click()
+    await page.getByRole('button', { name: 'Log Out' }).click()
     await expect(page).toHaveURL(/\/login/)
   })
 })

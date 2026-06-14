@@ -1,50 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-// Pomocná funkcia pre nastavenie mockovanej autentifikácie
-async function mockAuthentication(page: Page) {
-  // Pre E2E testy musíme simulovať prihláseného používateľa
-  // Supabase sa normálne pýta na session, takže mu môžeme podhodiť dáta v localStorage 
-  // alebo mocknúť sieťové požiadavky.
-  
-  // Keďže nepoznáme presný formát Supabase local storage,
-  // najjednoduchšie je mocknúť všetky požiadavky na backend.
-  
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    });
-  });
-  
-  // Nastavenie fake session priamo do localStorage, ktoré by Supabase mohlo zobrať.
-  // Použijeme hook, aby to tam bolo pred načítaním aplikácie.
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  });
-}
+import { mockAuthentication } from './helpers';
 
 // Pomocná funkcia pre namockovanie úloh a eventov
 async function mockData(page: Page) {
@@ -55,10 +10,8 @@ async function mockData(page: Page) {
   yesterday.setDate(yesterday.getDate() - 1);
 
   await page.route('**/tasks*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      await route.continue();
-      return;
-    }
+    const type = route.request().resourceType();
+    if (type !== 'fetch' && type !== 'xhr') return route.continue();
 
     if (route.request().method() === 'GET') {
       await route.fulfill({
@@ -119,6 +72,8 @@ async function mockData(page: Page) {
   });
 
   await page.route('**/events*', async (route) => {
+    const type = route.request().resourceType();
+    if (type !== 'fetch' && type !== 'xhr') return route.continue();
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -127,7 +82,7 @@ async function mockData(page: Page) {
           id: 10,
           title: 'Zápas - Test',
           startDate: today.toISOString(),
-          endDate: new Date(today.getTime() + 3600000).toISOString(), // +1 hodina
+          endDate: new Date(today.getTime() + 3600000).toISOString(),
           type: 'MEETING',
         },
       ]),
@@ -154,23 +109,20 @@ test.describe('Today Page', () => {
   });
 
   test('displays loading state correctly', async ({ page }) => {
-    // Zatiaľ čo sa dáta načítavajú, mal by sa zobraziť skeleton (trieda animate-pulse)
-    // Tým, že namockujeme spomalený API response, môžeme skeleton vidieť
     await page.route('**/tasks*', async (route) => {
-      // umelé oneskorenie
+      const type = route.request().resourceType();
+      if (type !== 'fetch' && type !== 'xhr') return route.continue();
       await new Promise(r => setTimeout(r, 1000));
-      await route.fulfill({ status: 200, body: '[]' });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
-    
+
     await page.goto('/today');
     await expect(page.locator('.animate-pulse').first()).toBeVisible();
   });
 
   test('renders header with greeting and progress bar', async ({ page }) => {
-    await page.waitForSelector('h1:has-text(" 👋")'); // Pozdrav obsahuje kývajúcu ruku
-    
-    // Mal by sa tam zobraziť aj progress (Máme 1 z 2 splnených úloh na dnešok -> 50%)
-    await expect(page.locator('text=tasks.today')).toBeVisible(); // Preklady môžu byť načítané defaultne
+    await expect(page.locator('h1').filter({ hasText: '👋' })).toBeVisible();
+    await expect(page.locator('text=tasks done today')).toBeVisible();
   });
 
   test('renders stats pills based on data', async ({ page }) => {
@@ -189,6 +141,8 @@ test.describe('Today Page', () => {
     // Zistíme či sa úlohy zobrazujú v správnych sekciách (Titulky by mali obsahovať názvy)
     await expect(page.locator('text=Dnešná úloha 1')).toBeVisible();
     await expect(page.locator('text=Stará úloha z backlogu')).toBeVisible();
+    // Done section is collapsed by default — expand it first
+    await page.locator('h3').filter({ hasText: /Done|Hotovo/ }).first().click();
     await expect(page.locator('text=Hotová dnešná úloha')).toBeVisible();
   });
 

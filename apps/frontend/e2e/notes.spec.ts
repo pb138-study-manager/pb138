@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { mockAuthentication } from './helpers'
 
 type Folder = {
   id: number
@@ -11,42 +12,6 @@ type Note = {
   description: string
   folderId: number
   courseId: number | null
-}
-
-async function mockAuthentication(page: Page) {
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    })
-  })
-
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  })
 }
 
 async function mockNotesData(page: Page) {
@@ -70,10 +35,8 @@ async function mockNotesData(page: Page) {
   })
 
   await page.route('**/folders*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      await route.continue()
-      return
-    }
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
 
     const request = route.request()
     if (request.method() === 'GET') {
@@ -101,10 +64,8 @@ async function mockNotesData(page: Page) {
   })
 
   await page.route('**/notes*', async (route) => {
-    if (route.request().resourceType() === 'document') {
-      await route.continue()
-      return
-    }
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
 
     const request = route.request()
     if (request.method() === 'GET') {
@@ -138,11 +99,9 @@ async function mockNotesData(page: Page) {
   })
 
   await page.route('**/courses*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([]),
-    })
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
   })
 }
 

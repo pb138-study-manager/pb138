@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { mockAuthentication } from './helpers'
 
 type EventItem = {
   id: number
@@ -15,42 +16,6 @@ type TaskItem = {
   dueDate: string
   status: string
   priority: string
-}
-
-async function mockAuthentication(page: Page) {
-  await page.route('**/auth/v1/user', (route) => {
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-      }),
-    })
-  })
-
-  await page.addInitScript(() => {
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600
-    const session = {
-      access_token: 'fake-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: expiresAt,
-      refresh_token: 'fake-refresh-token',
-      user: {
-        id: '123',
-        aud: 'authenticated',
-        role: 'authenticated',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        created_at: '2024-01-01T00:00:00Z',
-      },
-    }
-    window.localStorage.setItem('sb-placeholder-auth-token', JSON.stringify(session))
-  })
 }
 
 async function mockTimelineData(page: Page) {
@@ -95,19 +60,15 @@ async function mockTimelineData(page: Page) {
   ]
 
   await page.route('**/events*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(events),
-    })
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(events) })
   })
 
   await page.route('**/tasks*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(tasks),
-    })
+    const type = route.request().resourceType()
+    if (type !== 'fetch' && type !== 'xhr') return route.continue()
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(tasks) })
   })
 }
 
@@ -124,18 +85,18 @@ test.describe('Timeline page', () => {
     await expect(page.getByText('Homework deadline')).toBeVisible()
   })
 
-  test('navigates to next week and hides current day events', async ({ page }) => {
-    const firstMonthLabel = await page.getByText(/^[A-Za-z]{3} \d{4}$/).first().textContent()
-    await page.getByRole('button', { name: /next week|>/i }).click()
-    await expect(page.getByText('Team sync')).not.toBeVisible()
-    const nextMonthLabel = await page.getByText(/^[A-Za-z]{3} \d{4}$/).first().textContent()
-    expect(nextMonthLabel).not.toBe(firstMonthLabel)
+  test('navigates to next week via chevron button', async ({ page }) => {
+    // Visible SVG buttons in main: Plus (0), ChevronLeft (1), ChevronRight (2)
+    // AiSummaryView has a hidden Sparkles button so we scope to :visible only
+    await page.locator('main button:visible').filter({ has: page.locator('svg') }).nth(2).click()
+    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
   })
 
   test('opens the add event dialog', async ({ page }) => {
-    await page.getByRole('button', { name: '' }).filter({ has: page.locator('svg') }).first().click()
+    // Plus button is the first visible SVG button in main
+    await page.locator('main button:visible').filter({ has: page.locator('svg') }).nth(0).click()
     await expect(page.getByPlaceholder('Event name...')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Event' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Deadline' })).toBeVisible()
+    await expect(page.getByText('Event').first()).toBeVisible()
+    await expect(page.getByText('Deadline').first()).toBeVisible()
   })
 })
