@@ -293,6 +293,25 @@ export default function EditTaskDialog({
               </DropdownMenu>
             </div>
 
+            {task.eval && (
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-2">
+                  {t('tasks.evalLabelFull')}
+                </p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-bold px-2.5 py-0.5 rounded-md">
+                    {task.eval.score} b.
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(task.eval.evaluatedAt).toLocaleDateString('sk-SK')}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                  &ldquo;{task.eval.feedback}&rdquo;
+                </p>
+              </div>
+            )}
+
             {/* Tag input area */}
             {tagInputOpen && (
               <div className="pt-3">
