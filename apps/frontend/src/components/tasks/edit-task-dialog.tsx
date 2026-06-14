@@ -100,20 +100,16 @@ export default function EditTaskDialog({
             <div className="border-t" />
 
             <div className="flex flex-wrap gap-2 pt-4">
-              {/* Date pill — student's personal due date */}
-              <button
+              <Button
+                variant={selectedDate ? 'secondary' : 'ghost'}
+                size="sm"
                 onClick={() => setIsDateOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  selectedDate
-                    ? 'bg-indigo-100 text-indigo-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
               >
                 <Calendar className="w-3.5 h-3.5" />
                 {selectedDate ? selectedDate.toLocaleDateString() : 'Date'}
-              </button>
+              </Button>
 
-              {/* Assignment deadline — read-only info badge */}
               {isAssignmentTask && task.assignmentDeadline && (
                 <span
                   className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium bg-red-50 text-red-500 select-none"
@@ -124,46 +120,40 @@ export default function EditTaskDialog({
                 </span>
               )}
 
-              {/* Tags pill */}
-              <button
+              <Button
+                variant={tags.length > 0 ? 'secondary' : 'ghost'}
+                size="sm"
                 onClick={() => setTagInputOpen((v) => !v)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  tags.length > 0
-                    ? 'bg-indigo-100 text-indigo-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
               >
                 <Tag className="w-3.5 h-3.5" />
                 {tags.length > 0 ? `${tags.length} ${t('tasks.tags')}` : t('tasks.tags')}
-              </button>
+              </Button>
 
-              {/* Priority pill */}
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={cyclePriority}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${priorityClass}`}
+                className={`flex items-center gap-1.5 rounded-xl text-sm font-medium ${priorityClass}`}
               >
                 <Flag className="w-3.5 h-3.5" />
                 {priorityLabel}
-              </button>
+              </Button>
 
-              {/* Subtasks pill */}
               {!isSubtask && (
-                <button
+                <Button
+                  variant={totalSubtasks > 0 ? 'secondary' : 'ghost'}
+                  size="sm"
                   onClick={() => setSubtasksExpanded((v) => !v)}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    totalSubtasks > 0
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
                 >
                   <ListChecks className="w-3.5 h-3.5" />
                   {totalSubtasks > 0
                     ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}`
                     : 'Subtasks'}
-                </button>
+                </Button>
               )}
 
-              {/* Course dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
@@ -196,7 +186,6 @@ export default function EditTaskDialog({
               </DropdownMenu>
             </div>
 
-            {/* Tag input area */}
             {tagInputOpen && (
               <div className="pt-3">
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -206,9 +195,14 @@ export default function EditTaskDialog({
                       className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium"
                     >
                       {tag}
-                      <button onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}>
-                        <X className="w-3 h-3 text-gray-400 hover:text-red-500" />
-                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
+                        className="text-gray-400 hover:text-red-500"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
                     </span>
                   ))}
                 </div>
@@ -231,7 +225,6 @@ export default function EditTaskDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Subtasks Dialog */}
       {!isSubtask && (
         <Dialog
           open={subtasksExpanded}
@@ -272,12 +265,14 @@ export default function EditTaskDialog({
                     <span className="truncate mr-2 text-gray-700 dark:text-gray-300">
                       {sub.title}
                     </span>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))}
                       className="text-gray-400 hover:text-red-500 flex-shrink-0"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
                 {newSubTitles.map((subTitle, i) => (
@@ -288,12 +283,14 @@ export default function EditTaskDialog({
                     <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">
                       {subTitle}
                     </span>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))}
                       className="text-gray-400 hover:text-red-500 flex-shrink-0"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
                 {existingSubs.length === 0 && newSubTitles.length === 0 && (

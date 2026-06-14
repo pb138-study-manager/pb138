@@ -28,14 +28,19 @@ interface TaskCardProps {
   indent?: boolean;
 }
 
-export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent = false }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  onToggle,
+  onEditFull,
+  onDelete,
+  indent = false,
+}: TaskCardProps) {
   const {
     isChecked,
     toggling,
     subtasksOpen,
-    setSubtasksOpen,
+    toggleSubtasks,
     subtasks,
-    subtasksLoaded,
     editOpen,
     setEditOpen,
     handleToggle,
@@ -43,20 +48,30 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
     handleSubDelete,
     handleSubEditFull,
     handleSave,
+    effectiveDueDate,
+    hasUsers,
+    displayTags,
+    visibleTags,
+    extraTagCount,
+    effectiveDone,
+    effectiveTotal,
+    progressPercent,
+    subtaskButtonLabel,
   } = useTaskCard({ task, onToggle, onEditFull, onDelete, indent });
 
   const { t } = useTranslation();
-  const effectiveDueDate = task.dueDate ?? task.assignmentDeadline ?? null;
   const dueTime = effectiveDueDate
-    ? `${task.dueDate ? t('tasks.due') : 'Deadline'} ${new Date(effectiveDueDate).toLocaleString('sk-SK', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })}`
+    ? `${task.dueDate ? t('tasks.due') : 'Deadline'} ${new Date(effectiveDueDate).toLocaleString(
+        'sk-SK',
+        {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }
+      )}`
     : t('tasks.noDueDate');
 
-  const hasUsers = task.assignmentId !== null;
   const urgency = getUrgency(effectiveDueDate);
   const countdown = getCountdown(effectiveDueDate, t('tasks.noDate'));
 
@@ -78,10 +93,6 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
     HIGH: t('tasks.priorityHigh'),
   };
 
-  const effectiveDone = subtasksLoaded ? subtasks.filter((s) => s.status === 'DONE').length : task.doneSubtaskCount ?? 0;
-  const effectiveTotal = subtasksLoaded ? subtasks.length : task.subtaskCount ?? 0;
-  const progressPercent = effectiveTotal > 0 ? (effectiveDone / effectiveTotal) * 100 : 0;
-
   return (
     <>
       <div
@@ -92,44 +103,57 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
       >
         <div className="p-4 flex items-center gap-3">
           <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-xl shrink-0">
-            {hasUsers ? <Users className="w-4 h-4 text-blue-500" /> : <Clock className="w-4 h-4 text-blue-400" />}
+            {hasUsers ? (
+              <Users className="w-4 h-4 text-blue-500" />
+            ) : (
+              <Clock className="w-4 h-4 text-blue-400" />
+            )}
           </div>
 
           <div className="flex-1 min-w-0" onClick={() => setEditOpen(true)}>
             <p
               className={cn(
                 'font-bold text-sm truncate cursor-pointer transition-all duration-300',
-                isChecked ? 'line-through text-gray-400 opacity-50' : 'text-gray-900 dark:text-white'
+                isChecked
+                  ? 'line-through text-gray-400 opacity-50'
+                  : 'text-gray-900 dark:text-white'
               )}
             >
               {task.title}
             </p>
             <p className="text-[13px] text-gray-400 mt-0.5 truncate">{dueTime}</p>
 
-            {task.status !== 'DONE' && (countdown || task.priority || (task.tags && task.tags.length > 0)) && (
+            {task.status !== 'DONE' && (countdown || task.priority || displayTags.length > 0) && (
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 {countdown && (
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      urgency ? urgencyColors[urgency] : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                      urgency
+                        ? urgencyColors[urgency]
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     {countdown}
                   </span>
                 )}
                 {task.priority && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}
+                  >
                     {PRIORITY_LABELS[task.priority]}
                   </span>
                 )}
-                {task.tags && task.tags.slice(0, 3).map((tag) => (
-                  <span key={tag} className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
+                {visibleTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium"
+                  >
                     {tag}
                   </span>
                 ))}
-                {task.tags && task.tags.length > 3 && (
+                {extraTagCount > 0 && (
                   <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
-                    +{task.tags.length - 3} more
+                    +{extraTagCount} more
                   </span>
                 )}
               </div>
@@ -138,7 +162,10 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
             {effectiveTotal > 0 && (
               <div className="mt-1.5">
                 <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-400 dark:bg-blue-500 transition-all" style={{ width: `${progressPercent}%` }} />
+                  <div
+                    className="h-full bg-blue-400 dark:bg-blue-500 transition-all"
+                    style={{ width: `${progressPercent}%` }}
+                  />
                 </div>
                 <span className="text-xs text-blue-500 font-medium mt-0.5 block">
                   {effectiveDone}/{effectiveTotal} subtasks
@@ -172,10 +199,14 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
               variant="ghost"
               size="sm"
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600"
-              onClick={() => setSubtasksOpen((o) => !o)}
+              onClick={toggleSubtasks}
             >
-              {subtasksOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              {subtasksLoaded ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks'}
+              {subtasksOpen ? (
+                <ChevronUp className="w-3 h-3" />
+              ) : (
+                <ChevronDown className="w-3 h-3" />
+              )}
+              {subtaskButtonLabel}
             </Button>
           </div>
         )}
@@ -194,7 +225,12 @@ export default function TaskCard({ task, onToggle, onEditFull, onDelete, indent 
           />
         ))}
 
-      <EditTaskDialog task={task} isOpen={editOpen} onOpenChange={setEditOpen} onSave={handleSave} />
+      <EditTaskDialog
+        task={task}
+        isOpen={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={handleSave}
+      />
     </>
   );
 }

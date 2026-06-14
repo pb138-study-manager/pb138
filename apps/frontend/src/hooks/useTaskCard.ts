@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
@@ -63,6 +63,32 @@ export function useTaskCard({ task, onToggle, onEditFull, onDelete, indent }: Us
   useEffect(() => {
     setIsChecked(task.status === 'DONE');
   }, [task.status]);
+
+  const effectiveDueDate = useMemo(() => task.dueDate ?? task.assignmentDeadline ?? null, [task.dueDate, task.assignmentDeadline]);
+  const hasUsers = useMemo(() => task.assignmentId !== null, [task.assignmentId]);
+  const displayTags = useMemo(() => task.tags ?? [], [task.tags]);
+  const visibleTags = useMemo(() => displayTags.slice(0, 3), [displayTags]);
+  const extraTagCount = useMemo(() => Math.max(0, displayTags.length - 3), [displayTags]);
+  const effectiveDone = useMemo(
+    () => (subtasksLoaded ? subtasks.filter((s) => s.status === 'DONE').length : task.doneSubtaskCount ?? 0),
+    [subtasks, subtasksLoaded, task.doneSubtaskCount]
+  );
+  const effectiveTotal = useMemo(
+    () => (subtasksLoaded ? subtasks.length : task.subtaskCount ?? 0),
+    [subtasks, subtasksLoaded, task.subtaskCount]
+  );
+  const progressPercent = useMemo(
+    () => (effectiveTotal > 0 ? (effectiveDone / effectiveTotal) * 100 : 0),
+    [effectiveDone, effectiveTotal]
+  );
+  const subtaskButtonLabel = useMemo(
+    () => (subtasksLoaded ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks'),
+    [subtasks.length, subtasksLoaded]
+  );
+
+  function toggleSubtasks() {
+    setSubtasksOpen((open) => !open);
+  }
 
   async function handleToggle() {
     if (toggling) return;
@@ -146,7 +172,7 @@ export function useTaskCard({ task, onToggle, onEditFull, onDelete, indent }: Us
     isChecked,
     toggling,
     subtasksOpen,
-    setSubtasksOpen,
+    toggleSubtasks,
     subtasks,
     subtasksLoaded,
     editOpen,
@@ -156,5 +182,14 @@ export function useTaskCard({ task, onToggle, onEditFull, onDelete, indent }: Us
     handleSubDelete,
     handleSubEditFull,
     handleSave,
+    effectiveDueDate,
+    hasUsers,
+    displayTags,
+    visibleTags,
+    extraTagCount,
+    effectiveDone,
+    effectiveTotal,
+    progressPercent,
+    subtaskButtonLabel,
   };
 }
