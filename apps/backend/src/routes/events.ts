@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { events } from '../db/schema';
+import { events, tasks, userSettings } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { zodBody } from '../lib/validation';
@@ -161,3 +161,81 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
     await logAction(db, (user as AuthUser).id, `Deleted event ${existing.id}`);
     return { success: true };
   });
+
+function fmtIcal(iso: string): string {
+  return iso.replace(/[-:.]/g, '').slice(0, 15) + 'Z';
+}
+
+function escIcal(str: string): string {
+  return str.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+
+export const eventsIcalRoute = new Elysia().get('/events/ical', async ({ query }) => {
+  const token = typeof query.token === 'string' ? query.token : null;
+  if (!token) return new Response('Unauthorized', { status: 401 });
+
+  const [settings] = await db
+    .select({ userId: userSettings.userId })
+    .from(userSettings)
+    .where(eq(userSettings.calendarToken, token));
+
+  if (!settings) return new Response('Unauthorized', { status: 401 });
+
+  const { userId } = settings;
+
+  const userEvents = await db
+    .select()
+    .from(events)
+    .where(and(eq(events.userId, userId), isNull(events.deletedAt)));
+
+  const userTasks = await db
+    .select({ id: tasks.id, title: tasks.title, dueDate: tasks.dueDate })
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), isNull(tasks.deletedAt), isNull(tasks.parentId)));
+
+  const stamp = fmtIcal(new Date().toISOString());
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Student OS//StudentOS//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Student OS',
+  ];
+
+  for (const ev of userEvents) {
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:event-${ev.id}@student-os`);
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART:${fmtIcal(new Date(ev.startDate).toISOString())}`);
+    lines.push(`DTEND:${fmtIcal(new Date(ev.endDate).toISOString())}`);
+    lines.push(`SUMMARY:${escIcal(ev.title)}`);
+    if (ev.description) lines.push(`DESCRIPTION:${escIcal(ev.description)}`);
+    if (ev.place) lines.push(`LOCATION:${escIcal(ev.place)}`);
+    lines.push('END:VEVENT');
+  }
+
+  for (const task of userTasks) {
+    if (!task.dueDate) continue;
+    const dateOnly = new Date(task.dueDate).toISOString().slice(0, 10).replace(/-/g, '');
+    const nextDay = new Date(task.dueDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDateOnly = nextDay.toISOString().slice(0, 10).replace(/-/g, '');
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:task-${task.id}@student-os`);
+    lines.push(`DTSTAMP:${stamp}`);
+    lines.push(`DTSTART;VALUE=DATE:${dateOnly}`);
+    lines.push(`DTEND;VALUE=DATE:${nextDateOnly}`);
+    lines.push(`SUMMARY:${escIcal(task.title)}`);
+    lines.push('END:VEVENT');
+  }
+
+  lines.push('END:VCALENDAR');
+
+  return new Response(lines.join('\r\n'), {
+    headers: {
+      'Content-Type': 'text/calendar; charset=utf-8',
+      'Content-Disposition': 'inline; filename="student-os.ics"',
+    },
+  });
+});

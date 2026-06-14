@@ -50,7 +50,9 @@
     "priorityHigh": "High",
     "tags": "Tags",
     "addTag": "Add tag...",
-    "clearFilters": "Clear"
+    "clearFilters": "Clear",
+    "evalLabel": "Grade",
+    "evalLabelFull": "Teacher grade"
   },
   "notes": {
     "loading": "Loading notes...",
@@ -112,7 +114,10 @@
   },
   "timeline": {
     "week": "Week",
-    "month": "Month"
+    "month": "Month",
+    "addToCalendar": "Add to Calendar",
+    "calendarSubscribeHint": "Copy this URL and paste it into Google Calendar → \"Add by URL\", or open it in Apple Calendar / Outlook to subscribe.",
+    "calendarRegenerate": "Regenerate (revokes old URL)"
   },
   "common": {
     "creating": "Creating...",

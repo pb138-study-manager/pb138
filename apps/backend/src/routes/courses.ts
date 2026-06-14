@@ -413,6 +413,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         status: tasks.status,
         assignmentId: assignments.id,
         assignmentTitle: assignments.title,
+        evalType: assignments.evalType,
         dueDate: tasks.dueDate,
         evalScore: evals.score,
         evalFeedback: evals.feedback,
@@ -783,5 +784,53 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
           ? ('TODO' as const)
           : row.status,
     }));
+  })
+  .get('/:id/evaluations', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const courseId = Number(params.id);
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied' };
+    }
+    const rows = await db
+      .select({
+        taskId: tasks.id,
+        userId: users.id,
+        studentName: userProfiles.name,
+        studentEmail: users.email,
+        studentAvatar: userProfiles.avatar,
+        assignmentId: assignments.id,
+        assignmentTitle: assignments.title,
+        evalType: assignments.evalType,
+        dueDate: assignments.dueDate,
+        status: tasks.status,
+        evalScore: evals.score,
+        evalFeedback: evals.feedback,
+      })
+      .from(tasks)
+      .innerJoin(assignments, eq(tasks.assignmentId, assignments.id))
+      .innerJoin(users, and(eq(tasks.userId, users.id), isNull(users.deletedAt)))
+      .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+      .leftJoin(evals, eq(evals.taskId, tasks.id))
+      .where(
+        and(
+          eq(tasks.courseId, courseId),
+          isNotNull(tasks.assignmentId),
+          isNull(tasks.deletedAt)
+        )
+      );
+    return rows.filter((r) => r.evalType !== 'none');
   })
 ;

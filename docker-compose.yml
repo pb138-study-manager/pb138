@@ -19,7 +19,7 @@ services:
     container_name: pb138-frontend
     restart: unless-stopped
     environment:
-      VITE_API_URL: http://localhost:3001 # (For local Docker testing. The user's browser needs to know where to send API requests. When you move to Rancher, change this to the public domain or IP of your backend ingress).
+      VITE_API_URL: http://localhost:3001 # (For local Docker testing. The user's browser needs to know where to send API requests. Change this to the public domain or IP of your backend ingress).
     ports:
       - "3000:80"
     depends_on:

@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
 import { tasks, evals, assignments } from '../db/schema';
-import { authMiddleware, type AuthUser } from '../middleware/auth';
+import type { AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
@@ -44,7 +44,6 @@ const AssignTaskSchema = z.object({
 });
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
-  .use(authMiddleware)
   .onBeforeHandle(({ user, set }) => {
     if (!user) {
       set.status = 401;
@@ -68,9 +67,14 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
         tags: tasks.tags,
         deletedAt: tasks.deletedAt,
         assignmentDeadline: assignments.dueDate,
+        evalId: evals.id,
+        evalScore: evals.score,
+        evalFeedback: evals.feedback,
+        evalEvaluatedAt: evals.evaluatedAt,
       })
       .from(tasks)
       .leftJoin(assignments, eq(tasks.assignmentId, assignments.id))
+      .leftJoin(evals, eq(evals.taskId, tasks.id))
       .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNull(tasks.parentId)));
 
     const allSubtasks = await db
@@ -89,11 +93,18 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       subtaskMap.set(sub.parentId, entry);
     }
 
-    return parentTasks.map((task) => ({
+    return parentTasks.map(({ evalId, evalScore, evalFeedback, evalEvaluatedAt, ...task }) => ({
       ...task,
       assignmentDeadline: task.assignmentDeadline?.toISOString() ?? null,
       subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
       doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
+      eval: evalId != null ? {
+        id: evalId,
+        taskId: task.id,
+        score: evalScore!,
+        feedback: evalFeedback!,
+        evaluatedAt: evalEvaluatedAt!.toISOString(),
+      } : null,
     }));
   })
   .post(
@@ -154,7 +165,20 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       .select()
       .from(tasks)
       .where(and(eq(tasks.parentId, task.id), isNull(tasks.deletedAt)));
-    return { ...task, subtasks };
+    const [evalRow] = await db.select().from(evals).where(eq(evals.taskId, task.id));
+    return {
+      ...task,
+      subtasks,
+      eval: evalRow
+        ? {
+            id: evalRow.id,
+            taskId: evalRow.taskId,
+            score: evalRow.score,
+            feedback: evalRow.feedback,
+            evaluatedAt: evalRow.evaluatedAt.toISOString(),
+          }
+        : null,
+    };
   })
   .patch(
     '/:id',
