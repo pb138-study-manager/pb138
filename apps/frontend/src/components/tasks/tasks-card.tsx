@@ -246,6 +246,11 @@ export default function TaskCard({
               </div>
             )}
           </div>
+          {task.eval && isChecked && (
+            <span className="shrink-0 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-2 py-0.5 rounded-md border border-green-200 dark:border-green-800">
+              {task.eval.score} b.
+            </span>
+          )}
           <button onClick={handleToggle} disabled={toggling || deleting} className="shrink-0 ml-1">
             {isChecked ? (
               <div className="w-7 h-7 rounded-full border-2 border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-600 flex items-center justify-center">
@@ -256,6 +261,19 @@ export default function TaskCard({
             )}
           </button>
         </div>
+
+        {task.eval && isChecked && (
+          <div className="px-4 pb-3">
+            <div className="border-l-2 border-green-400 dark:border-green-600 pl-2 bg-green-50 dark:bg-green-900/20 rounded-r-md py-1.5 px-2">
+              <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-0.5">
+                {t('tasks.evalLabel')}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                &ldquo;{task.eval.feedback}&rdquo;
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Subtasks toggle */}
         {!indent && effectiveTotal > 0 && (
