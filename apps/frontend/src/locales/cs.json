@@ -114,7 +114,10 @@
   },
   "timeline": {
     "week": "Týden",
-    "month": "Měsíc"
+    "month": "Měsíc",
+    "addToCalendar": "Pridať do kalendára",
+    "calendarSubscribeHint": "Skopíruj túto URL a vlož ju do Google Kalendára → \"Pridať podľa URL\", alebo otvor v Apple Kalendári / Outlooku.",
+    "calendarRegenerate": "Regenerovať (zruší starú URL)"
   },
   "common": {
     "creating": "Vytváření...",

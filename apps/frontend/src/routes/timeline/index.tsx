@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, CalendarDays, Copy, Check, RefreshCw } from 'lucide-react';
 import { useTimelineManager } from '@/hooks/useTimelineManager';
 import { EventCard } from '@/components/timeline/EventCard';
 import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard';
@@ -72,6 +72,40 @@ function TimelinePage() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [page_view, set_page_view] = useState<'standard' | 'ai'>('standard');
+  const [calendarUrl, setCalendarUrl] = useState<string | null>(null);
+  const [calendarModalOpen, setCalendarModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [calTokenLoading, setCalTokenLoading] = useState(false);
+
+  async function handleOpenCalendarModal() {
+    setCalTokenLoading(true);
+    setCalendarModalOpen(true);
+    try {
+      const { token } = await api.get<{ token: string }>('/users/me/calendar-token');
+      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^https?/, 'webcal');
+      setCalendarUrl(`${base}/events/ical?token=${token}`);
+    } finally {
+      setCalTokenLoading(false);
+    }
+  }
+
+  async function handleRegenerate() {
+    setCalTokenLoading(true);
+    try {
+      const { token } = await api.post<{ token: string }>('/users/me/calendar-token', {});
+      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^https?/, 'webcal');
+      setCalendarUrl(`${base}/events/ical?token=${token}`);
+    } finally {
+      setCalTokenLoading(false);
+    }
+  }
+
+  function handleCopy() {
+    if (!calendarUrl) return;
+    navigator.clipboard.writeText(calendarUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
   const [view_mode, set_view_mode] = useState<'week' | 'month'>('week');
   const [month_start, set_month_start] = useState<Date>(() => {
     const d = new Date();
@@ -149,6 +183,48 @@ function TimelinePage() {
         <AiSummaryView endpoint="/ai/timeline_summary" active={page_view === 'ai'} />
       </div>
 
+      {/* Calendar subscription modal */}
+      {calendarModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-indigo-500" />
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                  {t('timeline.addToCalendar', 'Add to Calendar')}
+                </h2>
+              </div>
+              <button onClick={() => setCalendarModalOpen(false)}>
+                <span className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</span>
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">
+              {t('timeline.calendarSubscribeHint', 'Copy this URL and paste it into Google Calendar → "Add by URL", or open it in Apple Calendar / Outlook to subscribe.')}
+            </p>
+            {calTokenLoading ? (
+              <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
+            ) : (
+              <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2">
+                <span className="flex-1 text-xs text-gray-600 dark:text-gray-300 truncate font-mono">
+                  {calendarUrl}
+                </span>
+                <button onClick={handleCopy} className="shrink-0 text-gray-400 hover:text-indigo-500 transition-colors">
+                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
+            <button
+              onClick={handleRegenerate}
+              disabled={calTokenLoading}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className="w-3 h-3" />
+              {t('timeline.calendarRegenerate', 'Regenerate (revokes old URL)')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {page_view === 'standard' && (
         <>
       {/* HEADER */}
@@ -185,6 +261,16 @@ function TimelinePage() {
               {t('timeline.month', 'Month')}
             </button>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            type="button"
+            onClick={handleOpenCalendarModal}
+            title={t('timeline.addToCalendar', 'Add to Calendar')}
+          >
+            <CalendarDays className="w-5 h-5 text-gray-500" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

@@ -276,6 +276,32 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       )
       .limit(20);
   })
+  .get('/me/calendar-token', async ({ user }) => {
+    const uid = (user as AuthUser).id;
+    const [settings] = await db
+      .select({ calendarToken: userSettings.calendarToken })
+      .from(userSettings)
+      .where(eq(userSettings.userId, uid));
+
+    if (settings?.calendarToken) return { token: settings.calendarToken };
+
+    const token = crypto.randomUUID();
+    await db
+      .insert(userSettings)
+      .values({ userId: uid, calendarToken: token })
+      .onConflictDoUpdate({ target: userSettings.userId, set: { calendarToken: token } });
+    return { token };
+  })
+  .post('/me/calendar-token', async ({ user }) => {
+    const uid = (user as AuthUser).id;
+    const token = crypto.randomUUID();
+    await db
+      .insert(userSettings)
+      .values({ userId: uid, calendarToken: token })
+      .onConflictDoUpdate({ target: userSettings.userId, set: { calendarToken: token } });
+    await logAction(db, uid, 'Regenerated calendar token');
+    return { token };
+  })
   .post('/me/integrations/:service', async ({ params, user }) => {
     const uid = (user as AuthUser).id;
     await db

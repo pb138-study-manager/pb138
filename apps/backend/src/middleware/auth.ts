@@ -16,7 +16,7 @@ function getJWKS() {
   return JWKS;
 }
 
-async function resolveUser(token: string): Promise<AuthUser | null> {
+export async function resolveUser(token: string): Promise<AuthUser | null> {
   const jwtSecret = process.env.SUPABASE_JWT_SECRET ?? '';
   let sub: string;
 

@@ -57,6 +57,7 @@ export const userSettings = pgTable('user_settings', {
   lightTheme: boolean('light_theme').notNull().default(true),
   language: text('language').notNull().default('en'),
   customNav: jsonb('custom_nav'),
+  calendarToken: text('calendar_token'),
 });
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@ import { cors } from '@elysiajs/cors';
 import { authMiddleware } from './middleware/auth';
 import { authRoutes } from './routes/auth';
 import { tasksRoutes } from './routes/tasks';
-import { eventsRoutes } from './routes/events';
+import { eventsRoutes, eventsIcalRoute } from './routes/events';
 import { foldersRoutes } from './routes/folders';
 import { notesRoutes } from './routes/notes';
 import { coursesRoutes } from './routes/courses';
@@ -23,6 +23,7 @@ const app = new Elysia()
     timestamp: new Date().toISOString(),
   }))
   .use(authRoutes)
+  .use(eventsIcalRoute)
   .group('', (app) => app
     .use(authMiddleware)
     .use(tasksRoutes)
