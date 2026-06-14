@@ -86,15 +86,12 @@ test.describe('Timeline page', () => {
   })
 
   test('navigates to next week via chevron button', async ({ page }) => {
-    // Visible SVG buttons in main: Plus (0), ChevronLeft (1), ChevronRight (2)
-    // AiSummaryView has a hidden Sparkles button so we scope to :visible only
-    await page.locator('main button:visible').filter({ has: page.locator('svg') }).nth(2).click()
+    await page.locator('main button:visible').filter({ has: page.locator('svg.lucide-chevron-right') }).first().click()
     await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
   })
 
   test('opens the add event dialog', async ({ page }) => {
-    // Plus button is the first visible SVG button in main
-    await page.locator('main button:visible').filter({ has: page.locator('svg') }).nth(0).click()
+    await page.locator('main button:visible').filter({ has: page.locator('svg.lucide-plus') }).first().click()
     await expect(page.getByPlaceholder('Event name...')).toBeVisible()
     await expect(page.getByText('Event').first()).toBeVisible()
     await expect(page.getByText('Deadline').first()).toBeVisible()
