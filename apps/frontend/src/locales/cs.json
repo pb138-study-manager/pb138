@@ -50,7 +50,9 @@
     "priorityHigh": "Vysoká",
     "tags": "Štítky",
     "addTag": "Přidat štítek...",
-    "clearFilters": "Zrušit"
+    "clearFilters": "Zrušit",
+    "evalLabel": "Hodnotenie",
+    "evalLabelFull": "Hodnotenie od učiteľa"
   },
   "notes": {
     "loading": "Načítání poznámek...",

@@ -50,7 +50,9 @@
     "priorityHigh": "High",
     "tags": "Tags",
     "addTag": "Add tag...",
-    "clearFilters": "Clear"
+    "clearFilters": "Clear",
+    "evalLabel": "Grade",
+    "evalLabelFull": "Teacher grade"
   },
   "notes": {
     "loading": "Loading notes...",
