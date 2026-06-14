@@ -67,9 +67,14 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
         tags: tasks.tags,
         deletedAt: tasks.deletedAt,
         assignmentDeadline: assignments.dueDate,
+        evalId: evals.id,
+        evalScore: evals.score,
+        evalFeedback: evals.feedback,
+        evalEvaluatedAt: evals.evaluatedAt,
       })
       .from(tasks)
       .leftJoin(assignments, eq(tasks.assignmentId, assignments.id))
+      .leftJoin(evals, eq(evals.taskId, tasks.id))
       .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt), isNull(tasks.parentId)));
 
     const allSubtasks = await db
@@ -88,11 +93,18 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       subtaskMap.set(sub.parentId, entry);
     }
 
-    return parentTasks.map((task) => ({
+    return parentTasks.map(({ evalId, evalScore, evalFeedback, evalEvaluatedAt, ...task }) => ({
       ...task,
       assignmentDeadline: task.assignmentDeadline?.toISOString() ?? null,
       subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
       doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
+      eval: evalId != null ? {
+        id: evalId,
+        taskId: task.id,
+        score: evalScore!,
+        feedback: evalFeedback!,
+        evaluatedAt: evalEvaluatedAt!.toISOString(),
+      } : null,
     }));
   })
   .post(
