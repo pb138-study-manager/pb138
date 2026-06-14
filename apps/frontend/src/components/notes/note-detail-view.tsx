@@ -201,26 +201,22 @@ export default function NoteDetailView({
             )}
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
+          <button
             onClick={() => setQuizOpen(true)}
             disabled={words < 20}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <BrainCircuit size={14} />
             {t('notes.quizMe')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs gap-1.5 dark:border-gray-600 dark:text-gray-300"
+          </button>
+          <button
             onClick={() => setAiChatOpen(true)}
             disabled={words < 5}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Sparkles size={14} />
             {t('notes.askAI')}
-          </Button>
+          </button>
         </div>
       </div>
 

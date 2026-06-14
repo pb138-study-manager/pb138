@@ -282,7 +282,7 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
                         ) : (
                           <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
                             <Star className="w-3 h-3" />
-                            Hodnotiť
+                            {t('courses.evaluate')}
                           </span>
                         )}
                       </button>
