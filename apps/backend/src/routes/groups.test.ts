@@ -5,12 +5,13 @@ import {
   users, userRoles, roles, groups, groupMembers, assignments, tasks, auditLogs,
 } from '../db/schema';
 import { groupsRoutes } from './groups';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'groups-test-jwt-secret';
-const USER_AUTH_ID = 'groups-test-user-uuid';
-const TEACHER_AUTH_ID = 'groups-test-teacher-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'groups-test-jwt-secret';
+const USER_AUTH_ID = `groups-test-user-uuid-${RND}`;
+const TEACHER_AUTH_ID = `groups-test-teacher-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
@@ -38,13 +39,23 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ email: 'groups-user@example.com', login: 'groups-test-user', pwdHash: '', authId: USER_AUTH_ID })
+    .values({ 
+      email: `groups-user-${RND}@example.com`, 
+      login: `groups-test-user-${RND}`, 
+      pwdHash: '', 
+      authId: USER_AUTH_ID 
+    })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ email: 'groups-teacher@example.com', login: 'groups-test-teacher', pwdHash: '', authId: TEACHER_AUTH_ID })
+    .values({ 
+      email: `groups-teacher-${RND}@example.com`, 
+      login: `groups-test-teacher-${RND}`, 
+      pwdHash: '', 
+      authId: TEACHER_AUTH_ID 
+    })
     .returning();
   teacherId = teacher.id;
 
@@ -59,20 +70,17 @@ beforeAll(async () => {
 afterAll(async () => {
   await db.delete(auditLogs).where(eq(auditLogs.actorId, userId));
   await db.delete(auditLogs).where(eq(auditLogs.actorId, teacherId));
-  // tasks assigned via assignments
-  if (teacherGroupId) {
-    const assignmentRows = await db.select({ id: assignments.id }).from(assignments).where(eq(assignments.groupId, teacherGroupId));
+  
+  const mentorGroups = await db.select({ id: groups.id }).from(groups).where(or(eq(groups.mentorId, teacherId), eq(groups.mentorId, userId)));
+  for (const g of mentorGroups) {
+    const assignmentRows = await db.select({ id: assignments.id }).from(assignments).where(eq(assignments.groupId, g.id));
     for (const a of assignmentRows) {
       await db.delete(tasks).where(eq(tasks.assignmentId, a.id));
     }
-    await db.delete(assignments).where(eq(assignments.groupId, teacherGroupId));
-    await db.delete(groupMembers).where(eq(groupMembers.groupId, teacherGroupId));
+    await db.delete(assignments).where(eq(assignments.groupId, g.id));
+    await db.delete(groupMembers).where(eq(groupMembers.groupId, g.id));
+    await db.delete(groups).where(eq(groups.id, g.id));
   }
-  if (userGroupId) {
-    await db.delete(groupMembers).where(eq(groupMembers.groupId, userGroupId));
-  }
-  await db.delete(groups).where(eq(groups.mentorId, teacherId));
-  await db.delete(groups).where(eq(groups.mentorId, userId));
   await db.delete(userRoles).where(eq(userRoles.userId, teacherId));
   await db.delete(users).where(eq(users.id, userId));
   await db.delete(users).where(eq(users.id, teacherId));

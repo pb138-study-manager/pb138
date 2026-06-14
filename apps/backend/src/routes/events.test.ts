@@ -6,8 +6,9 @@ import { eventsRoutes } from './events';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'events-test-jwt-secret';
-const TEST_AUTH_ID = 'events-test-supabase-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'events-test-jwt-secret';
+const TEST_AUTH_ID = `events-test-supabase-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeAuthHeader(): Promise<string> {
@@ -34,8 +35,8 @@ beforeAll(async () => {
   const [user] = await db
     .insert(users)
     .values({
-      email: 'events-test@example.com',
-      login: 'events-test-user',
+      email: `events-test-${RND}@example.com`,
+      login: `events-test-user-${RND}`,
       pwdHash: '',
       authId: TEST_AUTH_ID,
     })

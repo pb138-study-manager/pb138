@@ -6,9 +6,10 @@ import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'courses-test-jwt-secret';
-const USER_AUTH_ID = 'courses-test-user-uuid';
-const TEACHER_AUTH_ID = 'courses-test-teacher-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'courses-test-jwt-secret';
+const USER_AUTH_ID = `courses-test-user-uuid-${RND}`;
+const TEACHER_AUTH_ID = `courses-test-teacher-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
@@ -34,13 +35,23 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ email: 'courses-user@example.com', login: 'courses-test-user', pwdHash: '', authId: USER_AUTH_ID })
+    .values({ 
+      email: `courses-user-${RND}@example.com`, 
+      login: `courses-test-user-${RND}`, 
+      pwdHash: '', 
+      authId: USER_AUTH_ID 
+    })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ email: 'courses-teacher@example.com', login: 'courses-test-teacher', pwdHash: '', authId: TEACHER_AUTH_ID })
+    .values({ 
+      email: `courses-teacher-${RND}@example.com`, 
+      login: `courses-test-teacher-${RND}`, 
+      pwdHash: '', 
+      authId: TEACHER_AUTH_ID 
+    })
     .returning();
   teacherId = teacher.id;
 
@@ -482,11 +493,7 @@ describe('GET /courses/:id/assignments', () => {
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
 
-    const secret = new TextEncoder().encode('courses-test-jwt-secret');
-    const otherToken = await new SignJWT({ sub: OTHER_TEACHER_AUTH_ID })
-      .setProtectedHeader({ alg: 'HS256' })
-      .sign(secret);
-    const otherAuth = `Bearer ${otherToken}`;
+    const otherAuth = `Bearer ${await makeToken(OTHER_TEACHER_AUTH_ID)}`;
 
     const res = await testApp.handle(
       req(`http://localhost/courses/${courseId}/assignments`, otherAuth)
@@ -533,8 +540,7 @@ describe('GET /courses/:id/students', () => {
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
-    const secret = new TextEncoder().encode('courses-test-jwt-secret');
-    const token = await new SignJWT({ sub: OTHER_AUTH_ID }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
+    const token = await makeToken(OTHER_AUTH_ID);
 
     const res = await testApp.handle(
       req(`http://localhost/courses/${courseId}/students`, `Bearer ${token}`)

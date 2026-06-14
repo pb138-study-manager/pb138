@@ -9,8 +9,9 @@ import { usersRoutes } from './users';
 import { eq, and } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'users-test-jwt-secret';
-const USER_AUTH_ID = 'users-test-user-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'users-test-jwt-secret';
+const USER_AUTH_ID = `users-test-user-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
@@ -46,8 +47,8 @@ beforeAll(async () => {
   const [user] = await db
     .insert(users)
     .values({
-      email: 'users-test@example.com',
-      login: 'users-test-user',
+      email: `users-test-${RND}@example.com`,
+      login: `users-test-user-${RND}`,
       pwdHash: '',
       authId: USER_AUTH_ID,
     })
@@ -72,8 +73,8 @@ describe('GET /users/me', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.id).toBe(userId);
-    expect(body.email).toBe('users-test@example.com');
-    expect(body.login).toBe('users-test-user');
+    expect(body.email).toBe(`users-test-${RND}@example.com`);
+    expect(body.login).toBe(`users-test-user-${RND}`);
     expect(Array.isArray(body.roles)).toBe(true);
     expect(body.profile.name).toBeNull();
     expect(body.settings.notificationsEnabled).toBe(true);
@@ -91,7 +92,12 @@ describe('GET /users/me', () => {
   it('returns enrolled courses with lecture and seminar teachers', async () => {
     const [teacher] = await db
       .insert(users)
-      .values({ email: 'teacher-me@example.com', login: 'teacher-me', pwdHash: '', authId: 'teacher-me-uuid' })
+      .values({ 
+        email: `teacher-me-${RND}@example.com`, 
+        login: `teacher-me-${RND}`, 
+        pwdHash: '', 
+        authId: `teacher-me-uuid-${RND}` 
+      })
       .returning();
     const [course] = await db
       .insert(courses)
@@ -184,7 +190,7 @@ describe('PATCH /users/me/settings', () => {
 
 describe('GET /users/search', () => {
   it('returns matching user by login', async () => {
-    const res = await testApp.handle(req('http://localhost/users/search?q=users-test'));
+    const res = await testApp.handle(req(`http://localhost/users/search?q=users-test-user-${RND}`));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
