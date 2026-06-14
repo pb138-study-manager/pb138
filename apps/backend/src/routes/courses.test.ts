@@ -22,7 +22,7 @@ export let userId: number;
 export let teacherId: number;
 export let userAuth: string;
 export let teacherAuth: string;
-let testApp: Elysia;
+const testApp = new Elysia().use(coursesRoutes);
 
 function req(url: string, auth: string, init: RequestInit = {}): Request {
   return new Request(url, {
@@ -50,7 +50,6 @@ beforeAll(async () => {
 
   userAuth = `Bearer ${await makeToken(USER_AUTH_ID)}`;
   teacherAuth = `Bearer ${await makeToken(TEACHER_AUTH_ID)}`;
-  testApp = new Elysia().use(coursesRoutes);
 });
 
 afterAll(async () => {

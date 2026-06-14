@@ -19,8 +19,8 @@ async function makeAuthHeader(): Promise<string> {
 }
 
 let testUserId: number;
-let testApp: Elysia;
 let authHeader: string;
+const testApp = new Elysia().use(foldersRoutes);
 
 async function req(url: string, init: RequestInit = {}): Promise<Request> {
   return new Request(url, {
@@ -41,7 +41,6 @@ beforeAll(async () => {
     })
     .returning();
   testUserId = user.id;
-  testApp = new Elysia().use(foldersRoutes);
 });
 
 afterAll(async () => {

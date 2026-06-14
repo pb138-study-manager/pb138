@@ -22,7 +22,7 @@ async function makeToken(authId: string): Promise<string> {
 
 let userId: number;
 let userAuth: string;
-let testApp: Elysia;
+const testApp = new Elysia().use(usersRoutes);
 
 function req(url: string, init: RequestInit = {}): Request {
   return new Request(url, {
@@ -54,7 +54,6 @@ beforeAll(async () => {
     .returning();
   userId = user.id;
   userAuth = `Bearer ${await makeToken(USER_AUTH_ID)}`;
-  testApp = new Elysia().use(usersRoutes);
 });
 
 afterAll(async () => {

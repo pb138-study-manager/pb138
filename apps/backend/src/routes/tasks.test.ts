@@ -6,8 +6,9 @@ import { tasksRoutes } from './tasks';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'tasks-test-jwt-secret';
-const TEST_AUTH_ID = 'tasks-test-supabase-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'tasks-test-jwt-secret';
+const TEST_AUTH_ID = `tasks-test-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeAuthHeader(): Promise<string> {
@@ -19,8 +20,8 @@ async function makeAuthHeader(): Promise<string> {
 }
 
 let testUserId: number;
-let testApp: Elysia;
 let authHeader: string;
+const testApp = new Elysia().use(tasksRoutes);
 
 // Wraps Request with Authorization header so every test is authenticated
 async function req(url: string, init: RequestInit = {}): Promise<Request> {
@@ -48,15 +49,13 @@ beforeAll(async () => {
   const [user] = await db
     .insert(users)
     .values({
-      email: 'tasks-test@example.com',
-      login: 'tasks-test-user',
+      email: `tasks-test-${RND}@example.com`,
+      login: `tasks-test-user-${RND}`,
       pwdHash: '',
       authId: TEST_AUTH_ID,
     })
     .returning();
   testUserId = user.id;
-
-  testApp = new Elysia().use(tasksRoutes);
 });
 
 afterAll(async () => {
@@ -276,7 +275,7 @@ describe('POST /tasks/:id/eval', () => {
   let evalTaskId: number;
   let evalTeacherUserId: number;
   let teacherToken: string;
-  const TEACHER_AUTH = 'tasks-eval-teacher-uuid-unique';
+  const TEACHER_AUTH = `tasks-eval-teacher-uuid-${RND}`;
 
   beforeAll(async () => {
     // Clean up any leftover data from previous runs
@@ -300,7 +299,12 @@ describe('POST /tasks/:id/eval', () => {
 
     const [teacher] = await db
       .insert(users)
-      .values({ email: 'eval-teacher@example.com', login: 'eval-teacher-login', pwdHash: '', authId: TEACHER_AUTH })
+      .values({ 
+        email: `eval-teacher-${RND}@example.com`, 
+        login: `eval-teacher-login-${RND}`, 
+        pwdHash: '', 
+        authId: TEACHER_AUTH 
+      })
       .returning();
     evalTeacherUserId = teacher.id;
 
@@ -368,7 +372,7 @@ describe('GET /tasks/:id/eval', () => {
   let evalTaskId2: number;
   let evalTeacherUserId2: number;
   let teacherToken2: string;
-  const TEACHER_AUTH2 = 'tasks-eval-teacher-uuid-unique-2';
+  const TEACHER_AUTH2 = `tasks-eval-teacher-uuid-2-${RND}`;
 
   beforeAll(async () => {
     // Clean up any leftover data from previous runs
@@ -394,8 +398,8 @@ describe('GET /tasks/:id/eval', () => {
     const [teacher] = await db
       .insert(users)
       .values({
-        email: 'eval-teacher2@example.com',
-        login: 'eval-teacher-login-2',
+        email: `eval-teacher2-${RND}@example.com`,
+        login: `eval-teacher-login-2-${RND}`,
         pwdHash: '',
         authId: TEACHER_AUTH2,
       })

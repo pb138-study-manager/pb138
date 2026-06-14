@@ -24,9 +24,9 @@ let userId: number;
 let teacherId: number;
 let userAuth: string;
 let teacherAuth: string;
-let testApp: Elysia;
 let userGroupId: number;
 let teacherGroupId: number;
+const testApp = new Elysia().use(groupsRoutes);
 
 function req(url: string, auth: string, init: RequestInit = {}): Request {
   return new Request(url, {
@@ -54,7 +54,6 @@ beforeAll(async () => {
 
   userAuth = `Bearer ${await makeToken(USER_AUTH_ID)}`;
   teacherAuth = `Bearer ${await makeToken(TEACHER_AUTH_ID)}`;
-  testApp = new Elysia().use(groupsRoutes);
 });
 
 afterAll(async () => {

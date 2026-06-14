@@ -6,8 +6,9 @@ import { notesRoutes } from './notes';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const TEST_SECRET = 'notes-test-jwt-secret';
-const TEST_AUTH_ID = 'notes-test-supabase-uuid';
+const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'notes-test-jwt-secret';
+const TEST_AUTH_ID = `notes-test-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeAuthHeader(): Promise<string> {
@@ -19,8 +20,8 @@ async function makeAuthHeader(): Promise<string> {
 }
 
 let testUserId: number;
-let testApp: Elysia;
 let authHeader: string;
+const testApp = new Elysia().use(notesRoutes);
 
 async function req(url: string, init: RequestInit = {}): Promise<Request> {
   return new Request(url, {
@@ -34,15 +35,14 @@ beforeAll(async () => {
   const [user] = await db
     .insert(users)
     .values({
-      email: 'notes-test@example.com',
-      login: 'notes-test-user',
+      email: `notes-test-${RND}@example.com`,
+      login: `notes-test-user-${RND}`,
       pwdHash: '',
       authId: TEST_AUTH_ID,
     })
     .returning();
   testUserId = user.id;
 
-  testApp = new Elysia().use(notesRoutes);
 });
 
 afterAll(async () => {
