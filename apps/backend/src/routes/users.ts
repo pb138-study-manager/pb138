@@ -349,4 +349,32 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         )
       );
     return { success: true };
+  })
+  .get('/:id', async ({ params, set }) => {
+    const id = parseInt(params.id, 10);
+    if (isNaN(id)) {
+      set.status = 400;
+      return { error: 'INVALID_ID', message: 'User ID must be a number' };
+    }
+
+    const [row] = await db
+      .select({
+        id: users.id,
+        login: users.login,
+        name: userProfiles.name,
+        title: userProfiles.title,
+        avatar: userProfiles.avatar,
+        organization: userProfiles.organization,
+        bio: userProfiles.bio,
+      })
+      .from(users)
+      .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+      .where(and(eq(users.id, id), isNull(users.deletedAt)));
+
+    if (!row) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'User not found' };
+    }
+
+    return row;
   });

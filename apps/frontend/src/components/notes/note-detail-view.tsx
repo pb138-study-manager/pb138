@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Trash2, BrainCircuit, Sparkles } from 'lucide-react';
+import { Trash2, BrainCircuit, Sparkles, X as XIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { NoteModel } from '@/types/index';
 import { Button } from '@/components/ui/button';
@@ -30,9 +30,12 @@ export default function NoteDetailView({
   onSave,
   onDelete,
 }: NoteDetailViewProps) {
-  const [isEditing, setIsEditing] = useState(autoEdit || false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingBody, setIsEditingBody] = useState(autoEdit || false);
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.description || '');
+  const [tags, setTags] = useState<string[]>(note.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -60,10 +63,10 @@ export default function NoteDetailView({
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [courseDropdownOpen]);
 
-  // Auto-focus textarea when entering edit mode
+  // Auto-focus textarea only when body editing starts
   useEffect(() => {
-    if (isEditing) textareaRef.current?.focus();
-  }, [isEditing]);
+    if (isEditingBody) textareaRef.current?.focus();
+  }, [isEditingBody]);
 
   const { data: courses = [] } = useQuery<Course[]>({
     queryKey: ['courses'],
@@ -79,7 +82,6 @@ export default function NoteDetailView({
     setIsSaving(true);
     try {
       await onSave(note.id, title.trim(), content);
-      setIsEditing(false);
     } finally {
       isSavingRef.current = false;
       setIsSaving(false);
@@ -110,9 +112,39 @@ export default function NoteDetailView({
     }
   }
 
+  async function handleAddTag(tag: string) {
+    const trimmed = tag.trim().replace(/^#/, '');
+    if (!trimmed || tags.includes(trimmed)) return;
+    const next = [...tags, trimmed];
+    setTags(next);
+    setTagInput('');
+    try {
+      await api.patch(`/notes/${note.id}`, { tags: next });
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.map((n) => (n.id === note.id ? { ...n, tags: next } : n))
+      );
+    } catch (err) {
+      console.error('Failed to update tags', err);
+    }
+  }
+
+  async function handleRemoveTag(tag: string) {
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    try {
+      await api.patch(`/notes/${note.id}`, { tags: next });
+      queryClient.setQueryData<NoteModel[]>(['notes'], (prev = []) =>
+        prev.map((n) => (n.id === note.id ? { ...n, tags: next } : n))
+      );
+    } catch (err) {
+      console.error('Failed to update tags', err);
+    }
+  }
+
   function handleTextareaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Escape') {
       e.preventDefault();
+      setIsEditingBody(false);
       handleAutoSave();
     }
   }
@@ -121,18 +153,28 @@ export default function NoteDetailView({
     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm flex flex-col min-h-[50vh] h-full transition-colors">
       {/* Toolbar */}
       <div className="flex justify-between items-center mb-3 border-b dark:border-gray-700 pb-3 gap-4">
-        {isEditing ? (
+        {isEditingTitle ? (
           <input
+            autoFocus
             className="text-xl font-bold flex-1 border dark:border-gray-600 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('dialog.noteTitle')}
-            onBlur={handleAutoSave}
+            onBlur={() => {
+              setIsEditingTitle(false);
+              handleAutoSave();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === 'Escape') {
+                setIsEditingTitle(false);
+                handleAutoSave();
+              }
+            }}
           />
         ) : (
           <h2
             className="text-xl font-bold truncate flex-1 text-gray-900 dark:text-white cursor-text"
-            onClick={() => setIsEditing(true)}
+            onClick={() => setIsEditingTitle(true)}
           >
             {title}
           </h2>
@@ -140,7 +182,7 @@ export default function NoteDetailView({
         <Button
           variant="ghost"
           size="icon"
-          className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 flex-shrink-0"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => setIsDeleteDialogOpen(true)}
           disabled={isDeleting}
@@ -163,7 +205,7 @@ export default function NoteDetailView({
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${
                 currentCourse
                   ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700'
-                  : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                  : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
               }`}
             >
               <span>📚</span>
@@ -204,7 +246,7 @@ export default function NoteDetailView({
           <button
             onClick={() => setQuizOpen(true)}
             disabled={words < 20}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <BrainCircuit size={14} />
             {t('notes.quizMe')}
@@ -212,7 +254,7 @@ export default function NoteDetailView({
           <button
             onClick={() => setAiChatOpen(true)}
             disabled={words < 5}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Sparkles size={14} />
             {t('notes.askAI')}
@@ -220,8 +262,38 @@ export default function NoteDetailView({
         </div>
       </div>
 
+      {/* Tags row */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+          >
+            #{tag}
+            <button
+              onClick={() => handleRemoveTag(tag)}
+              className="hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            >
+              <XIcon size={10} />
+            </button>
+          </span>
+        ))}
+        <input
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+              e.preventDefault();
+              handleAddTag(tagInput);
+            }
+          }}
+          placeholder="#tag"
+          className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 bg-transparent text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 w-16 focus:w-28 transition-all"
+        />
+      </div>
+
       {/* Content */}
-      {isEditing ? (
+      {isEditingBody ? (
         <>
           {/* Markdown hint bar */}
           <div className="flex gap-3 px-2 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-600 text-xs text-gray-400 font-mono overflow-x-auto whitespace-nowrap">
@@ -237,7 +309,10 @@ export default function NoteDetailView({
             className="flex-1 w-full p-3 border dark:border-gray-600 rounded-b-lg resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm leading-relaxed"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            onBlur={handleAutoSave}
+            onBlur={() => {
+              setIsEditingBody(false);
+              handleAutoSave();
+            }}
             onKeyDown={handleTextareaKeyDown}
             placeholder={t('notes.startWriting')}
           />
@@ -245,7 +320,7 @@ export default function NoteDetailView({
       ) : (
         <div
           className="flex-1 cursor-text rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors p-2 -mx-2"
-          onClick={() => setIsEditing(true)}
+          onClick={() => setIsEditingBody(true)}
           title={t('notes.clickToEdit')}
         >
           {content ? (

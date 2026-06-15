@@ -67,6 +67,7 @@ export interface Note {
   description: string;
   folderId?: number | null;
   courseId?: number | null;
+  tags?: string[];
   deletedAt: string | null;
 }
 
@@ -76,6 +77,7 @@ export interface FolderModel {
   id: number;
   userId: number;
   name: string;
+  tags?: string[];
   deletedAt: string | null;
 }
 
@@ -164,4 +166,14 @@ export interface AdminRole {
   id: number;
   name: RoleName;
   permissions: string[];
+}
+
+export interface PublicProfile {
+  id: number;
+  login: string;
+  name: string | null;
+  title: string | null;
+  avatar: string | null;
+  organization: string | null;
+  bio: string | null;
 }

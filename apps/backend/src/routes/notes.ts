@@ -12,6 +12,7 @@ const CreateNoteSchema = z.object({
   description: z.string().optional(),
   folderId: z.number().optional(),
   courseId: z.number().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 const UpdateNoteSchema = z.object({
@@ -19,6 +20,7 @@ const UpdateNoteSchema = z.object({
   description: z.string().optional(),
   folderId: z.number().nullable().optional(),
   courseId: z.number().nullable().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const notesRoutes = new Elysia({ prefix: '/notes' })
@@ -62,6 +64,7 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
           description: body.description,
           folderId: body.folderId,
           courseId: body.courseId,
+          tags: body.tags ?? [],
         })
         .returning();
       await logAction(db, (user as AuthUser).id, `Created note ${note.id}: ${note.title}`);
@@ -126,6 +129,7 @@ export const notesRoutes = new Elysia({ prefix: '/notes' })
           ...(body.description !== undefined && { description: body.description }),
           ...(body.folderId !== undefined && { folderId: body.folderId }),
           ...(body.courseId !== undefined && { courseId: body.courseId }),
+          ...(body.tags !== undefined && { tags: body.tags }),
         })
         .where(eq(notes.id, existing.id))
         .returning();

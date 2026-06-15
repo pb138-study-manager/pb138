@@ -242,6 +242,7 @@ export const folders = pgTable('folders', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
+  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -254,6 +255,7 @@ export const notes = pgTable('notes', {
   description: text('description'),
   folderId: integer('folder_id').references(() => folders.id),
   courseId: integer('course_id').references(() => courses.id),
+  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
