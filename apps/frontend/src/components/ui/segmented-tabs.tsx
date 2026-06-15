@@ -65,7 +65,7 @@ export function SegmentedTabs({
 
   return (
     <div
-      className={cn('inline-flex rounded-2xl bg-gray-100 dark:bg-gray-800 p-1 gap-0.5', className)}
+      className={cn('inline-flex rounded-2xl bg-gray-100 dark:bg-white/[0.06] p-1 gap-0.5', className)}
     >
       {items.map((item) => {
         const isActive = item.key === value;
@@ -77,7 +77,7 @@ export function SegmentedTabs({
             className={cn(
               'flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-all',
               isActive
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                ? 'bg-white dark:bg-white/[0.12] text-gray-900 dark:text-white shadow-sm'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
             )}
           >

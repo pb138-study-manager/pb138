@@ -36,14 +36,14 @@ export function AdminLogsView() {
           <CardTitle>Audit log</CardTitle>
           <CardDescription>Read-only record of security-relevant events.</CardDescription>
         </div>
-        <div className="flex gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-fit">
+        <div className="flex gap-1 rounded-lg bg-gray-100 dark:bg-white/[0.06] p-1 w-fit">
           {LOG_TYPES.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setLogType(value)}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 logType === value
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-white/[0.12] text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
