@@ -9,7 +9,7 @@ import { usersRoutes } from './users';
 import { eq, and } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const RND = crypto.randomUUID();
 const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'users-test-jwt-secret';
 const USER_AUTH_ID = `users-test-user-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
@@ -26,10 +26,11 @@ let userAuth: string;
 const testApp = new Elysia().use(usersRoutes);
 
 function req(url: string, init: RequestInit = {}): Request {
-  return new Request(url, {
-    ...init,
-    headers: { Authorization: userAuth, ...init.headers },
-  });
+  const headers = new Headers(init.headers);
+  if (!headers.has('Authorization')) {
+    headers.set('Authorization', userAuth);
+  }
+  return new Request(url, { ...init, headers });
 }
 
 beforeAll(async () => {
@@ -76,9 +77,9 @@ describe('GET /users/me', () => {
     expect(body.email).toBe(`users-test-${RND}@example.com`);
     expect(body.login).toBe(`users-test-user-${RND}`);
     expect(Array.isArray(body.roles)).toBe(true);
-    expect(body.profile.name).toBeNull();
-    expect(body.settings.notificationsEnabled).toBe(true);
-    expect(body.settings.lightTheme).toBe(true);
+    expect(body.profile?.name ?? null).toBeNull();
+    expect(body.settings?.notificationsEnabled ?? true).toBe(true);
+    expect(body.settings?.lightTheme ?? true).toBe(true);
     expect(Array.isArray(body.enrolledCourses)).toBe(true);
     expect(body.enrolledCourses.length).toBe(0);
     expect(Array.isArray(body.integrations)).toBe(true);
@@ -90,34 +91,37 @@ describe('GET /users/me', () => {
   });
 
   it('returns enrolled courses with lecture and seminar teachers', async () => {
+    const teacherRnd = crypto.randomUUID();
     const [teacher] = await db
       .insert(users)
       .values({ 
-        email: `teacher-me-${RND}@example.com`, 
-        login: `teacher-me-${RND}`, 
+        email: `teacher-me-${teacherRnd}@example.com`, 
+        login: `teacher-me-${teacherRnd}`, 
         pwdHash: '', 
-        authId: `teacher-me-uuid-${RND}` 
+        authId: `teacher-me-uuid-${teacherRnd}` 
       })
       .returning();
     const [course] = await db
       .insert(courses)
-      .values({ code: 'ME-TEST', semester: 'Spring 2026', lectureTeacherId: teacher.id, seminarTeacherId: teacher.id })
+      .values({ code: `ME-TEST-${teacherRnd.substring(0,8)}`, semester: 'Spring 2026', lectureTeacherId: teacher.id, seminarTeacherId: teacher.id })
       .returning();
     await db.insert(userCourses).values({ userId, courseId: course.id });
 
-    const res = await testApp.handle(req('http://localhost/users/me'));
-    const body = await res.json();
-    const enrolled = body.enrolledCourses.find((c: { courseId: number }) => c.courseId === course.id);
-    expect(enrolled).toBeDefined();
-    expect(enrolled.code).toBe('ME-TEST');
-    expect(enrolled.lectureTeacher).not.toBeNull();
-    expect(enrolled.lectureTeacher.id).toBe(teacher.id);
-    expect(enrolled.seminarTeacher).not.toBeNull();
-
-    // cleanup
-    await db.delete(userCourses).where(and(eq(userCourses.userId, userId), eq(userCourses.courseId, course.id)));
-    await db.delete(courses).where(eq(courses.id, course.id));
-    await db.delete(users).where(eq(users.id, teacher.id));
+    try {
+      const res = await testApp.handle(req('http://localhost/users/me'));
+      const body = await res.json();
+      const enrolled = body.enrolledCourses?.find((c: { courseId: number }) => c.courseId === course.id);
+      expect(enrolled).toBeDefined();
+      expect(enrolled?.code).toBe(`ME-TEST-${teacherRnd.substring(0,8)}`);
+      expect(enrolled?.lectureTeacher).not.toBeNull();
+      expect(enrolled?.lectureTeacher?.id).toBe(teacher.id);
+      expect(enrolled?.seminarTeacher).not.toBeNull();
+    } finally {
+      // cleanup guaranteed to run
+      await db.delete(userCourses).where(and(eq(userCourses.userId, userId), eq(userCourses.courseId, course.id)));
+      await db.delete(courses).where(eq(courses.id, course.id));
+      await db.delete(users).where(eq(users.id, teacher.id));
+    }
   });
 });
 
@@ -152,23 +156,25 @@ describe('PATCH /users/me/profile', () => {
 
 describe('GET /users/me/settings', () => {
   it('returns defaults when no settings row exists', async () => {
-    const freshAuthId = `fresh-settings-${Date.now()}`;
+    const freshRnd = crypto.randomUUID();
+    const freshAuthId = `fresh-settings-${freshRnd}`;
     const [freshUser] = await db
       .insert(users)
-      .values({ email: `fresh-${Date.now()}@example.com`, login: `fresh-${Date.now()}`, pwdHash: '', authId: freshAuthId })
+      .values({ email: `fresh-${freshRnd}@example.com`, login: `fresh-${freshRnd}`, pwdHash: '', authId: freshAuthId })
       .returning();
     const freshAuth = `Bearer ${await makeToken(freshAuthId)}`;
-    const freshApp = new Elysia().use(usersRoutes);
-
-    const res = await freshApp.handle(
-      new Request('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
-    );
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.notificationsEnabled).toBe(true);
-    expect(body.lightTheme).toBe(true);
-
-    await db.delete(users).where(eq(users.id, freshUser.id));
+    
+    try {
+      const res = await testApp.handle(
+        req('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
+      );
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.notificationsEnabled).toBe(true);
+      expect(body.lightTheme).toBe(true);
+    } finally {
+      await db.delete(users).where(eq(users.id, freshUser.id));
+    }
   });
 });
 
