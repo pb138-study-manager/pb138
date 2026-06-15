@@ -30,6 +30,8 @@ export function AdminUsersManager() {
     usersLoading,
     userQuery,
     setUserQuery,
+    showActiveOnly,
+    setShowActiveOnly,
     assignRole,
     removeRole,
     deactivateUser,
@@ -44,6 +46,9 @@ export function AdminUsersManager() {
   const [deactivateDialog, setDeactivateDialog] = useState<DeactivateDialogState>({ type: 'none' });
   const [deactivatePhrase, setDeactivatePhrase] = useState('');
   const [actioning, setActioning] = useState(false);
+
+  const [reactivateUser_, setReactivateUser_] = useState<AdminUser | null>(null);
+  const [restoreData, setRestoreData] = useState(false);
 
   function openRoleDialog(user: AdminUser) {
     setEditingUser(user);
@@ -115,10 +120,17 @@ export function AdminUsersManager() {
     }
   }
 
-  async function handleReactivate(user: AdminUser) {
+  function openReactivateDialog(user: AdminUser) {
+    setReactivateUser_(user);
+    setRestoreData(false);
+  }
+
+  async function confirmReactivate() {
+    if (!reactivateUser_) return;
     setActioning(true);
     try {
-      await reactivateUser(user.id);
+      await reactivateUser(reactivateUser_.id, restoreData);
+      setReactivateUser_(null);
     } finally {
       setActioning(false);
     }
@@ -135,14 +147,26 @@ export function AdminUsersManager() {
             <CardTitle>Users</CardTitle>
             <CardDescription>Search users and manage their roles.</CardDescription>
           </div>
-          <div className="grid min-w-[200px] gap-1.5">
-            <Label htmlFor="user-q">Search</Label>
-            <Input
-              id="user-q"
-              placeholder="Login, email…"
-              value={userQuery}
-              onChange={(e) => setUserQuery(e.target.value)}
-            />
+          <div className="flex flex-col gap-2 sm:items-end">
+            <div className="grid min-w-[200px] gap-1.5">
+              <Label htmlFor="user-q">Search</Label>
+              <Input
+                id="user-q"
+                placeholder="Login, email…"
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="active-only"
+                checked={showActiveOnly}
+                onCheckedChange={(v) => setShowActiveOnly(!!v)}
+              />
+              <Label htmlFor="active-only" className="cursor-pointer font-normal text-sm">
+                Active users only
+              </Label>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
@@ -192,8 +216,7 @@ export function AdminUsersManager() {
                               size="sm"
                               variant="outline"
                               className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
-                              onClick={() => handleReactivate(u)}
-                              disabled={actioning}
+                              onClick={() => openReactivateDialog(u)}
                             >
                               Reactivate
                             </Button>
@@ -306,6 +329,38 @@ export function AdminUsersManager() {
               disabled={actioning || deactivatePhrase !== expectedPhrase}
             >
               {actioning ? 'Deactivating…' : 'Deactivate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reactivate dialog */}
+      <Dialog open={!!reactivateUser_} onOpenChange={(open) => { if (!open) setReactivateUser_(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reactivate user</DialogTitle>
+            <DialogDescription>
+              Reactivate{' '}
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {reactivateUser_?.login}
+              </span>
+              ? Their account will be restored and they will be able to log in again.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-3 py-2">
+            <Checkbox
+              id="restore-data"
+              checked={restoreData}
+              onCheckedChange={(v) => setRestoreData(!!v)}
+            />
+            <Label htmlFor="restore-data" className="cursor-pointer font-normal">
+              Also restore all soft-deleted tasks, notes, events and folders
+            </Label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReactivateUser_(null)}>Cancel</Button>
+            <Button onClick={confirmReactivate} disabled={actioning}>
+              {actioning ? 'Reactivating…' : 'Reactivate'}
             </Button>
           </DialogFooter>
         </DialogContent>

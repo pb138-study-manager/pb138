@@ -8,6 +8,7 @@ const PAGE_SIZE = 50;
 export function useAdminManager() {
   const queryClient = useQueryClient();
   const [userQuery, setUserQuery] = useState('');
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [logQuery, setLogQuery] = useState('');
   const [logActor, setLogActor] = useState('');
   const [logDateFrom, setLogDateFrom] = useState('');
@@ -17,11 +18,13 @@ export function useAdminManager() {
   const [hasMoreLogs, setHasMoreLogs] = useState(true);
 
   const { data: adminUsers = [], isPending: usersLoading } = useQuery({
-    queryKey: ['admin-users', userQuery],
-    queryFn: () =>
-      api
-        .get<AdminUser[]>(`/admin/users?q=${encodeURIComponent(userQuery)}`)
-        .catch(() => []),
+    queryKey: ['admin-users', userQuery, showActiveOnly],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (userQuery) params.set('q', userQuery);
+      if (showActiveOnly) params.set('activeOnly', 'true');
+      return api.get<AdminUser[]>(`/admin/users?${params.toString()}`).catch(() => []);
+    },
   });
 
   const buildLogsUrl = (offset: number) => {
@@ -80,8 +83,8 @@ export function useAdminManager() {
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   }
 
-  async function reactivateUser(userId: number) {
-    await api.post(`/admin/users/${userId}/reactivate`, {});
+  async function reactivateUser(userId: number, restoreData = false) {
+    await api.post(`/admin/users/${userId}/reactivate`, { restoreData });
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   }
 
@@ -90,6 +93,8 @@ export function useAdminManager() {
     usersLoading,
     userQuery,
     setUserQuery,
+    showActiveOnly,
+    setShowActiveOnly,
     adminLogs,
     logsLoading,
     logsLoadingMore,

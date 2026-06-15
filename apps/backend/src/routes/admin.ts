@@ -9,6 +9,10 @@ import {
   permissions,
   rolePermissions,
   auditLogs,
+  tasks,
+  events,
+  notes,
+  folders,
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
@@ -18,6 +22,10 @@ import { zodBody } from '../lib/validation';
 const PatchRolesSchema = z.object({
   add: z.array(z.enum(['USER', 'ADMIN', 'TEACHER'])).optional(),
   remove: z.array(z.enum(['USER', 'ADMIN', 'TEACHER'])).optional(),
+});
+
+const ReactivateSchema = z.object({
+  restoreData: z.boolean().optional(),
 });
 
 export const adminRoutes = new Elysia({ prefix: '/admin' })
@@ -33,13 +41,18 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     }
   })
 
-  // GET /admin/users?q=&limit=50&offset=0
+  // GET /admin/users?q=&activeOnly=true&limit=50&offset=0
   .get('/users', async ({ query }) => {
     const q = (query.q as string | undefined)?.trim() ?? '';
+    const activeOnly = query.activeOnly === 'true';
     const limit = Math.min(Number(query.limit ?? 50) || 50, 200);
     const offset = Math.max(0, Number(query.offset ?? 0) || 0);
 
-    const baseQuery = db
+    const conditions = [];
+    if (q) conditions.push(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)));
+    if (activeOnly) conditions.push(isNull(users.deletedAt));
+
+    const allUsers = await db
       .select({
         id: users.id,
         login: users.login,
@@ -48,12 +61,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
         deletedAt: users.deletedAt,
       })
       .from(users)
-      .leftJoin(userProfiles, eq(users.id, userProfiles.userId));
-
-    const allUsers = await (q
-      ? baseQuery.where(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)))
-      : baseQuery
-    )
+      .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+      .where(conditions.length ? and(...conditions) : undefined)
       .limit(limit)
       .offset(offset);
 
@@ -194,28 +203,41 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
   })
 
   // POST /admin/users/:id/reactivate
-  .post('/users/:id/reactivate', async ({ params, user, set }) => {
-    const authUser = user as AuthUser;
-    const targetId = Number(params.id);
+  .post(
+    '/users/:id/reactivate',
+    async ({ params, body, user, set }) => {
+      const authUser = user as AuthUser;
+      const targetId = Number(params.id);
 
-    if (isNaN(targetId)) {
-      set.status = 400;
-      return { error: 'BAD_REQUEST', message: 'Invalid user id' };
-    }
+      if (isNaN(targetId)) {
+        set.status = 400;
+        return { error: 'BAD_REQUEST', message: 'Invalid user id' };
+      }
 
-    const [target] = await db
-      .select({ id: users.id, login: users.login })
-      .from(users)
-      .where(and(eq(users.id, targetId), isNotNull(users.deletedAt)));
-    if (!target) {
-      set.status = 404;
-      return { error: 'NOT_FOUND', message: 'User not found or already active' };
-    }
+      const [target] = await db
+        .select({ id: users.id, login: users.login })
+        .from(users)
+        .where(and(eq(users.id, targetId), isNotNull(users.deletedAt)));
+      if (!target) {
+        set.status = 404;
+        return { error: 'NOT_FOUND', message: 'User not found or already active' };
+      }
 
-    await db.update(users).set({ deletedAt: null }).where(eq(users.id, targetId));
-    await logAction(db, authUser.id, `Admin reactivated user ${targetId} (${target.login})`);
-    return { success: true };
-  })
+      await db.update(users).set({ deletedAt: null }).where(eq(users.id, targetId));
+
+      if (body.restoreData) {
+        await db.update(tasks).set({ deletedAt: null }).where(eq(tasks.userId, targetId));
+        await db.update(events).set({ deletedAt: null }).where(eq(events.userId, targetId));
+        await db.update(notes).set({ deletedAt: null }).where(eq(notes.userId, targetId));
+        await db.update(folders).set({ deletedAt: null }).where(eq(folders.userId, targetId));
+      }
+
+      const suffix = body.restoreData ? ' with data restore' : '';
+      await logAction(db, authUser.id, `Admin reactivated user ${targetId} (${target.login})${suffix}`);
+      return { success: true };
+    },
+    zodBody(ReactivateSchema)
+  )
 
   // GET /admin/audit-logs?q=&actor=&from=&to=&limit=50&offset=0
   .get('/audit-logs', async ({ query }) => {
