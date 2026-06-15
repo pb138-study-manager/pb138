@@ -11,7 +11,7 @@ function AdminUsersPage() {
     <div>
       <AdminPageHeader
         title="Users"
-        description="Create, update, deactivate, and assign roles. This table uses static fixtures for layout work."
+        description="Manage accounts, roles, and access."
       />
       <AdminUsersManager />
     </div>

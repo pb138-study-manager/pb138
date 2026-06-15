@@ -3,7 +3,7 @@ import { useAdminManager } from '@/hooks/useAdminManager';
 import type { AdminUser, RoleName } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
@@ -142,22 +142,18 @@ export function AdminUsersManager() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <CardTitle>Users</CardTitle>
-            <CardDescription>Search users and manage their roles.</CardDescription>
-          </div>
-          <div className="flex flex-col gap-2 sm:items-end">
-            <div className="grid min-w-[200px] gap-1.5">
+        <CardHeader className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:items-end">
+            <div className="grid gap-1.5">
               <Label htmlFor="user-q">Search</Label>
               <Input
                 id="user-q"
-                placeholder="Login, email…"
+                placeholder="Login or email…"
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:pb-1.5">
               <Checkbox
                 id="active-only"
                 checked={showActiveOnly}
