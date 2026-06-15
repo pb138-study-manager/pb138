@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -22,8 +23,21 @@ function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+
+      if (data?.user) {
+        try {
+          await api.post('/auth/sync', {
+            email: data.user.email!,
+            authId: data.user.id,
+            fullName: data.user.user_metadata?.full_name ?? '',
+          });
+        } catch {
+          // sync is best-effort; login still proceeds
+        }
+      }
+
       navigate({ to: '/dashboard' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login failed. Please try again.';

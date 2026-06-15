@@ -20,6 +20,8 @@ function ProfilePage() {
     notificationsEnabled,
     changeLanguage,
     updateSettings,
+    updateProfile,
+    uploadAvatar,
     handleLogout,
   } = useProfileManager();
 
@@ -54,6 +56,9 @@ function ProfilePage() {
           title={userData.profile.title}
           bio={userData.profile.bio}
           email={userData.email}
+          avatar={userData.profile.avatar}
+          onProfileUpdated={updateProfile}
+          onAvatarUploaded={uploadAvatar}
         />
 
         <SettingsCard

@@ -15,6 +15,7 @@ export type UserProfileResponse = {
     title: string | null;
     organization: string | null;
     bio: string | null;
+    avatar: string | null;
   };
   settings: UserSettings;
 };
@@ -84,6 +85,24 @@ export function useProfileManager() {
     }
   };
 
+  const updateProfile = async (data: { name: string | null; title: string | null; bio: string | null }) => {
+    await api.patch('/users/me/profile', data);
+    queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+      if (!prev) return prev;
+      return { ...prev, profile: { ...prev.profile, ...data } };
+    });
+  };
+
+  const uploadAvatar = async (file: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { avatarUrl } = await api.upload<{ avatarUrl: string }>('/users/me/avatar', formData);
+    queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+      if (!prev) return prev;
+      return { ...prev, profile: { ...prev.profile, avatar: avatarUrl } };
+    });
+  };
+
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout', {});
@@ -104,6 +123,8 @@ export function useProfileManager() {
     changeLanguage,
     updateSettings,
     updateCustomNav,
+    updateProfile,
+    uploadAvatar,
     handleLogout,
   };
 }

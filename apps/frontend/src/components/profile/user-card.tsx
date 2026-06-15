@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { api } from '@/lib/api';
+import { Camera } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import AvatarUploadDialog from './AvatarUploadDialog';
 
 interface UserCardProps {
   login: string;
@@ -8,23 +10,38 @@ interface UserCardProps {
   title?: string | null;
   bio?: string | null;
   email: string;
-  onProfileUpdated?: (updated: { name: string | null; title: string | null; bio: string | null }) => void;
+  avatar?: string | null;
+  onProfileUpdated?: (updated: { name: string | null; title: string | null; bio: string | null }) => Promise<void>;
+  onAvatarUploaded?: (file: File) => Promise<void>;
 }
 
-export default function UserCard({ login, name, title, bio, email, onProfileUpdated }: UserCardProps) {
+export default function UserCard({
+  login,
+  name,
+  title,
+  bio,
+  email,
+  avatar,
+  onProfileUpdated,
+  onAvatarUploaded,
+}: UserCardProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: name ?? '', title: title ?? '', bio: bio ?? '' });
   const [isSaving, setIsSaving] = useState(false);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+
+  const avatarSrc = avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${login}`;
 
   const handleSave = async () => {
+    if (!onProfileUpdated) return;
     setIsSaving(true);
     try {
-      await api.patch('/users/me/profile', {
+      await onProfileUpdated({
         name: form.name || null,
         title: form.title || null,
         bio: form.bio || null,
       });
-      onProfileUpdated?.({ name: form.name || null, title: form.title || null, bio: form.bio || null });
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to update profile:', err);
@@ -39,89 +56,110 @@ export default function UserCard({ login, name, title, bio, email, onProfileUpda
   };
 
   return (
-    <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
-      <CardContent className="p-6">
-        {!isEditing ? (
-          <div className="flex items-start gap-4">
-            <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${login}`}
-              alt={name || login}
-              className="w-16 h-16 rounded-full object-cover shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{name || login}</h2>
-              {title && (
-                <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{title}</p>
-              )}
-              <p className="text-gray-600 dark:text-gray-300">{email}</p>
-              {bio && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">{bio}</p>
-              )}
-            </div>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="shrink-0 text-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-lg px-3 py-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-            >
-              Edit
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                Title
-              </label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g. Computer Science student"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                Bio
-              </label>
-              <textarea
-                value={form.bio}
-                onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-                rows={3}
-                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                placeholder="A short bio about yourself"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
+    <>
+      <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
+        <CardContent className="p-6">
+          {!isEditing ? (
+            <div className="flex items-start gap-4">
+              <div className="relative shrink-0 group">
+                <img
+                  src={avatarSrc}
+                  alt={name || login}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                {onAvatarUploaded && (
+                  <button
+                    onClick={() => setAvatarDialogOpen(true)}
+                    className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Change avatar"
+                  >
+                    <Camera className="w-5 h-5 text-white" />
+                  </button>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{name || login}</h2>
+                {title && (
+                  <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{title}</p>
+                )}
+                <p className="text-gray-600 dark:text-gray-300">{email}</p>
+                {bio && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">{bio}</p>
+                )}
+              </div>
               <button
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                onClick={() => setIsEditing(true)}
+                className="shrink-0 text-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-lg px-3 py-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
-              >
-                {isSaving ? 'Saving…' : 'Save'}
+                {t('profile.edit')}
               </button>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  {t('profile.nameLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder={t('profile.namePlaceholder')}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  {t('profile.titleLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder={t('profile.titlePlaceholder')}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  {t('profile.bioLabel')}
+                </label>
+                <textarea
+                  value={form.bio}
+                  onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+                  rows={3}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  placeholder={t('profile.bioPlaceholder')}
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  {t('profile.cancel')}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? t('profile.saving') : t('profile.save')}
+                </button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {onAvatarUploaded && (
+        <AvatarUploadDialog
+          open={avatarDialogOpen}
+          onOpenChange={setAvatarDialogOpen}
+          onUpload={onAvatarUploaded}
+        />
+      )}
+    </>
   );
 }
