@@ -102,7 +102,7 @@ function TodayPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 overflow-y-auto">
       {/* Greeting + progress */}
-      <div className="px-4 pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+      <div className="px-4 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">
           {greeting}{displayName ? `, ${displayName}` : ''} 👋
         </h1>
@@ -117,18 +117,19 @@ function TodayPage() {
         </div>
       </div>
 
-      {/* Tabs + inline controls on the same row */}
-      <div className="px-4 pt-4 flex items-end gap-2">
+      {/* Tabs + inline controls — border-b spans the full row including filter/+ */}
+      <div className="px-4 pt-4 flex items-end gap-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex-1 min-w-0">
           <SegmentedTabs
             items={tabItems}
             value={activeTab}
             onChange={(k) => setActiveTab(k as Tab)}
             variant="underline"
+            noBorder
           />
         </div>
         {activeTab === 'tasks' && (
-          <div className="flex items-center gap-2 pb-[11px]">
+          <div className="flex items-center gap-2 pb-2.5">
             <FilterControl groups={filterGroups} onClear={clearFilters} />
             <button
               onClick={() => setNewTaskOpen(true)}

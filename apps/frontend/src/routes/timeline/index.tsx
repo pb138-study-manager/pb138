@@ -239,25 +239,21 @@ function TimelinePage() {
               {t('timeline.month', 'Month')}
             </button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
+          <button
             type="button"
             onClick={handleOpenCalendarModal}
             title={t('timeline.addToCalendar', 'Add to Calendar')}
+            className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
           >
-            <CalendarDays className="w-5 h-5 text-gray-500" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10"
+            <CalendarDays className="w-4 h-4" />
+          </button>
+          <button
             type="button"
             onClick={() => setIsAddOpen(true)}
+            className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
           >
-            <Plus className="w-6 h-6" />
-          </Button>
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

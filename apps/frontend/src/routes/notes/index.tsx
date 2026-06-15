@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { api } from '@/lib/api';
 import CreateFolderDialog from '@/components/notes/create-folder-dialog';
 import CreateNoteDialog from '@/components/notes/create-note-dialog';
@@ -80,11 +80,28 @@ function NotesPage() {
           </Button>
         )}
 
-        <h1 className="text-2xl font-bold truncate">
+        <h1 className="text-2xl font-bold truncate flex-1">
           {view === 'notes' && t('notes.title')}
           {view === 'folder' && activeFolder?.name}
           {view === 'detail' && selectedNote?.title}
         </h1>
+
+        {view === 'notes' && (
+          <button
+            onClick={() => setIsCreateFolderOpen(true)}
+            className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+          >
+            <Plus size={14} />
+          </button>
+        )}
+        {view === 'folder' && (
+          <button
+            onClick={() => setIsCreateNoteOpen(true)}
+            className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+          >
+            <Plus size={14} />
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -100,7 +117,6 @@ function NotesPage() {
               <FoldersView
                 folders={folders}
                 onOpenFolder={openFolder}
-                onAddFolder={() => setIsCreateFolderOpen(true)}
                 onRenameFolder={updateFolder}
                 onDeleteFolder={deleteFolder}
               />
