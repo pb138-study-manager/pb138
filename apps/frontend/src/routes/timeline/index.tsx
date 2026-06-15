@@ -480,7 +480,7 @@ function LegendBadge({ color, label }: { color: string; label: string }) {
   return (
     <Badge
       variant="secondary"
-      className="bg-gray-50 text-gray-500 border-none px-3 py-1 flex gap-2 items-center rounded-full whitespace-nowrap font-medium text-[10px]"
+      className="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-none px-3 py-1 flex gap-2 items-center rounded-full whitespace-nowrap font-medium text-[10px]"
     >
       <div className={`w-1.5 h-1.5 rounded-full ${color}`} />
       {label}
