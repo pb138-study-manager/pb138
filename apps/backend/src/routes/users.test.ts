@@ -26,10 +26,12 @@ let userAuth: string;
 const testApp = new Elysia().use(usersRoutes);
 
 function req(url: string, init: RequestInit = {}): Request {
-  const headers = new Headers(init.headers);
-  if (!headers.has('Authorization')) {
-    headers.set('Authorization', userAuth);
+  // Use a plain object for headers to prevent Elysia/Bun cloning drops in CI
+  const headers = { ...(init.headers as Record<string, string>) };
+  if (!headers.Authorization && !headers.authorization) {
+    headers.Authorization = userAuth;
   }
+  
   return new Request(url, { ...init, headers });
 }
 
@@ -72,7 +74,7 @@ describe('GET /users/me', () => {
   it('returns correct shape for a new user with no profile/settings/courses', async () => {
     const res = await testApp.handle(req('http://localhost/users/me'));
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json().catch(() => ({}));
     expect(body.id).toBe(userId);
     expect(body.email).toBe(`users-test-${RND}@example.com`);
     expect(body.login).toBe(`users-test-user-${RND}`);
@@ -109,7 +111,7 @@ describe('GET /users/me', () => {
 
     try {
       const res = await testApp.handle(req('http://localhost/users/me'));
-      const body = await res.json();
+      const body = await res.json().catch(() => ({}));
       const enrolled = body.enrolledCourses?.find((c: { courseId: number }) => c.courseId === course.id);
       expect(enrolled).toBeDefined();
       expect(enrolled?.code).toBe(`ME-TEST-${teacherRnd.substring(0,8)}`);
@@ -169,7 +171,7 @@ describe('GET /users/me/settings', () => {
         req('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
       );
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body = await res.json().catch(() => ({}));
       expect(body.notificationsEnabled).toBe(true);
       expect(body.lightTheme).toBe(true);
     } finally {
@@ -188,7 +190,7 @@ describe('PATCH /users/me/settings', () => {
       })
     );
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json().catch(() => ({}));
     expect(body.lightTheme).toBe(false);
     expect(body.notificationsEnabled).toBe(false);
   });
@@ -225,7 +227,7 @@ describe('POST /users/me/integrations/:service', () => {
     expect((await res.json()).success).toBe(true);
 
     const meRes = await testApp.handle(req('http://localhost/users/me'));
-    const me = await meRes.json();
+    const me = await meRes.json().catch(() => ({ integrations: [] }));
     expect(me.integrations.some((i: { service: string }) => i.service === 'google_calendar')).toBe(true);
   });
 });

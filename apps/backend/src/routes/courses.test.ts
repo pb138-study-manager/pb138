@@ -6,7 +6,7 @@ import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const RND = crypto.randomUUID();
 const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'courses-test-jwt-secret';
 const USER_AUTH_ID = `courses-test-user-uuid-${RND}`;
 const TEACHER_AUTH_ID = `courses-test-teacher-uuid-${RND}`;
@@ -102,10 +102,11 @@ describe('GET /courses', () => {
 describe('GET /courses/enrolled', () => {
   it('returns empty array when not enrolled', async () => {
     // Create a new unenrolled user to test clean state
-    const cleanTestAuthId = `clean-test-${Date.now()}`;
+    const cleanRnd = crypto.randomUUID();
+    const cleanTestAuthId = `clean-test-${cleanRnd}`;
     const [testUser] = await db
       .insert(users)
-      .values({ email: `courses-clean-${Date.now()}@example.com`, login: `courses-clean-${Date.now()}`, pwdHash: '', authId: cleanTestAuthId })
+      .values({ email: `courses-clean-${cleanRnd}@example.com`, login: `courses-clean-${cleanRnd}`, pwdHash: '', authId: cleanTestAuthId })
       .returning();
     const testUserAuth = `Bearer ${await makeToken(cleanTestAuthId)}`;
 
@@ -222,10 +223,11 @@ describe('PATCH /courses/:id', () => {
   });
 
   it('returns 403 when called by a different TEACHER (not the owner)', async () => {
-    const otherTeacherAuthId = `other-teacher-${Date.now()}`;
+    const otherRnd = crypto.randomUUID();
+    const otherTeacherAuthId = `other-teacher-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-${Date.now()}@example.com`, login: `other-teacher-${Date.now()}`, pwdHash: '', authId: otherTeacherAuthId })
+      .values({ email: `other-teacher-${otherRnd}@example.com`, login: `other-teacher-${otherRnd}`, pwdHash: '', authId: otherTeacherAuthId })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -275,10 +277,11 @@ describe('DELETE /courses/:id', () => {
   });
 
   it('returns 403 when called by a different TEACHER (not the owner)', async () => {
-    const otherTeacherAuthId = `other-teacher-del-${Date.now()}`;
+    const otherRnd = crypto.randomUUID();
+    const otherTeacherAuthId = `other-teacher-del-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-del-${Date.now()}@example.com`, login: `other-teacher-del-${Date.now()}`, pwdHash: '', authId: otherTeacherAuthId })
+      .values({ email: `other-teacher-del-${otherRnd}@example.com`, login: `other-teacher-del-${otherRnd}`, pwdHash: '', authId: otherTeacherAuthId })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -485,10 +488,11 @@ describe('GET /courses/:id/assignments', () => {
   });
 
   it('returns 200 with empty array for teacher who does not teach the course', async () => {
-    const OTHER_TEACHER_AUTH_ID = `other-teacher-uuid-asgn-${Date.now()}`;
+    const otherRnd = crypto.randomUUID();
+    const OTHER_TEACHER_AUTH_ID = `other-teacher-uuid-asgn-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-asgn-${Date.now()}@example.com`, login: `other-teacher-asgn-${Date.now()}`, pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
+      .values({ email: `other-teacher-asgn-${otherRnd}@example.com`, login: `other-teacher-asgn-${otherRnd}`, pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -533,10 +537,11 @@ describe('GET /courses/:id/students', () => {
   });
 
   it('returns 403 if teacher does not teach the course', async () => {
-    const OTHER_AUTH_ID = `other-teacher-uuid-stu-${Date.now()}`;
+    const otherRnd = crypto.randomUUID();
+    const OTHER_AUTH_ID = `other-teacher-uuid-stu-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-stu-${Date.now()}@example.com`, login: `other-teacher-stu-${Date.now()}`, pwdHash: '', authId: OTHER_AUTH_ID })
+      .values({ email: `other-teacher-stu-${otherRnd}@example.com`, login: `other-teacher-stu-${otherRnd}`, pwdHash: '', authId: OTHER_AUTH_ID })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -570,9 +575,10 @@ describe('POST /courses/:id/students (teacher enroll)', () => {
   let enrollCourseId: number;
 
   beforeAll(async () => {
+    const enrollRnd = crypto.randomUUID();
     const [course] = await db
       .insert(courses)
-      .values({ code: `ENROLL-TEST-${Date.now()}`, semester: 'S2026', lectureTeacherId: teacherId })
+      .values({ code: `ENROLL-TEST-${enrollRnd.substring(0, 8)}`, semester: 'S2026', lectureTeacherId: teacherId })
       .returning();
     enrollCourseId = course.id;
   });

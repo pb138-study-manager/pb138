@@ -49,7 +49,7 @@ function NotesPage() {
 
   useEffect(() => {
     if (open && !isPending) openNote(open);
-  }, [open, isPending]);
+  }, [open, isPending, openNote]);
 
   useQuery({
     queryKey: ['settings'],

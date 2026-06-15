@@ -6,7 +6,7 @@ import { eventsRoutes } from './events';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const RND = crypto.randomUUID();
 const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'events-test-jwt-secret';
 const TEST_AUTH_ID = `events-test-supabase-uuid-${RND}`;
 process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
