@@ -18,7 +18,6 @@ function ProfilePage() {
     isPending,
     theme,
     language,
-    notificationsEnabled,
     changeLanguage,
     updateSettings,
     updateProfile,
@@ -65,7 +64,6 @@ function ProfilePage() {
         <SettingsCard
           theme={theme}
           language={language}
-          notificationsEnabled={notificationsEnabled}
           onUpdateSettings={updateSettings}
           onChangeLanguage={changeLanguage}
         />

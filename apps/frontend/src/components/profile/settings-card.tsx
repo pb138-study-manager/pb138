@@ -1,12 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import ThemeSetting from '@/components/profile/theme-setting';
 import LanguageSetting from '@/components/profile/language-setting';
-import NotificationSetting from '@/components/profile/notification-setting';
 
 interface SettingsCardProps {
   theme: string;
   language: 'en' | 'cs';
-  notificationsEnabled: boolean;
   onUpdateSettings: (key: 'lightTheme' | 'notificationsEnabled', value: boolean) => void;
   onChangeLanguage: (lng: 'en' | 'cs') => void;
 }
@@ -14,7 +12,6 @@ interface SettingsCardProps {
 export default function SettingsCard({
   theme,
   language,
-  notificationsEnabled,
   onUpdateSettings,
   onChangeLanguage,
 }: SettingsCardProps) {
@@ -25,12 +22,6 @@ export default function SettingsCard({
           <ThemeSetting theme={theme} onUpdateSettings={onUpdateSettings} />
 
           <LanguageSetting language={language} onChangeLanguage={onChangeLanguage} />
-
-          <NotificationSetting
-            notificationsEnabled={notificationsEnabled}
-            onUpdateSettings={onUpdateSettings}
-          />
-
         </div>
       </CardContent>
     </Card>
