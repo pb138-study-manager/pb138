@@ -7,7 +7,6 @@ import { useTasksManager } from '@/hooks/useTasksManager';
 import { filterTasks } from '@/lib/task-utils';
 import { SegmentedTabs, type TabItem } from '@/components/ui/segmented-tabs';
 import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
-import { Button } from '@/components/ui/button';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
 
 export const Route = createFileRoute('/tasks/')({
@@ -142,14 +141,12 @@ export function TasksPage() {
                 setActiveTags(new Set());
               }}
             />
-            <Button
-              size="sm"
-              className="flex items-center gap-1.5"
+            <button
               onClick={() => setNewTaskOpen(true)}
+              className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              {t('tasks.newTask', 'New task')}
-            </Button>
+              <Plus size={16} className="text-white dark:text-gray-900" />
+            </button>
           </div>
         </div>
 
@@ -166,6 +163,7 @@ export function TasksPage() {
           count={activeTaskMap[resolvedTab].length}
           tasks={activeTaskMap[resolvedTab]}
           variant={variantMap[resolvedTab]}
+          flat
           onTaskCreated={handleCreate}
           onToggle={handleToggle}
           onEditFull={handleEditFull}

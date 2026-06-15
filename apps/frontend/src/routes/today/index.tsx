@@ -135,7 +135,7 @@ function TodayPage() {
       {/* Tasks tab */}
       {activeTab === 'tasks' && (
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-end gap-2 mb-4">
             <FilterControl groups={filterGroups} onClear={clearFilters} />
             <button
               onClick={() => setNewTaskOpen(true)}
@@ -150,6 +150,7 @@ function TodayPage() {
             count={filteredToday.length}
             tasks={filteredToday}
             variant="default"
+            hideAddButton
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
             onEditFull={handleEditFull}
@@ -160,6 +161,7 @@ function TodayPage() {
             count={filteredBacklog.length}
             tasks={filteredBacklog}
             variant="backlog"
+            hideAddButton
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
             onEditFull={handleEditFull}
@@ -170,6 +172,7 @@ function TodayPage() {
             count={counts.done}
             tasks={doneTasks}
             variant="done"
+            hideAddButton
             onTaskCreated={handleCreate}
             onToggle={handleToggle}
             onEditFull={handleEditFull}

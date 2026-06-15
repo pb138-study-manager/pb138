@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { PublicProfileModal } from '@/components/profile/public-profile-modal';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, CheckSquare, FileText, BookOpen, Star, ClipboardList, Users } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
@@ -119,10 +119,10 @@ function CourseDetailPage() {
           value={teacherTab}
           onChange={(key) => setTeacherTab(key as typeof teacherTab)}
           items={[
-            { key: 'assignments', label: t('courses.tabs.assignments', 'Assignments') },
-            { key: 'materials', label: t('courses.tabs.materials', 'Materials') },
-            { key: 'students', label: t('courses.tabs.students', 'Students') },
-            { key: 'evaluations', label: t('courses.tabs.evaluations', 'Evaluations') },
+            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments') },
+            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
+            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students') },
+            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
           ]}
         />
       ) : (
@@ -132,10 +132,10 @@ function CourseDetailPage() {
           value={activeTab}
           onChange={(key) => setActiveTab(key as typeof activeTab)}
           items={[
-            { key: 'tasks', label: t('courses.tabs.tasks', 'Tasks') },
-            { key: 'notes', label: t('courses.tabs.notes', 'Notes') },
-            { key: 'materials', label: t('courses.tabs.materials', 'Materials') },
-            { key: 'evaluations', label: t('courses.tabs.evaluations', 'Evaluations') },
+            { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks') },
+            { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes') },
+            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
+            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
           ]}
         />
       )}

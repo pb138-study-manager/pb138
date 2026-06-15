@@ -41,7 +41,7 @@ export default function NotesView({
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {/* Header row with "New note" button */}
       <div className="flex items-center justify-between px-1 mb-2">
         <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
@@ -57,8 +57,8 @@ export default function NotesView({
       </div>
 
       {notes.map((note) => (
+        <div key={note.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
         <ListRow
-          key={note.id}
           icon={<FileText size={18} className="text-yellow-500 dark:text-yellow-400" />}
           title={note.title}
           subtitle={note.tags?.length ? note.tags.map((tag) => `#${tag}`).join(' ') : undefined}
@@ -110,6 +110,7 @@ export default function NotesView({
             </Popover>
           }
         />
+        </div>
       ))}
 
       <DeleteNoteDialog
