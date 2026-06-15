@@ -16,7 +16,7 @@ import {
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, isNotNull, ilike, inArray, desc, or, gte, lte, count } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull, ilike, notIlike, inArray, desc, or, gte, lte, count } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const PatchRolesSchema = z.object({
@@ -102,7 +102,7 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       }
 
       const [target] = await db
-        .select({ id: users.id })
+        .select({ id: users.id, login: users.login })
         .from(users)
         .where(and(eq(users.id, targetId), isNull(users.deletedAt)));
       if (!target) {
@@ -113,10 +113,14 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       const allRoles = await db.select().from(roles);
       const roleMap = Object.fromEntries(allRoles.map((r) => [r.name, r.id]));
 
+      const added: string[] = [];
+      const removed: string[] = [];
+
       for (const roleName of body.add ?? []) {
         const roleId = roleMap[roleName];
         if (roleId) {
           await db.insert(userRoles).values({ userId: targetId, roleId }).onConflictDoNothing();
+          added.push(roleName);
         }
       }
 
@@ -139,9 +143,14 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
         await db
           .delete(userRoles)
           .where(and(eq(userRoles.userId, targetId), eq(userRoles.roleId, roleId)));
+        removed.push(roleName);
       }
 
-      await logAction(db, authUser.id, `Admin updated roles for user ${targetId}`);
+      const parts: string[] = [];
+      if (added.length) parts.push(`added ${added.join(', ')}`);
+      if (removed.length) parts.push(`removed ${removed.join(', ')}`);
+      const detail = parts.length ? `: ${parts.join('; ')}` : '';
+      await logAction(db, authUser.id, `Admin updated roles for user ${targetId} (${target.login})${detail}`);
 
       const updatedRoles = await db
         .select({ roleName: roles.name })
@@ -239,12 +248,13 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     zodBody(ReactivateSchema)
   )
 
-  // GET /admin/audit-logs?q=&actor=&from=&to=&limit=50&offset=0
+  // GET /admin/audit-logs?q=&actor=&from=&to=&type=all|admin|user&limit=50&offset=0
   .get('/audit-logs', async ({ query }) => {
     const q = (query.q as string | undefined)?.trim() ?? '';
     const actor = (query.actor as string | undefined)?.trim() ?? '';
     const from = query.from as string | undefined;
     const to = query.to as string | undefined;
+    const type = (query.type as string | undefined) ?? 'all';
     const limit = Math.min(Number(query.limit ?? 50) || 50, 200);
     const offset = Math.max(0, Number(query.offset ?? 0) || 0);
 
@@ -253,6 +263,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     if (actor) conditions.push(ilike(users.login, `%${actor}%`));
     if (from) conditions.push(gte(auditLogs.happenedAt, new Date(from)));
     if (to) conditions.push(lte(auditLogs.happenedAt, new Date(to)));
+    if (type === 'admin') conditions.push(ilike(auditLogs.description, 'Admin %'));
+    if (type === 'user') conditions.push(notIlike(auditLogs.description, 'Admin %'));
 
     const rows = await db
       .select({

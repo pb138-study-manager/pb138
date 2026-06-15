@@ -13,6 +13,7 @@ export function useAdminManager() {
   const [logActor, setLogActor] = useState('');
   const [logDateFrom, setLogDateFrom] = useState('');
   const [logDateTo, setLogDateTo] = useState('');
+  const [logType, setLogType] = useState<'all' | 'admin' | 'user'>('all');
   const [extraLogs, setExtraLogs] = useState<AdminAuditLog[]>([]);
   const [logsLoadingMore, setLogsLoadingMore] = useState(false);
   const [hasMoreLogs, setHasMoreLogs] = useState(true);
@@ -33,20 +34,21 @@ export function useAdminManager() {
     if (logActor) params.set('actor', logActor);
     if (logDateFrom) params.set('from', logDateFrom);
     if (logDateTo) params.set('to', logDateTo);
+    if (logType !== 'all') params.set('type', logType);
     params.set('limit', String(PAGE_SIZE));
     params.set('offset', String(offset));
     return `/admin/audit-logs?${params.toString()}`;
   };
 
   const { data: initialLogs = [], isPending: logsLoading } = useQuery({
-    queryKey: ['admin-logs', logQuery, logActor, logDateFrom, logDateTo],
+    queryKey: ['admin-logs', logQuery, logActor, logDateFrom, logDateTo, logType],
     queryFn: () => api.get<AdminAuditLog[]>(buildLogsUrl(0)).catch(() => []),
   });
 
   useEffect(() => {
     setExtraLogs([]);
     setHasMoreLogs(true);
-  }, [logQuery, logActor, logDateFrom, logDateTo]);
+  }, [logQuery, logActor, logDateFrom, logDateTo, logType]);
 
   const adminLogs = [...initialLogs, ...extraLogs];
 
@@ -108,6 +110,8 @@ export function useAdminManager() {
     setLogDateFrom,
     logDateTo,
     setLogDateTo,
+    logType,
+    setLogType,
     adminRoles,
     assignRole,
     removeRole,
