@@ -99,7 +99,7 @@ function CourseDetailPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-900 pb-20">
       {/* Header */}
-      <div className="px-4 py-6 border-b border-gray-100 dark:border-gray-800">
+      <div className="px-4 py-6">
         <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"

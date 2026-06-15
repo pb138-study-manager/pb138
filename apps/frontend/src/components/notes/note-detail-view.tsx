@@ -258,39 +258,37 @@ export default function NoteDetailView({
             <Sparkles size={14} />
             {t('notes.askAI')}
           </button>
-        </div>
-      </div>
 
-      {/* Tags row */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-3">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium"
-          >
-            #{tag}
-            <button
-              type="button"
-              onClick={() => handleRemoveTag(tag)}
-              className="hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          {/* Tags inline with toolbar */}
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium"
             >
-              <XIcon size={10} />
-            </button>
-          </span>
-        ))}
-        <input
-          value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ',') {
-              e.preventDefault();
-              handleAddTag(tagInput);
-              setTagInput('');
-            }
-          }}
-          placeholder="+ tag"
-          className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 bg-transparent text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 w-14 focus:w-28 transition-all"
-        />
+              #{tag}
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag)}
+                className="hover:text-red-500 dark:hover:text-red-400 transition-colors"
+              >
+                <XIcon size={10} />
+              </button>
+            </span>
+          ))}
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                handleAddTag(tagInput);
+                setTagInput('');
+              }
+            }}
+            placeholder="+ tag"
+            className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 bg-transparent text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 w-14 focus:w-28 transition-all"
+          />
+        </div>
       </div>
 
       {/* Content */}
