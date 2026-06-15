@@ -14,6 +14,15 @@ export function useTodayManager() {
   const [activePriorities, setActivePriorities] = useState<Set<Priority>>(new Set());
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
 
+  const { data: meData } = useQuery({
+    queryKey: ['userMe'],
+    queryFn: () =>
+      api
+        .get<{ login: string; profile: { name: string | null } | null }>('/users/me')
+        .catch(() => null),
+  });
+  const displayName = meData?.profile?.name ?? meData?.login ?? '';
+
   const { data: tasks = [], isPending } = useQuery({
     queryKey: ['tasks'],
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
@@ -162,6 +171,7 @@ export function useTodayManager() {
 
   return {
     isPending,
+    displayName,
     doneTasks,
     counts,
     handleCreate,
