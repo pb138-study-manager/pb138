@@ -5,6 +5,7 @@ import EditEventDialog from '@/components/timeline/EditEventDialog'
 
 interface EventCardProps {
   event: Event
+  canEdit?: boolean
   onDelete?: () => void
   onEdit: (data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type: EventType }) => Promise<void>
   compact?: boolean
@@ -23,7 +24,7 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
-export function EventCard({ event, onDelete, onEdit, compact = false }: EventCardProps) {
+export function EventCard({ event, canEdit = true, onDelete, onEdit, compact = false }: EventCardProps) {
   const [editOpen, setEditOpen] = useState(false)
   const isDeadline = event.type === 'DEADLINE'
   const startTime = formatTime(event.startDate)
@@ -37,8 +38,8 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
         )}
         <div className={`w-1.5 rounded-full shrink-0 ${isDeadline ? 'bg-red-500' : 'bg-green-500'}`} />
         <Card
-          className="flex-1 min-w-0 border-gray-100 dark:border-gray-700 shadow-sm rounded-xl cursor-pointer"
-          onClick={() => setEditOpen(true)}
+          className={`flex-1 min-w-0 border-gray-100 dark:border-gray-700 shadow-sm rounded-xl ${canEdit ? 'cursor-pointer' : ''}`}
+          onClick={canEdit ? () => setEditOpen(true) : undefined}
         >
           <CardContent className={`flex items-center gap-2 ${compact ? 'p-3' : 'p-4'}`}>
             <div className="flex-1 min-w-0">
@@ -48,7 +49,7 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
                 {isDeadline && <span className="ml-1 text-red-400 font-medium">· deadline</span>}
               </p>
             </div>
-            {onDelete && !compact && (
+            {canEdit && onDelete && !compact && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
@@ -61,12 +62,14 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
         </Card>
       </div>
 
-      <EditEventDialog
-        event={event}
-        isOpen={editOpen}
-        onOpenChange={setEditOpen}
-        onSave={onEdit}
-      />
+      {canEdit && (
+        <EditEventDialog
+          event={event}
+          isOpen={editOpen}
+          onOpenChange={setEditOpen}
+          onSave={onEdit}
+        />
+      )}
     </>
   )
 }
