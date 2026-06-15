@@ -35,7 +35,6 @@ export function FilterControl({ groups, onClear, className }: FilterControlProps
         )}
       >
         <Filter size={14} />
-        {t('common.filter')}
         {totalActive > 0 && (
           <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 text-xs font-semibold">
             {totalActive}

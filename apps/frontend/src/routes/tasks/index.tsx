@@ -1,13 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle, CalendarDays, CalendarRange, Clock, CheckCircle2 } from 'lucide-react';
 import TaskSection from '@/components/tasks/tasks-section';
 import { useTranslation } from 'react-i18next';
 import { useTasksManager } from '@/hooks/useTasksManager';
 import { filterTasks } from '@/lib/task-utils';
 import { SegmentedTabs, type TabItem } from '@/components/ui/segmented-tabs';
 import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
-import { Button } from '@/components/ui/button';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
 
 export const Route = createFileRoute('/tasks/')({
@@ -65,12 +64,12 @@ export function TasksPage() {
 
   const tabItems: TabItem[] = [
     ...(overdue.length > 0
-      ? [{ key: 'overdue', label: t('tasks.overdue'), count: filteredOverdue.length }]
+      ? [{ key: 'overdue', icon: <AlertCircle size={14} className="text-red-500" />, label: t('tasks.overdue'), count: filteredOverdue.length }]
       : []),
-    { key: 'today', label: t('tasks.today'), count: filteredToday.length },
-    { key: 'thisWeek', label: t('tasks.thisWeek'), count: filteredThisWeek.length },
-    { key: 'later', label: t('tasks.later'), count: filteredLater.length },
-    { key: 'done', label: t('tasks.done'), count: filteredDone.length },
+    { key: 'today', icon: <CalendarDays size={14} />, label: t('tasks.today'), count: filteredToday.length },
+    { key: 'thisWeek', icon: <CalendarRange size={14} />, label: t('tasks.thisWeek'), count: filteredThisWeek.length },
+    { key: 'later', icon: <Clock size={14} />, label: t('tasks.later'), count: filteredLater.length },
+    { key: 'done', icon: <CheckCircle2 size={14} />, label: t('tasks.done'), count: filteredDone.length },
   ];
 
   const filterGroups: FilterGroup[] = [
@@ -142,14 +141,12 @@ export function TasksPage() {
                 setActiveTags(new Set());
               }}
             />
-            <Button
-              size="sm"
-              className="flex items-center gap-1.5"
+            <button
               onClick={() => setNewTaskOpen(true)}
+              className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              {t('tasks.newTask', 'New task')}
-            </Button>
+              <Plus size={14} />
+            </button>
           </div>
         </div>
 
@@ -166,6 +163,7 @@ export function TasksPage() {
           count={activeTaskMap[resolvedTab].length}
           tasks={activeTaskMap[resolvedTab]}
           variant={variantMap[resolvedTab]}
+          flat
           onTaskCreated={handleCreate}
           onToggle={handleToggle}
           onEditFull={handleEditFull}

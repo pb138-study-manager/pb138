@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Plus, CheckSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
@@ -8,11 +6,23 @@ import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/tasks/tasks-card';
 import { EntityFormDialog } from '@/components/shared/EntityFormDialog';
 
-export default function StudentTasksTab({ courseId }: { courseId: string }) {
+export default function StudentTasksTab({
+  courseId,
+  addOpen,
+  onAddOpenChange,
+  filterTags,
+}: {
+  courseId: string;
+  addOpen?: boolean;
+  onAddOpenChange?: (v: boolean) => void;
+  filterTags?: Set<string>;
+}) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAddInternal, setShowAddInternal] = useState(false);
+  const showAdd = addOpen !== undefined ? addOpen : showAddInternal;
+  const setShowAdd = onAddOpenChange ?? setShowAddInternal;
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDate, setTaskDate] = useState('');
 
@@ -21,7 +31,11 @@ export default function StudentTasksTab({ courseId }: { courseId: string }) {
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
   });
 
-  const tasks = allTasks.filter((t) => t.courseId === Number(courseId));
+  const allCourseTasks = allTasks.filter((t) => t.courseId === Number(courseId));
+  const tasks =
+    filterTags && filterTags.size > 0
+      ? allCourseTasks.filter((t) => t.tags?.some((tag) => filterTags.has(tag)))
+      : allCourseTasks;
 
   const toggleTaskMutation = useMutation({
     mutationFn: (id: number) => api.patch<Task>(`/tasks/${id}/toggle-done`, {}),
@@ -118,23 +132,6 @@ export default function StudentTasksTab({ courseId }: { courseId: string }) {
 
   return (
     <div className="px-4 mt-6 mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <CheckSquare className="w-5 h-5 text-green-500" />
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {t('courses.tasks', 'Tasks')}
-          </span>
-          <span className="text-gray-400 text-sm">{tasks.length}</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-7 h-7 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={() => setShowAdd(true)}
-        >
-          <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        </Button>
-      </div>
 
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-400 py-4 text-center">

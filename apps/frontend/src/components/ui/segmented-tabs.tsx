@@ -13,6 +13,7 @@ interface SegmentedTabsProps {
   value: string;
   onChange: (key: string) => void;
   variant?: 'pill' | 'underline';
+  noBorder?: boolean;
   className?: string;
 }
 
@@ -21,11 +22,12 @@ export function SegmentedTabs({
   value,
   onChange,
   variant = 'pill',
+  noBorder = false,
   className,
 }: SegmentedTabsProps) {
   if (variant === 'underline') {
     return (
-      <div className={cn('flex border-b border-gray-200 dark:border-gray-700', className)}>
+      <div className={cn('flex', !noBorder && 'border-b border-gray-200 dark:border-gray-700', className)}>
         {items.map((item) => {
           const isActive = item.key === value;
           return (

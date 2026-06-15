@@ -13,6 +13,8 @@ export default function TaskSection({
   tasks,
   variant = 'default',
   showBorder = false,
+  flat = false,
+  hideAddButton = false,
   onTaskCreated,
   onToggle,
   onEditFull,
@@ -23,6 +25,8 @@ export default function TaskSection({
   tasks: Task[];
   variant?: SectionVariant;
   showBorder?: boolean;
+  flat?: boolean;
+  hideAddButton?: boolean;
   onTaskCreated: (
     title: string,
     dueDate: string | undefined,
@@ -76,6 +80,21 @@ export default function TaskSection({
       : 'border-2 border-dashed border-blue-200 dark:border-blue-900 rounded-2xl p-3'
     : '';
 
+  if (flat) {
+    return (
+      <div>
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
+        ))}
+        <NewTaskDialog
+          isOpen={openCreateTaskDialog}
+          onOpenChange={setOpenCreateTaskDialog}
+          onSubmit={onTaskCreated}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={`mb-6 ${borderClass}`}>
       <div className="flex items-center justify-between mb-4">
@@ -90,7 +109,7 @@ export default function TaskSection({
             {count}
           </span>
         </h3>
-        {variant !== 'done' && (
+        {variant !== 'done' && !hideAddButton && (
           <Button
             variant="outline"
             size="icon"
