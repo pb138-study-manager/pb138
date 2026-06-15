@@ -297,11 +297,11 @@ export default function NoteDetailView({
         <>
           {/* Markdown hint bar */}
           <div className="flex gap-3 px-2 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-t-lg border border-b-0 border-gray-200 dark:border-gray-600 text-xs text-gray-400 font-mono overflow-x-auto whitespace-nowrap">
-            <span>**tučné**</span>
-            <span>*kurzíva*</span>
-            <span># Nadpis</span>
-            <span>- zoznam</span>
-            <span>`kód`</span>
+            <span>{t('notes.mdBold')}</span>
+            <span>{t('notes.mdItalic')}</span>
+            <span>{t('notes.mdHeading')}</span>
+            <span>{t('notes.mdList')}</span>
+            <span>{t('notes.mdCode')}</span>
             <span className="ml-auto text-indigo-400 font-sans font-medium">{t('notes.escToSave')}</span>
           </div>
           <textarea

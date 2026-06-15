@@ -90,7 +90,7 @@ export default function EditTaskDialog({
           </DialogHeader>
           <div className="px-6 py-6 space-y-0">
             <Input
-              placeholder="Task name..."
+              placeholder={t('tasks.namePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               autoFocus
@@ -107,7 +107,7 @@ export default function EditTaskDialog({
                 className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {selectedDate ? selectedDate.toLocaleDateString() : 'Date'}
+                {selectedDate ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US') : t('tasks.datePill')}
               </Button>
 
               {isAssignmentTask && task.assignmentDeadline && (
@@ -149,8 +149,8 @@ export default function EditTaskDialog({
                 >
                   <ListChecks className="w-3.5 h-3.5" />
                   {totalSubtasks > 0
-                    ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}`
-                    : 'Subtasks'}
+                    ? `${totalSubtasks} ${t('tasks.subtasksPill')}`
+                    : t('tasks.subtasksPill')}
                 </Button>
               )}
 
@@ -163,7 +163,7 @@ export default function EditTaskDialog({
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  {selectedCourse ? selectedCourse.code : 'Course'}
+                  {selectedCourse ? selectedCourse.code : t('tasks.coursePill')}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {courses.length === 0 ? (
@@ -196,7 +196,7 @@ export default function EditTaskDialog({
                     {task.eval.score} b.
                   </span>
                   <span className="text-xs text-gray-400">
-                    {new Date(task.eval.evaluatedAt).toLocaleDateString('sk-SK')}
+                    {new Date(task.eval.evaluatedAt).toLocaleDateString(navigator.language ?? 'en-US')}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
@@ -254,7 +254,7 @@ export default function EditTaskDialog({
         >
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Subtasks</DialogTitle>
+              <DialogTitle>{t('tasks.subtasksPill')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="flex gap-2">
@@ -324,7 +324,7 @@ export default function EditTaskDialog({
                   setSubtasksExpanded(false);
                 }}
               >
-                Save
+                {t('notes.save')}
               </Button>
             </div>
           </DialogContent>

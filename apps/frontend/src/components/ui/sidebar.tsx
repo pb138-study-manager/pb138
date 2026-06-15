@@ -158,14 +158,14 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
       <div className={cn('border-t border-gray-200 dark:border-gray-800 p-3 space-y-1')}>
         <button
           onClick={toggleAIPanel}
-          title="AI Copilot"
+          title={t('nav.aiCopilot')}
           className={cn(
             'flex items-center rounded-lg transition-colors font-medium w-full text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30',
             isCollapsed ? 'justify-center py-3' : 'gap-3 px-3 py-2.5'
           )}
         >
           <Sparkles className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span>AI Copilot</span>}
+          {!isCollapsed && <span>{t('nav.aiCopilot')}</span>}
         </button>
 
         {isTeacher && (

@@ -132,7 +132,7 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
       {priorities.length > 0 && (
         <div className="space-y-2 mt-4">
           <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-            Top priority
+            {t('ai.topPriority')}
           </p>
           {priorities.map((p, i) => (
             <div

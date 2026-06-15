@@ -24,7 +24,8 @@
     "myClasses": "My Classes",
     "appTitle": "Study Manager",
     "switchToStudent": "Switch to Student",
-    "switchToTeacher": "Switch to Teacher"
+    "switchToTeacher": "Switch to Teacher",
+    "aiCopilot": "AI Copilot"
   },
   "others": {
     "title": "Others"
@@ -52,7 +53,11 @@
     "addTag": "Add tag...",
     "clearFilters": "Clear",
     "evalLabel": "Grade",
-    "evalLabelFull": "Teacher grade"
+    "evalLabelFull": "Teacher grade",
+    "namePlaceholder": "Task name...",
+    "datePill": "Date",
+    "subtasksPill": "Subtasks",
+    "coursePill": "Course"
   },
   "notes": {
     "loading": "Loading notes...",
@@ -75,7 +80,15 @@
     "quizMe": "Quiz me",
     "askAI": "Ask AI",
     "newNote": "New note",
-    "noteTitlePlaceholder": "Note title..."
+    "noteTitlePlaceholder": "Note title...",
+    "mdBold": "**bold**",
+    "mdItalic": "*italic*",
+    "mdHeading": "# Heading",
+    "mdList": "- list",
+    "mdCode": "`code`",
+    "newFolder": "New folder",
+    "addTag": "Add tag...",
+    "tags": "Tags"
   },
   "ai": {
     "error": "An error occurred. Please try again.",
@@ -88,7 +101,12 @@
     "briefSubtitle": "Let AI summarize your day",
     "refresh": "Refresh",
     "context": "Context",
-    "aiSummary": "AI Summary"
+    "aiSummary": "AI Summary",
+    "topPriority": "Top priority",
+    "agentEmpty": "Ask me anything or give me a task...",
+    "confirmAction": "Do you want to perform:",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "dialog": {
     "newFolder": "New Folder",
@@ -125,7 +143,9 @@
     "cancel": "Cancel",
     "add": "Add",
     "title": "Title",
-    "descriptionOptional": "Description (optional)"
+    "descriptionOptional": "Description (optional)",
+    "filter": "Filter",
+    "clearAllFilters": "Clear all filters"
   },
   "courses": {
     "title": "Courses",

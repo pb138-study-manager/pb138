@@ -1,4 +1,5 @@
 import { Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -19,6 +20,7 @@ interface FilterControlProps {
 }
 
 export function FilterControl({ groups, onClear, className }: FilterControlProps) {
+  const { t } = useTranslation();
   const totalActive = groups.reduce((sum, g) => sum + g.active.size, 0);
 
   return (
@@ -33,7 +35,7 @@ export function FilterControl({ groups, onClear, className }: FilterControlProps
         )}
       >
         <Filter size={14} />
-        Filter
+        {t('common.filter')}
         {totalActive > 0 && (
           <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 text-xs font-semibold">
             {totalActive}
@@ -82,7 +84,7 @@ export function FilterControl({ groups, onClear, className }: FilterControlProps
             onClick={onClear}
             className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
           >
-            Clear all filters
+            {t('common.clearAllFilters')}
           </button>
         )}
       </PopoverContent>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Send, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { AgentDisplay, DisplayCards } from '@/components/ai/cards';
 
@@ -9,6 +10,7 @@ type PendingAction = { name: string; args: Record<string, unknown>; label: strin
 
 
 export function AgentTab() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,7 @@ export function AgentTab() {
   async function confirm() {
     if (!pending) return;
     const action = pending;
-    setMessages((prev) => [...prev, { role: 'user', content: `✓ Potvrdené: ${action.label}` }]);
+    setMessages((prev) => [...prev, { role: 'user', content: `✓ ${action.label}` }]);
     await send(action);
   }
 
@@ -69,7 +71,7 @@ export function AgentTab() {
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (
           <p className="text-sm text-gray-400 text-center mt-8">
-            Opýtaj sa ma čokoľvek alebo mi daj úlohu...
+            {t('ai.agentEmpty')}
           </p>
         )}
         {messages.map((m, i) => (
@@ -101,7 +103,7 @@ export function AgentTab() {
         {pending && (
           <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 p-3 space-y-2">
             <p className="text-sm text-indigo-700 dark:text-indigo-300 font-medium">
-              Chceš vykonať:
+              {t('ai.confirmAction')}
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">
               {pending.label}
@@ -111,13 +113,13 @@ export function AgentTab() {
                 onClick={confirm}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-500 text-white text-sm hover:bg-indigo-600"
               >
-                <CheckCircle size={14} /> Potvrdiť
+                <CheckCircle size={14} /> {t('ai.confirm')}
               </button>
               <button
                 onClick={() => setPending(null)}
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-300"
               >
-                <XCircle size={14} /> Zrušiť
+                <XCircle size={14} /> {t('ai.cancel')}
               </button>
             </div>
           </div>
@@ -137,7 +139,7 @@ export function AgentTab() {
       <div className="border-t dark:border-gray-700 p-3 flex gap-2">
         <input
           className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 outline-none text-gray-900 dark:text-white placeholder-gray-400"
-          placeholder="Napíš správu..."
+          placeholder={t('ai.messagePlaceholder')}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
