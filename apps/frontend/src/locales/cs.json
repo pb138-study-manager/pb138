@@ -28,7 +28,10 @@
     "avatarUpload": "Nahrát",
     "avatarUploading": "Nahrávání…",
     "avatarErrorType": "Povoleny jsou pouze obrázky JPEG a PNG.",
-    "avatarErrorSize": "Soubor je příliš velký. Maximální velikost je 256 KB."
+    "avatarErrorSize": "Soubor je příliš velký. Maximální velikost je 256 KB.",
+    "adminPanel": "Administrace",
+    "adminPanelDesc": "Správa uživatelů, rolí a systémových logů",
+    "backToApp": "Zpět do aplikace"
   },
   "nav": {
     "tasks": "Úkoly",
