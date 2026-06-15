@@ -27,6 +27,7 @@ interface TaskTimelineCardProps {
 export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: TaskTimelineCardProps) {
   const [editOpen, setEditOpen] = useState(false)
   const isDone = task.status === 'DONE'
+  const isAssigned = !!task.assignmentId
 
   return (
     <>
@@ -40,8 +41,11 @@ export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: Task
             <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 rounded-xl shrink-0">
               <Users className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="flex-1 min-w-0" onClick={() => setEditOpen(true)}>
-              <p className={`font-bold text-sm truncate cursor-pointer ${isDone ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
+            <div
+              className={`flex-1 min-w-0 ${!isAssigned ? 'cursor-pointer' : ''}`}
+              onClick={!isAssigned ? () => setEditOpen(true) : undefined}
+            >
+              <p className={`font-bold text-sm truncate ${isDone ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
                 {task.title}
               </p>
               <p className="text-[13px] text-gray-400 mt-0.5">{timeLabel}</p>
@@ -59,12 +63,14 @@ export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: Task
         </Card>
       </div>
 
-      <EditTaskDialog
-        task={task}
-        isOpen={editOpen}
-        onOpenChange={setEditOpen}
-        onSave={(data) => onEditFull(task.id, data, data.subtasksToAdd, data.subtaskIdsToDelete)}
-      />
+      {!isAssigned && (
+        <EditTaskDialog
+          task={task}
+          isOpen={editOpen}
+          onOpenChange={setEditOpen}
+          onSave={(data) => onEditFull(task.id, data, data.subtasksToAdd, data.subtaskIdsToDelete)}
+        />
+      )}
     </>
   )
 }
