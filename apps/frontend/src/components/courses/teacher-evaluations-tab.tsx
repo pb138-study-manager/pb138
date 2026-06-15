@@ -33,17 +33,17 @@ function EvalBadge({ row, onEval, evaluateLabel }: {
       {hasEval ? (
         row.evalType === 'pass_fail' ? (
           row.evalScore === 1 ? (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 text-green-700">✓ Pass</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓ Pass</span>
           ) : (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700">✗ Fail</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">✗ Fail</span>
           )
         ) : (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
             {row.evalScore} b.
           </span>
         )
       ) : (
-        <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+        <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
           <Star className="w-3 h-3" />
           {evaluateLabel}
         </span>

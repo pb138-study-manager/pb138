@@ -45,20 +45,20 @@ function AddTeacherPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Header */}
-      <div className="px-4 py-4 border-b border-gray-200 flex items-center gap-3">
+      <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={handleBack} className="p-0 h-auto w-auto">
-          <ChevronLeft className="w-6 h-6 text-gray-900" />
+          <ChevronLeft className="w-6 h-6 text-gray-900 dark:text-white" />
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900">Add Teacher</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add Teacher</h1>
       </div>
 
       {/* Main Content */}
       <div className="px-4 py-6 space-y-6">
         {/* Search Input */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 pb-2 border-b-2 border-gray-900">
+          <div className="flex items-center gap-2 pb-2 border-b-2 border-gray-900 dark:border-gray-100">
             <Search className="w-5 h-5 text-gray-600" />
             <Input
               type="text"

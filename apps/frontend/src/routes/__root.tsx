@@ -37,7 +37,7 @@ function RootLayout() {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+      <div className="h-screen w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div
           className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full
   animate-spin"
@@ -97,7 +97,7 @@ function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
   }, [isAdminRoute]);
 
   return (
-    <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
+    <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row overflow-hidden">
       {!hideNav && !isAdminRoute && <Sidebar activeTab={activeTab} />}
 
       {/* Main content + desktop inline AI panel */}

@@ -165,7 +165,7 @@ export default function EditAssignmentDialog({
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     pill.active
                       ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <pill.icon className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export default function EditAssignmentDialog({
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     evalType !== 'none'
                       ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <ClipboardCheck className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export default function EditAssignmentDialog({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   subtasksExpanded
                     ? 'bg-indigo-100 text-indigo-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 <ListTodo className="w-3.5 h-3.5" />
@@ -218,7 +218,7 @@ export default function EditAssignmentDialog({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   studentsExpanded
                     ? 'bg-indigo-100 text-indigo-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
@@ -232,8 +232,8 @@ export default function EditAssignmentDialog({
                 <div className="border-t my-3" />
                 <div className="space-y-1.5">
                   {subtasks.map((s) => (
-                    <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-xl text-sm">
-                      <span className="flex-1 text-gray-700 truncate">{s.title}</span>
+                    <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
+                      <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{s.title}</span>
                       <button
                         onClick={() => handleDeleteSubtask(s.id)}
                         className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
@@ -282,7 +282,7 @@ export default function EditAssignmentDialog({
                       return (
                         <div
                           key={s.taskId}
-                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 rounded-xl text-sm"
+                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
                         >
                           {s.avatar ? (
                             <img src={s.avatar} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
@@ -291,7 +291,7 @@ export default function EditAssignmentDialog({
                               <span className="text-[10px] font-bold text-indigo-600">{initials}</span>
                             </div>
                           )}
-                          <span className="flex-1 truncate text-gray-700">
+                          <span className="flex-1 truncate text-gray-700 dark:text-gray-300">
                             {s.name ?? s.email}
                           </span>
                           {s.status === 'DONE' ? (
@@ -303,7 +303,7 @@ export default function EditAssignmentDialog({
                           )}
                           {evalType === 'none' ? (
                             <span
-                              className="text-xs text-gray-300 px-2 py-0.5 rounded-lg border border-gray-200 shrink-0 cursor-default"
+                              className="text-xs text-gray-300 dark:text-gray-600 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0 cursor-default"
                               title={t('courses.setEvalTypeHint')}
                             >
                               Eval

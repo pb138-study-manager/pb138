@@ -55,7 +55,7 @@ export default function EvalDialog({
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   score === 1
                     ? 'bg-green-500 text-white border-green-500'
-                    : 'text-green-600 border-green-200'
+                    : 'text-green-600 border-green-200 dark:border-green-800'
                 }`}
               >
                 ✓ Pass
@@ -65,7 +65,7 @@ export default function EvalDialog({
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   score === 0
                     ? 'bg-red-500 text-white border-red-500'
-                    : 'text-red-600 border-red-200'
+                    : 'text-red-600 border-red-200 dark:border-red-800'
                 }`}
               >
                 ✗ Fail
@@ -73,12 +73,12 @@ export default function EvalDialog({
             </div>
           ) : (
             <div className="space-y-2">
-              <label className="text-xs text-gray-500 font-medium">Score (0–100)</label>
+              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">Score (0–100)</label>
               <input
                 type="number"
                 min={0}
                 max={100}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-transparent dark:text-gray-200"
                 value={score ?? ''}
                 onChange={(e) => setScore(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
               />
@@ -86,7 +86,7 @@ export default function EvalDialog({
           )}
 
           <textarea
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none"
+            className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none bg-transparent dark:text-gray-200"
             placeholder="Feedback (optional)"
             rows={3}
             value={feedback}

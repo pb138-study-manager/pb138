@@ -66,7 +66,7 @@ export default function NewTaskDialog({
 
   const priorityClass = priority
     ? PRIORITY_STYLES[priority]
-    : 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700';
 
   return (
     <>
@@ -94,7 +94,7 @@ export default function NewTaskDialog({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   selectedDate
                     ? 'bg-indigo-100 text-indigo-700 border-transparent'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-border'
                 }`}
                 onClick={() => setIsDateOpen(true)}
               >
@@ -109,7 +109,7 @@ export default function NewTaskDialog({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   tags.length > 0
                     ? 'bg-indigo-100 text-indigo-700 border-transparent'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-border'
                 }`}
                 onClick={() => setTagInputOpen((v) => !v)}
               >
@@ -135,7 +135,7 @@ export default function NewTaskDialog({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   subtasks.length > 0
                     ? 'bg-indigo-100 text-indigo-700 border-transparent'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-border'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-border'
                 }`}
                 onClick={() => setIsSubtasksOpen(true)}
               >
@@ -151,7 +151,7 @@ export default function NewTaskDialog({
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     selectedCourse
                       ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -185,7 +185,7 @@ export default function NewTaskDialog({
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium"
                     >
                       {tag}
                       <Button

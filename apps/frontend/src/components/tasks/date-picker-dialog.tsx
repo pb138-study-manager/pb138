@@ -188,7 +188,7 @@ export default function DatePickerDialog({
                     <button
                       key={min}
                       onClick={() => setDurationMinutes(min)}
-                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
                     >
                       {min < 60 ? `${min}m` : `${min / 60}h`}
                     </button>

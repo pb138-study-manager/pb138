@@ -107,18 +107,18 @@ export default function TeacherAssignmentsTab({ courseId }: { courseId: string }
             const pct = asg.total > 0 ? asg.done / asg.total : 0;
             const badgeClass =
               pct >= 0.8
-                ? 'bg-green-100 text-green-800'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                 : pct >= 0.4
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800';
+                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
             return (
               <div
                 key={asg.id}
                 onClick={() => setEditingAssignment(asg)}
                 className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-md cursor-pointer active:scale-95 transition"
               >
-                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                  <ClipboardCheck className="w-4 h-4 text-blue-600" />
+                <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+                  <ClipboardCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
