@@ -12,7 +12,7 @@ import {
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, ilike, inArray, desc, or } from 'drizzle-orm';
+import { eq, and, isNull, ilike, inArray, desc, or, gte, lte } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const PatchRolesSchema = z.object({
@@ -133,13 +133,22 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     zodBody(PatchRolesSchema)
   )
 
-  // GET /admin/audit-logs?q=&limit=50&offset=0
+  // GET /admin/audit-logs?q=&actor=&from=&to=&limit=50&offset=0
   .get('/audit-logs', async ({ query }) => {
     const q = (query.q as string | undefined)?.trim() ?? '';
+    const actor = (query.actor as string | undefined)?.trim() ?? '';
+    const from = query.from as string | undefined;
+    const to = query.to as string | undefined;
     const limit = Math.min(Number(query.limit ?? 50) || 50, 200);
     const offset = Math.max(0, Number(query.offset ?? 0) || 0);
 
-    const baseQuery = db
+    const conditions = [];
+    if (q) conditions.push(ilike(auditLogs.description, `%${q}%`));
+    if (actor) conditions.push(ilike(users.login, `%${actor}%`));
+    if (from) conditions.push(gte(auditLogs.happenedAt, new Date(from)));
+    if (to) conditions.push(lte(auditLogs.happenedAt, new Date(to)));
+
+    const rows = await db
       .select({
         id: auditLogs.id,
         actorId: auditLogs.actorId,
@@ -149,12 +158,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       })
       .from(auditLogs)
       .leftJoin(users, eq(auditLogs.actorId, users.id))
-      .orderBy(desc(auditLogs.happenedAt));
-
-    const rows = await (q
-      ? baseQuery.where(ilike(auditLogs.description, `%${q}%`))
-      : baseQuery
-    )
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(auditLogs.happenedAt))
       .limit(limit)
       .offset(offset);
 
