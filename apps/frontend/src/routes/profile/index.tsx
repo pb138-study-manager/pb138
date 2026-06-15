@@ -48,7 +48,13 @@ function ProfilePage() {
 
       {/* Main Content */}
       <div className="px-4 py-6 space-y-4">
-        <UserCard login={userData.login} name={userData.profile.name} email={userData.email} />
+        <UserCard
+          login={userData.login}
+          name={userData.profile.name}
+          title={userData.profile.title}
+          bio={userData.profile.bio}
+          email={userData.email}
+        />
 
         <SettingsCard
           theme={theme}

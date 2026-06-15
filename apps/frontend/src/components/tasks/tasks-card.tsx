@@ -6,6 +6,8 @@ import { Task, TaskStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { getUrgency, getCountdown } from '@/lib/task-utils';
+import { UrgencyPill } from '@/components/shared/UrgencyPill';
+import { PriorityPill } from '@/components/shared/PriorityPill';
 
 interface TaskCardProps {
   task: Task;
@@ -62,7 +64,7 @@ export default function TaskCard({
   const { t } = useTranslation();
   const dueTime = effectiveDueDate
     ? `${task.dueDate ? t('tasks.due') : 'Deadline'} ${new Date(effectiveDueDate).toLocaleString(
-        'sk-SK',
+        navigator.language ?? 'en-US',
         {
           month: 'short',
           day: 'numeric',
@@ -74,18 +76,6 @@ export default function TaskCard({
 
   const urgency = getUrgency(effectiveDueDate);
   const countdown = getCountdown(effectiveDueDate, t('tasks.noDate'));
-
-  const urgencyColors = {
-    high: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
-    medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-    low: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-  };
-
-  const PRIORITY_COLORS: Record<string, string> = {
-    LOW: 'bg-green-100 text-green-600',
-    MEDIUM: 'bg-amber-100 text-amber-600',
-    HIGH: 'bg-red-100 text-red-600',
-  };
 
   const PRIORITY_LABELS: Record<string, string> = {
     LOW: t('tasks.priorityLow'),
@@ -125,23 +115,19 @@ export default function TaskCard({
 
             {task.status !== 'DONE' && (countdown || task.priority || displayTags.length > 0) && (
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                {countdown && (
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      urgency
-                        ? urgencyColors[urgency]
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    {countdown}
-                  </span>
-                )}
+                {countdown &&
+                  (urgency ? (
+                    <UrgencyPill urgency={urgency} label={countdown} />
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                      {countdown}
+                    </span>
+                  ))}
                 {task.priority && (
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}
-                  >
-                    {PRIORITY_LABELS[task.priority]}
-                  </span>
+                  <PriorityPill
+                    priority={task.priority}
+                    label={PRIORITY_LABELS[task.priority]}
+                  />
                 )}
                 {visibleTags.map((tag) => (
                   <span
