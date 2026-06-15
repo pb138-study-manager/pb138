@@ -75,6 +75,16 @@ export function useAdminManager() {
     queryClient.invalidateQueries({ queryKey: ['admin-users'] });
   }
 
+  async function deactivateUser(userId: number) {
+    await api.delete(`/admin/users/${userId}`);
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  }
+
+  async function reactivateUser(userId: number) {
+    await api.post(`/admin/users/${userId}/reactivate`, {});
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  }
+
   return {
     adminUsers,
     usersLoading,
@@ -96,5 +106,7 @@ export function useAdminManager() {
     adminRoles,
     assignRole,
     removeRole,
+    deactivateUser,
+    reactivateUser,
   };
 }

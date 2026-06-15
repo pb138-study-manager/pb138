@@ -12,7 +12,7 @@ import {
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, ilike, inArray, desc, or, gte, lte } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull, ilike, inArray, desc, or, gte, lte, count } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const PatchRolesSchema = z.object({
@@ -51,8 +51,8 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       .leftJoin(userProfiles, eq(users.id, userProfiles.userId));
 
     const allUsers = await (q
-      ? baseQuery.where(and(isNull(users.deletedAt), or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`))))
-      : baseQuery.where(isNull(users.deletedAt))
+      ? baseQuery.where(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)))
+      : baseQuery
     )
       .limit(limit)
       .offset(offset);
@@ -113,11 +113,23 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
 
       for (const roleName of body.remove ?? []) {
         const roleId = roleMap[roleName];
-        if (roleId) {
-          await db
-            .delete(userRoles)
-            .where(and(eq(userRoles.userId, targetId), eq(userRoles.roleId, roleId)));
+        if (!roleId) continue;
+
+        if (roleName === 'ADMIN') {
+          const [{ adminCount }] = await db
+            .select({ adminCount: count() })
+            .from(userRoles)
+            .innerJoin(users, and(eq(userRoles.userId, users.id), isNull(users.deletedAt)))
+            .where(eq(userRoles.roleId, roleId));
+          if (adminCount <= 1) {
+            set.status = 409;
+            return { error: 'LAST_ADMIN', message: 'Cannot remove the last admin role' };
+          }
         }
+
+        await db
+          .delete(userRoles)
+          .where(and(eq(userRoles.userId, targetId), eq(userRoles.roleId, roleId)));
       }
 
       await logAction(db, authUser.id, `Admin updated roles for user ${targetId}`);
@@ -132,6 +144,78 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
     },
     zodBody(PatchRolesSchema)
   )
+
+  // DELETE /admin/users/:id  — deactivates (sets deleted_at), does not remove data
+  .delete('/users/:id', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const targetId = Number(params.id);
+
+    if (isNaN(targetId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid user id' };
+    }
+    if (targetId === authUser.id) {
+      set.status = 409;
+      return { error: 'SELF_DEACTIVATE', message: 'You cannot deactivate your own account' };
+    }
+
+    const [target] = await db
+      .select({ id: users.id, login: users.login })
+      .from(users)
+      .where(and(eq(users.id, targetId), isNull(users.deletedAt)));
+    if (!target) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'User not found or already deactivated' };
+    }
+
+    const [adminRole] = await db.select().from(roles).where(eq(roles.name, 'ADMIN'));
+    if (adminRole) {
+      const [targetAdminRow] = await db
+        .select()
+        .from(userRoles)
+        .where(and(eq(userRoles.userId, targetId), eq(userRoles.roleId, adminRole.id)));
+
+      if (targetAdminRow) {
+        const [{ adminCount }] = await db
+          .select({ adminCount: count() })
+          .from(userRoles)
+          .innerJoin(users, and(eq(userRoles.userId, users.id), isNull(users.deletedAt)))
+          .where(eq(userRoles.roleId, adminRole.id));
+        if (adminCount <= 1) {
+          set.status = 409;
+          return { error: 'LAST_ADMIN', message: 'Cannot deactivate the last admin' };
+        }
+      }
+    }
+
+    await db.update(users).set({ deletedAt: new Date() }).where(eq(users.id, targetId));
+    await logAction(db, authUser.id, `Admin deactivated user ${targetId} (${target.login})`);
+    return { success: true };
+  })
+
+  // POST /admin/users/:id/reactivate
+  .post('/users/:id/reactivate', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const targetId = Number(params.id);
+
+    if (isNaN(targetId)) {
+      set.status = 400;
+      return { error: 'BAD_REQUEST', message: 'Invalid user id' };
+    }
+
+    const [target] = await db
+      .select({ id: users.id, login: users.login })
+      .from(users)
+      .where(and(eq(users.id, targetId), isNotNull(users.deletedAt)));
+    if (!target) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'User not found or already active' };
+    }
+
+    await db.update(users).set({ deletedAt: null }).where(eq(users.id, targetId));
+    await logAction(db, authUser.id, `Admin reactivated user ${targetId} (${target.login})`);
+    return { success: true };
+  })
 
   // GET /admin/audit-logs?q=&actor=&from=&to=&limit=50&offset=0
   .get('/audit-logs', async ({ query }) => {
