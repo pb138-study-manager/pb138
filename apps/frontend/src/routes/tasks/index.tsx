@@ -143,9 +143,9 @@ export function TasksPage() {
             />
             <button
               onClick={() => setNewTaskOpen(true)}
-              className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors"
+              className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
             >
-              <Plus size={16} className="text-white dark:text-gray-900" />
+              <Plus size={14} />
             </button>
           </div>
         </div>

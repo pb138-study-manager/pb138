@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { FileText, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { NoteModel } from '@/types/index';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,6 @@ import { ListRow } from '@/components/ui/list-row';
 interface NotesViewProps {
   notes: NoteModel[];
   onOpenNote: (id: number) => void;
-  onAddNote: () => void;
   onRenameNote: (id: number, newTitle: string) => Promise<void>;
   onDeleteNote: (id: number) => Promise<void>;
 }
@@ -19,7 +18,6 @@ interface NotesViewProps {
 export default function NotesView({
   notes,
   onOpenNote,
-  onAddNote,
   onRenameNote,
   onDeleteNote,
 }: NotesViewProps) {
@@ -42,19 +40,6 @@ export default function NotesView({
 
   return (
     <div className="space-y-2">
-      {/* Header row with "New note" button */}
-      <div className="flex items-center justify-between px-1 mb-2">
-        <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-          {t('notes.notes')}
-        </span>
-        <button
-          onClick={onAddNote}
-          className="flex items-center gap-1 px-3 py-1 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <Plus size={14} />
-          {t('notes.addNote')}
-        </button>
-      </div>
 
       {notes.map((note) => (
         <div key={note.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">

@@ -111,7 +111,6 @@ function NotesPage() {
               <NotesView
                 notes={activeFolderNotes}
                 onOpenNote={openNote}
-                onAddNote={() => setIsCreateNoteOpen(true)}
                 onRenameNote={updateNote}
                 onDeleteNote={deleteNote}
               />

@@ -117,14 +117,27 @@ function TodayPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4 pt-4">
-        <SegmentedTabs
-          items={tabItems}
-          value={activeTab}
-          onChange={(k) => setActiveTab(k as Tab)}
-          variant="underline"
-        />
+      {/* Tabs + inline controls on the same row */}
+      <div className="px-4 pt-4 flex items-end gap-2">
+        <div className="flex-1 min-w-0">
+          <SegmentedTabs
+            items={tabItems}
+            value={activeTab}
+            onChange={(k) => setActiveTab(k as Tab)}
+            variant="underline"
+          />
+        </div>
+        {activeTab === 'tasks' && (
+          <div className="flex items-center gap-2 pb-[11px]">
+            <FilterControl groups={filterGroups} onClear={clearFilters} />
+            <button
+              onClick={() => setNewTaskOpen(true)}
+              className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* AI Summary — kept mounted to cache the result */}
@@ -135,16 +148,6 @@ function TodayPage() {
       {/* Tasks tab */}
       {activeTab === 'tasks' && (
         <div className="px-4 py-4">
-          <div className="flex items-center justify-end gap-2 mb-4">
-            <FilterControl groups={filterGroups} onClear={clearFilters} />
-            <button
-              onClick={() => setNewTaskOpen(true)}
-              className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors"
-            >
-              <Plus size={16} className="text-white dark:text-gray-900" />
-            </button>
-          </div>
-
           <TaskSection
             title={t('tasks.today')}
             count={filteredToday.length}

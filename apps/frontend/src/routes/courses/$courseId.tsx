@@ -119,10 +119,10 @@ function CourseDetailPage() {
           value={teacherTab}
           onChange={(key) => setTeacherTab(key as typeof teacherTab)}
           items={[
-            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments') },
-            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
-            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students') },
-            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
+            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments').toUpperCase() },
+            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials').toUpperCase() },
+            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students').toUpperCase() },
+            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations').toUpperCase() },
           ]}
         />
       ) : (
@@ -132,10 +132,10 @@ function CourseDetailPage() {
           value={activeTab}
           onChange={(key) => setActiveTab(key as typeof activeTab)}
           items={[
-            { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks') },
-            { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes') },
-            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
-            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
+            { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks').toUpperCase() },
+            { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes').toUpperCase() },
+            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials').toUpperCase() },
+            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations').toUpperCase() },
           ]}
         />
       )}
