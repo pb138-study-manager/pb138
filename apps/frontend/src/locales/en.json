@@ -28,7 +28,10 @@
     "avatarUpload": "Upload",
     "avatarUploading": "Uploading…",
     "avatarErrorType": "Only JPEG and PNG images are allowed.",
-    "avatarErrorSize": "File is too large. Maximum size is 256 KB."
+    "avatarErrorSize": "File is too large. Maximum size is 256 KB.",
+    "adminPanel": "Admin Panel",
+    "adminPanelDesc": "Manage users, roles and system logs",
+    "backToApp": "Back to App"
   },
   "nav": {
     "tasks": "Tasks",

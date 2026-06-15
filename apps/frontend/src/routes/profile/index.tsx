@@ -1,10 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import BottomNav from '@/components/ui/bottom-nav';
 import { useTranslation } from 'react-i18next';
 import UserCard from '@/components/profile/user-card';
 import SettingsCard from '@/components/profile/settings-card';
 import { useProfileManager } from '@/hooks/useProfileManager';
+import { ShieldCheck, ChevronRight } from 'lucide-react';
 
 export const Route = createFileRoute('/profile/')({
   component: ProfilePage,
@@ -68,6 +69,22 @@ function ProfilePage() {
           onUpdateSettings={updateSettings}
           onChangeLanguage={changeLanguage}
         />
+
+        {/* Admin Panel — visible only to ADMIN role */}
+        {userData.roles.includes('ADMIN') && (
+          <Link to="/admin" className="block mt-2">
+            <div className="flex items-center justify-between px-6 py-4 rounded-3xl shadow-md bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('profile.adminPanel')}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('profile.adminPanelDesc')}</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+            </div>
+          </Link>
+        )}
 
         {/* Log Out Button */}
         <Button
