@@ -164,6 +164,7 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
 
     try {
       const url = await getSignedUrl(COURSE_MATERIALS_BUCKET, material.storagePath);
+      await logAction(db, authUser.id, `Downloaded material ${material.id} from course ${course.id}`);
       return { url };
     } catch (e) {
       set.status = 502;
