@@ -4,15 +4,27 @@ import { RefreshCw, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { UrgencyDot } from '@/components/shared/UrgencyPill';
+
+interface Priority {
+  title: string;
+  dueDate: string;
+  urgency: 'high' | 'medium' | 'low';
+}
+
+interface BriefData {
+  brief: string;
+  priorities: Priority[];
+}
 
 interface AiSummaryViewProps {
-  endpoint: string;
   active: boolean;
 }
 
-export function AiSummaryView({ endpoint, active }: AiSummaryViewProps) {
+export function AiSummaryView({ active }: AiSummaryViewProps) {
   const { t, i18n } = useTranslation();
   const [summary, set_summary] = useState<string | null>(null);
+  const [priorities, set_priorities] = useState<Priority[]>([]);
   const [is_loading, set_is_loading] = useState(false);
   const [has_error, set_has_error] = useState(false);
   const in_flight = useRef(false);
@@ -24,10 +36,9 @@ export function AiSummaryView({ endpoint, active }: AiSummaryViewProps) {
     set_is_loading(true);
     set_has_error(false);
     try {
-      const result = await api.get<{ summary: string }>(
-        `${endpoint}?lang=${i18n.language}`
-      );
-      set_summary(result.summary);
+      const result = await api.post<BriefData>('/ai/brief', { lang: i18n.language });
+      set_summary(result.brief);
+      set_priorities(result.priorities ?? []);
     } catch {
       set_has_error(true);
     } finally {
@@ -117,6 +128,32 @@ export function AiSummaryView({ endpoint, active }: AiSummaryViewProps) {
           {summary ?? ''}
         </ReactMarkdown>
       </div>
+
+      {priorities.length > 0 && (
+        <div className="space-y-2 mt-4">
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+            Top priority
+          </p>
+          {priorities.map((p, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-3"
+            >
+              <UrgencyDot urgency={p.urgency} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {p.title}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {new Date(p.dueDate).toLocaleDateString(
+                    i18n.language === 'cs' ? 'cs-CZ' : 'en-US'
+                  )}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Button
         variant="outline"

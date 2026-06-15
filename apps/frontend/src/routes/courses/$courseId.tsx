@@ -14,6 +14,7 @@ import TeacherAssignmentsTab from '@/components/courses/teacher-assignments-tab'
 import TeacherMaterialsTab from '@/components/courses/teacher-materials-tab';
 import TeacherStudentsTab from '@/components/courses/teacher-students-tab';
 import TeacherEvaluationsTab from '@/components/courses/teacher-evaluations-tab';
+import { SegmentedTabs } from '@/components/ui/segmented-tabs';
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: CourseDetailPage,
@@ -107,37 +108,31 @@ function CourseDetailPage() {
 
       {/* Tab bar */}
       {isTeacher ? (
-        <div className="flex border-b border-gray-200 dark:border-gray-800 px-4">
-          {(['assignments', 'materials', 'students', 'evaluations'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setTeacherTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-                teacherTab === tab
-                  ? 'border-gray-800 dark:border-gray-200 text-gray-900 dark:text-white'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              {t(`courses.tabs.${tab}`, tab)}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          className="px-4"
+          variant="underline"
+          value={teacherTab}
+          onChange={(key) => setTeacherTab(key as typeof teacherTab)}
+          items={[
+            { key: 'assignments', label: t('courses.tabs.assignments', 'Assignments') },
+            { key: 'materials', label: t('courses.tabs.materials', 'Materials') },
+            { key: 'students', label: t('courses.tabs.students', 'Students') },
+            { key: 'evaluations', label: t('courses.tabs.evaluations', 'Evaluations') },
+          ]}
+        />
       ) : (
-        <div className="flex border-b border-gray-200 dark:border-gray-800 px-4">
-          {(['tasks', 'notes', 'materials', 'evaluations'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-                activeTab === tab
-                  ? 'border-gray-800 dark:border-gray-200 text-gray-900 dark:text-white'
-                  : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-              }`}
-            >
-              {t(`courses.tabs.${tab}`, tab)}
-            </button>
-          ))}
-        </div>
+        <SegmentedTabs
+          className="px-4"
+          variant="underline"
+          value={activeTab}
+          onChange={(key) => setActiveTab(key as typeof activeTab)}
+          items={[
+            { key: 'tasks', label: t('courses.tabs.tasks', 'Tasks') },
+            { key: 'notes', label: t('courses.tabs.notes', 'Notes') },
+            { key: 'materials', label: t('courses.tabs.materials', 'Materials') },
+            { key: 'evaluations', label: t('courses.tabs.evaluations', 'Evaluations') },
+          ]}
+        />
       )}
 
       {/* Tasks */}

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, Users, X, CheckCircle, Circle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Avatar } from '@/components/ui/avatar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import EvalDialog from '@/components/courses/eval-dialog';
+import { PublicProfileModal } from '@/components/profile/public-profile-modal';
 
 export interface CourseStudent {
   id: number;
@@ -36,6 +38,7 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
   });
 
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [viewingUserId, setViewingUserId] = useState<number | null>(null);
 
   const { data: studentTasks = [] } = useQuery({
     queryKey: ['studentDetail', courseId, selectedStudentId],
@@ -166,12 +169,6 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
       ) : (
         <div className="space-y-2">
           {courseStudents.map((student) => {
-            const initials = (student.name ?? student.email)
-              .split(' ')
-              .map((w: string) => w[0])
-              .slice(0, 2)
-              .join('')
-              .toUpperCase();
             const pct =
               Number(student.total) > 0 ? Number(student.done) / Number(student.total) : 0;
             const badgeClass =
@@ -183,28 +180,25 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
             return (
               <div
                 key={student.id}
-                onClick={() => setSelectedStudentId(student.id)}
+                onClick={() => setViewingUserId(student.id)}
                 className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-md cursor-pointer active:scale-95 transition"
               >
-                {student.avatar ? (
-                  <img
-                    src={student.avatar}
-                    className="w-9 h-9 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-indigo-600">{initials}</span>
-                  </div>
-                )}
+                <Avatar src={student.avatar} name={student.name ?? student.email} size="md" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                     {student.name ?? student.email}
                   </p>
                   <p className="text-xs text-gray-400 truncate">{student.email}</p>
                 </div>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStudentId(student.id);
+                  }}
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}
+                >
                   {Number(student.done)}/{Number(student.total)} {t('courses.done', 'done')}
-                </span>
+                </button>
               </div>
             );
           })}
@@ -294,6 +288,8 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
           </div>
         </div>
       )}
+
+      <PublicProfileModal userId={viewingUserId} onClose={() => setViewingUserId(null)} />
     </div>
   );
 }

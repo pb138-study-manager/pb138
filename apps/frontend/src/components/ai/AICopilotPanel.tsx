@@ -1,10 +1,6 @@
-import { useState } from 'react';
-import { X, Sparkles, Newspaper } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 import { useAIPanel } from '@/context/AIPanelContext';
-import { BriefTab } from './BriefTab';
 import { AgentTab } from './AgentTab';
-
-type Tab = 'brief' | 'agent';
 
 interface AICopilotPanelProps {
   inline?: boolean;
@@ -12,7 +8,6 @@ interface AICopilotPanelProps {
 
 export function AICopilotPanel({ inline = false }: AICopilotPanelProps) {
   const { isOpen, close } = useAIPanel();
-  const [tab, setTab] = useState<Tab>('brief');
 
   // Mobile overlay mode: only render when open
   if (!inline && !isOpen) return null;
@@ -35,40 +30,9 @@ export function AICopilotPanel({ inline = false }: AICopilotPanelProps) {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b dark:border-gray-700">
-        <button
-          onClick={() => setTab('brief')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
-            tab === 'brief'
-              ? 'text-indigo-600 border-b-2 border-indigo-500'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <Newspaper size={14} />
-          Brief
-        </button>
-        <button
-          onClick={() => setTab('agent')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
-            tab === 'agent'
-              ? 'text-indigo-600 border-b-2 border-indigo-500'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <Sparkles size={14} />
-          Agent
-        </button>
-      </div>
-
       {/* Content */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        <div className={tab === 'brief' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
-          <BriefTab />
-        </div>
-        <div className={tab === 'agent' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
-          <AgentTab />
-        </div>
+        <AgentTab />
       </div>
     </div>
   );

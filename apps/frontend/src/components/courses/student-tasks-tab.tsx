@@ -6,14 +6,15 @@ import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/tasks/tasks-card';
+import { EntityFormDialog } from '@/components/shared/EntityFormDialog';
 
 export default function StudentTasksTab({ courseId }: { courseId: string }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const [showNewTask, setShowNewTask] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDate, setNewTaskDate] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [taskDate, setTaskDate] = useState('');
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['tasks'],
@@ -98,20 +99,20 @@ export default function StudentTasksTab({ courseId }: { courseId: string }) {
   const createTaskMutation = useMutation({
     mutationFn: () =>
       api.post<Task>('/tasks', {
-        title: newTaskTitle.trim(),
-        dueDate: newTaskDate,
+        title: taskTitle.trim(),
+        dueDate: taskDate,
         courseId: Number(courseId),
       }),
     onSuccess: () => {
-      setNewTaskTitle('');
-      setNewTaskDate('');
-      setShowNewTask(false);
+      setTaskTitle('');
+      setTaskDate('');
+      setShowAdd(false);
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 
-  async function createTask() {
-    if (!newTaskTitle.trim() || !newTaskDate) return;
+  function handleCreate() {
+    if (!taskTitle.trim() || !taskDate) return;
     createTaskMutation.mutate();
   }
 
@@ -129,11 +130,12 @@ export default function StudentTasksTab({ courseId }: { courseId: string }) {
           variant="ghost"
           size="icon"
           className="w-7 h-7 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={() => setShowNewTask(true)}
+          onClick={() => setShowAdd(true)}
         >
           <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </Button>
       </div>
+
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-400 py-4 text-center">
           {t('courses.noTasks', 'No tasks for this course')}
@@ -179,46 +181,28 @@ export default function StudentTasksTab({ courseId }: { courseId: string }) {
         </div>
       )}
 
-      {showNewTask && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
-          <div className="w-full max-w-sm bg-white dark:bg-gray-900 border dark:border-gray-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              {t('tasks.newTask', 'New task')}
-            </h2>
-            <input
-              className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-              placeholder={t('tasks.titlePlaceholder', 'Task title')}
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              autoFocus
-            />
-            <input
-              type="datetime-local"
-              className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-              value={newTaskDate}
-              onChange={(e) => setNewTaskDate(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                className="flex-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => setShowNewTask(false)}
-              >
-                {t('common.cancel', 'Cancel')}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={createTask}
-                disabled={createTaskMutation.isPending || !newTaskTitle.trim() || !newTaskDate}
-              >
-                {createTaskMutation.isPending
-                  ? t('common.saving', 'Saving…')
-                  : t('tasks.add', 'Add task')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EntityFormDialog
+        open={showAdd}
+        onOpenChange={(open) => {
+          setShowAdd(open);
+          if (!open) {
+            setTaskTitle('');
+            setTaskDate('');
+          }
+        }}
+        title={taskTitle}
+        onTitleChange={setTaskTitle}
+        titlePlaceholder={t('tasks.titlePlaceholder', 'Task title')}
+        submitDisabled={createTaskMutation.isPending || !taskDate}
+        onSubmit={handleCreate}
+      >
+        <input
+          type="datetime-local"
+          value={taskDate}
+          onChange={(e) => setTaskDate(e.target.value)}
+          className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500"
+        />
+      </EntityFormDialog>
     </div>
   );
 }

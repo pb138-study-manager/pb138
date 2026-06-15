@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import TaskSection from '@/components/tasks/tasks-section';
-import TaskFilterBar from '@/components/tasks/task-filter-bar';
+import { FilterControl, FilterGroup } from '@/components/shared/FilterControl';
 import { useTranslation } from 'react-i18next';
 import { useTodayManager } from '@/hooks/useTodayManager';
 import { EventCard } from '@/components/timeline/EventCard';
 import { ViewTabs } from '@/components/ai/ViewTabs';
 import { AiSummaryView } from '@/components/ai/AiSummaryView';
+import { api } from '@/lib/api';
 
 export const Route = createFileRoute('/today/')({
   component: TodayPage,
@@ -37,7 +38,44 @@ function TodayPage() {
     visibleEvents,
   } = useTodayManager();
 
-  const [view_mode, set_view_mode] = useState<'standard' | 'ai'>('standard');
+  const [view_mode, set_view_mode] = useState<'standard' | 'ai'>('ai');
+  const [displayName, setDisplayName] = useState<string>('');
+
+  useEffect(() => {
+    api
+      .get<{ login: string; profile: { name: string | null } }>('/users/me')
+      .then((result) => {
+        setDisplayName(result.profile.name ?? result.login);
+      })
+      .catch(() => {});
+  }, []);
+
+  const allUniqueTags = Array.from(new Set(allTasks.flatMap((task) => task.tags ?? []))).sort();
+
+  const filterGroups: FilterGroup[] = [
+    {
+      type: 'priority',
+      label: 'Priority',
+      options: [
+        { key: 'LOW', label: 'Low', color: '#22c55e' },
+        { key: 'MEDIUM', label: 'Medium', color: '#f59e0b' },
+        { key: 'HIGH', label: 'High', color: '#ef4444' },
+      ],
+      active: activePriorities as Set<string>,
+      onToggle: (key) => togglePriority(key as 'LOW' | 'MEDIUM' | 'HIGH'),
+    },
+    ...(allUniqueTags.length > 0
+      ? [
+          {
+            type: 'tags' as FilterGroup['type'],
+            label: 'Tags',
+            options: allUniqueTags.map((tag) => ({ key: tag, label: tag })),
+            active: activeTags,
+            onToggle: toggleTag,
+          },
+        ]
+      : []),
+  ];
 
   if (isPending) {
     return (
@@ -68,7 +106,7 @@ function TodayPage() {
 
       {/* AI summary (kept mounted to cache result across tab switches) */}
       <div className={view_mode === 'ai' ? '' : 'hidden'}>
-        <AiSummaryView endpoint="/ai/day_summary" active={view_mode === 'ai'} />
+        <AiSummaryView active={view_mode === 'ai'} />
       </div>
 
       {view_mode === 'standard' && (
@@ -76,7 +114,9 @@ function TodayPage() {
       {/* Header */}
       <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-800">
         {/* Greeting + progress */}
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">{greeting} 👋</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">
+          {greeting}{displayName ? `, ${displayName}` : ''} 👋
+        </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
           {t('today.progress', { done: counts.doneToday, total: todayTotal })}
         </p>
@@ -135,14 +175,9 @@ function TodayPage() {
 
       {/* Task sections */}
       <div className="px-4 py-6">
-        <TaskFilterBar
-          allTasks={allTasks}
-          activePriorities={activePriorities}
-          activeTags={activeTags}
-          onTogglePriority={togglePriority}
-          onToggleTag={toggleTag}
-          onClear={clearFilters}
-        />
+        <div className="mb-4">
+          <FilterControl groups={filterGroups} onClear={clearFilters} />
+        </div>
         <TaskSection
           title={t('tasks.today')}
           count={filteredToday.length}
