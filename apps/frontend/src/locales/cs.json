@@ -218,12 +218,12 @@
     "noGradeableAssignments": "Žádná hodnotitelná zadání. Nastav Graded nebo Pass/Fail v nastavení zadání.",
     "setEvalTypeHint": "Nastav typ hodnocení (Graded / Pass/Fail)",
     "tabs": {
-      "tasks": "úkoly",
-      "notes": "poznámky",
-      "materials": "materiály",
-      "evaluations": "hodnocení",
-      "assignments": "zadání",
-      "students": "studenti"
+      "tasks": "Úkoly",
+      "notes": "Poznámky",
+      "materials": "Materiály",
+      "evaluations": "Hodnocení",
+      "assignments": "Zadání",
+      "students": "Studenti"
     }
   }
 }

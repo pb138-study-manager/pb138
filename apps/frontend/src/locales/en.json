@@ -218,12 +218,12 @@
     "noGradeableAssignments": "No gradeable assignments. Set Graded or Pass/Fail in the assignment settings.",
     "setEvalTypeHint": "Set evaluation type (Graded / Pass/Fail)",
     "tabs": {
-      "tasks": "tasks",
-      "notes": "notes",
-      "materials": "materials",
-      "evaluations": "evaluations",
-      "assignments": "assignments",
-      "students": "students"
+      "tasks": "Tasks",
+      "notes": "Notes",
+      "materials": "Materials",
+      "evaluations": "Evaluations",
+      "assignments": "Assignments",
+      "students": "Students"
     }
   }
 }
