@@ -8,6 +8,7 @@ import {
   GraduationCap,
   ArrowLeftRight,
   CalendarDays,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useRoleMode } from '@/lib/roleMode';
+import { useAIPanel } from '@/context/AIPanelContext';
 import { AVAILABLE_ITEMS } from '@/hooks/useCustomNavManager';
 
 const ICON_MAP: Record<string, JSX.Element> = {
@@ -39,6 +41,7 @@ const DEFAULT_STUDENT_IDS = ['today', 'tasks', 'courses', 'notes', 'others'];
 export default function BottomNav({ active }: { active: string }) {
   const { t } = useTranslation();
   const { mode, toggle } = useRoleMode();
+  const { toggle: toggleAIPanel } = useAIPanel();
   const navigate = useNavigate();
 
   const { data: me } = useQuery({
@@ -94,6 +97,14 @@ export default function BottomNav({ active }: { active: string }) {
           </span>
         </Link>
       ))}
+
+      <button
+        onClick={toggleAIPanel}
+        className="flex flex-col items-center justify-center py-3 px-4 text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+      >
+        <Sparkles className="w-5 h-5 mb-1" />
+        <span className="text-xs font-medium">{t('nav.aiCopilot')}</span>
+      </button>
 
       {isTeacher && (
         <button
