@@ -9,10 +9,12 @@ import { zodBody } from '../lib/validation';
 
 const CreateFolderSchema = z.object({
   name: z.string().min(1),
+  tags: z.array(z.string()).optional(),
 });
 
 const UpdateFolderSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 export const foldersRoutes = new Elysia({ prefix: '/folders' })
@@ -37,6 +39,7 @@ export const foldersRoutes = new Elysia({ prefix: '/folders' })
         .values({
           userId: (user as AuthUser).id,
           name: body.name,
+          tags: body.tags ?? [],
         })
         .returning();
       await logAction(db, (user as AuthUser).id, `Created folder ${folder.id}: ${folder.name}`);
@@ -63,7 +66,10 @@ export const foldersRoutes = new Elysia({ prefix: '/folders' })
       }
       const [updated] = await db
         .update(folders)
-        .set({ name: body.name })
+        .set({
+          ...(body.name !== undefined && { name: body.name }),
+          ...(body.tags !== undefined && { tags: body.tags }),
+        })
         .where(eq(folders.id, existing.id))
         .returning();
       await logAction(db, (user as AuthUser).id, `Updated folder ${existing.id}`);
