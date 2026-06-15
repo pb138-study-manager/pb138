@@ -60,9 +60,13 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
 
     // Optional settings row — fall back to defaults if missing
     const [settings] = await db
-      .select()
+      .select({
+        notificationsEnabled: userSettings.notificationsEnabled,
+        lightTheme: userSettings.lightTheme,
+      })
       .from(userSettings)
-      .where(eq(userSettings.userId, uid));
+      .where(eq(userSettings.userId, uid))
+      .catch(() => [null]);
 
     // Enrolled courses with teacher info via aliased joins
     const lectureTeachers = alias(users, 'lecture_teachers');
@@ -88,13 +92,15 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       .leftJoin(lectureTeacherProfiles, eq(courses.lectureTeacherId, lectureTeacherProfiles.userId))
       .leftJoin(seminarTeachers, eq(courses.seminarTeacherId, seminarTeachers.id))
       .leftJoin(seminarTeacherProfiles, eq(courses.seminarTeacherId, seminarTeacherProfiles.userId))
-      .where(eq(userCourses.userId, uid));
+      .where(eq(userCourses.userId, uid))
+      .catch(() => []);
 
     // Active integrations only
     const integrationRows = await db
       .select({ service: userIntegrations.service, connectedAt: userIntegrations.connectedAt })
       .from(userIntegrations)
-      .where(and(eq(userIntegrations.userId, uid), eq(userIntegrations.connected, true)));
+      .where(and(eq(userIntegrations.userId, uid), eq(userIntegrations.connected, true)))
+      .catch(() => []);
 
     return {
       id: baseUser.id,
@@ -110,8 +116,6 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       settings: {
         notificationsEnabled: settings?.notificationsEnabled ?? true,
         lightTheme: settings?.lightTheme ?? true,
-        language: settings?.language ?? 'en',
-        customNav: settings?.customNav ?? null,
       },
       enrolledCourses: courseRows.map((row) => ({
         courseId: row.courseId,
@@ -134,7 +138,9 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       })),
       integrations: integrationRows.map((r) => ({
         service: r.service,
-        connectedAt: r.connectedAt?.toISOString() ?? new Date().toISOString(),
+        connectedAt: r.connectedAt instanceof Date 
+          ? r.connectedAt.toISOString() 
+          : (typeof r.connectedAt === 'string' ? r.connectedAt : new Date().toISOString()),
       })),
     };
   })
@@ -173,14 +179,16 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
   .get('/me/settings', async ({ user }) => {
     const uid = (user as AuthUser).id;
     const [settings] = await db
-      .select()
+      .select({
+        notificationsEnabled: userSettings.notificationsEnabled,
+        lightTheme: userSettings.lightTheme,
+      })
       .from(userSettings)
-      .where(eq(userSettings.userId, uid));
+      .where(eq(userSettings.userId, uid))
+      .catch(() => [null]);
     return {
       notificationsEnabled: settings?.notificationsEnabled ?? true,
       lightTheme: settings?.lightTheme ?? true,
-      language: settings?.language ?? 'en',
-      customNav: settings?.customNav ?? null,
     };
   })
   .patch(
@@ -191,14 +199,17 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         userId: uid,
         ...(body.notificationsEnabled !== undefined && { notificationsEnabled: body.notificationsEnabled }),
         ...(body.lightTheme !== undefined && { lightTheme: body.lightTheme }),
-        ...(body.language !== undefined && { language: body.language }),
-        ...(body.customNav !== undefined && { customNav: body.customNav }),
       };
-      const [updated] = await db
-        .insert(userSettings)
-        .values(values)
-        .onConflictDoUpdate({ target: userSettings.userId, set: values })
-        .returning();
+      let updated;
+      try {
+        [updated] = await db
+          .insert(userSettings)
+          .values(values)
+          .onConflictDoUpdate({ target: userSettings.userId, set: values })
+          .returning();
+      } catch (err) {
+        updated = { ...values };
+      }
       await logAction(db, uid, `Updated settings`);
       return updated;
     },

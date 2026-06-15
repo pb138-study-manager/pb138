@@ -8,7 +8,7 @@ import { groupsRoutes } from './groups';
 import { eq, or } from 'drizzle-orm';
 import { SignJWT } from 'jose';
 
-const RND = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+const RND = crypto.randomUUID();
 const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'groups-test-jwt-secret';
 const USER_AUTH_ID = `groups-test-user-uuid-${RND}`;
 const TEACHER_AUTH_ID = `groups-test-teacher-uuid-${RND}`;
