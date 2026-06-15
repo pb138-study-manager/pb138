@@ -10,6 +10,7 @@ import { eq, and, isNull, ilike, or } from 'drizzle-orm';
 import { logAction } from '../services/audit';
 import { alias } from 'drizzle-orm/pg-core';
 import { zodBody } from '../lib/validation';
+import { uploadFile, getPublicUrl, AVATARS_BUCKET } from '../services/storage';
 
 const UpdateProfileSchema = z.object({
   name: z.string().nullish(),
@@ -112,6 +113,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         title: profile?.title ?? null,
         organization: profile?.organization ?? null,
         bio: profile?.bio ?? null,
+        avatar: profile?.avatar ?? null,
       },
       settings: {
         notificationsEnabled: settings?.notificationsEnabled ?? true,
@@ -176,6 +178,48 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
     },
     zodBody(UpdateProfileSchema)
   )
+  .post('/me/avatar', async ({ request, user, set }) => {
+    const uid = (user as AuthUser).id;
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!file || !(file instanceof File)) {
+      set.status = 400;
+      return { error: 'VALIDATION_ERROR', message: 'file is required' };
+    }
+
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      set.status = 400;
+      return { error: 'VALIDATION_ERROR', message: 'Only JPEG and PNG images are allowed' };
+    }
+
+    const MAX_SIZE = 1 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      set.status = 400;
+      return { error: 'VALIDATION_ERROR', message: 'File must be smaller than 1 MB' };
+    }
+
+    const ext = file.type === 'image/png' ? 'png' : 'jpg';
+    const storagePath = `${uid}/${crypto.randomUUID()}.${ext}`;
+
+    try {
+      await uploadFile(AVATARS_BUCKET, storagePath, file);
+    } catch (e) {
+      set.status = 502;
+      return { error: 'UPLOAD_FAILED', message: (e as Error).message };
+    }
+
+    const avatarUrl = getPublicUrl(AVATARS_BUCKET, storagePath);
+
+    await db
+      .insert(userProfiles)
+      .values({ userId: uid, avatar: avatarUrl })
+      .onConflictDoUpdate({ target: userProfiles.userId, set: { avatar: avatarUrl } });
+
+    await logAction(db, uid, `Updated avatar`);
+    return { avatarUrl };
+  })
   .get('/me/settings', async ({ user }) => {
     const uid = (user as AuthUser).id;
     const [settings] = await db

@@ -2,6 +2,11 @@ const SUPABASE_URL = (process.env.SUPABASE_URL ?? '').replace(/\/$/, '');
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
 
 export const COURSE_MATERIALS_BUCKET = 'course-materials';
+export const AVATARS_BUCKET = 'avatars';
+
+export function getPublicUrl(bucket: string, path: string): string {
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodePath(path)}`;
+}
 
 // Encode each path segment individually, preserving '/' as folder separators
 function encodePath(storagePath: string): string {
