@@ -18,6 +18,7 @@ import TeacherMaterialsTab from '@/components/courses/teacher-materials-tab';
 import TeacherStudentsTab from '@/components/courses/teacher-students-tab';
 import TeacherEvaluationsTab from '@/components/courses/teacher-evaluations-tab';
 import { SegmentedTabs } from '@/components/ui/segmented-tabs';
+import type { UserProfileResponse } from '@/hooks/useProfileManager';
 
 export const Route = createFileRoute('/courses/$courseId')({
   component: CourseDetailPage,
@@ -54,7 +55,15 @@ function CourseDetailPage() {
   });
 
   const { mode } = useRoleMode();
-  const isTeacher = mode === 'teacher';
+  const isTeacherMode = mode === 'teacher';
+
+  const { data: me } = useQuery({
+    queryKey: ['userMe'],
+    queryFn: () => api.get<UserProfileResponse>('/users/me').catch(() => null),
+  });
+
+  const isCourseOwner = isTeacherMode && !!course && !!me && course.lectureTeacherId === me.id;
+  const isTeacher = isCourseOwner;
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['tasks'],

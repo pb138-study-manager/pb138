@@ -33,7 +33,8 @@ function NewCoursePage() {
         semester: semester.trim(),
       });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
-      navigate({ to: '/courses' });
+      queryClient.invalidateQueries({ queryKey: ['teachingCourses'] });
+      navigate({ to: '/teachers' });
     } catch {
       setError(
         t('courses.createError', 'Failed to create course. Make sure you have the TEACHER role.')
@@ -50,7 +51,7 @@ function NewCoursePage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate({ to: '/courses' })}
+          onClick={() => navigate({ to: '/teachers' })}
           className="p-0 h-auto w-auto"
         >
           <ChevronLeft className="w-6 h-6 text-gray-900 dark:text-white" />
