@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { PublicProfileModal } from '@/components/profile/public-profile-modal';
-import { ChevronLeft, CheckSquare, FileText, BookOpen, Star, ClipboardList, Users } from 'lucide-react';
+import { ChevronLeft, CheckSquare, FileText, BookOpen, Star, ClipboardList, Users, Plus } from 'lucide-react';
+import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
 import { useRoleMode } from '@/lib/roleMode';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { Task } from '@/types';
 import { useTranslation } from 'react-i18next';
 import StudentTasksTab from '@/components/courses/student-tasks-tab';
 import StudentNotesTab from '@/components/courses/student-notes-tab';
@@ -42,6 +44,9 @@ function CourseDetailPage() {
     'tasks'
   );
   const [viewingTeacherId, setViewingTeacherId] = useState<number | null>(null);
+  const [tasksAddOpen, setTasksAddOpen] = useState(false);
+  const [notesAddOpen, setNotesAddOpen] = useState(false);
+  const [taskFilterTags, setTaskFilterTags] = useState<Set<string>>(new Set());
 
   const { data: course, isPending: courseLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -50,6 +55,26 @@ function CourseDetailPage() {
 
   const { mode } = useRoleMode();
   const isTeacher = mode === 'teacher';
+
+  const { data: allTasks = [] } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
+    enabled: !isTeacher,
+  });
+  const courseTasks = allTasks.filter((t) => t.courseId === Number(courseId));
+  const allTaskTags = Array.from(new Set(courseTasks.flatMap((t) => t.tags ?? []))).sort();
+
+  const taskFilterGroups: FilterGroup[] = allTaskTags.length > 0 ? [{
+    type: 'tags' as const,
+    label: 'Tags',
+    options: allTaskTags.map((tag) => ({ key: tag, label: tag })),
+    active: taskFilterTags,
+    onToggle: (key) => setTaskFilterTags((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    }),
+  }] : [];
 
   const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students' | 'evaluations'>(
     'assignments'
@@ -119,32 +144,72 @@ function CourseDetailPage() {
           value={teacherTab}
           onChange={(key) => setTeacherTab(key as typeof teacherTab)}
           items={[
-            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments').toUpperCase() },
-            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials').toUpperCase() },
-            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students').toUpperCase() },
-            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations').toUpperCase() },
+            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments') },
+            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
+            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students') },
+            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
           ]}
         />
       ) : (
-        <SegmentedTabs
-          className="px-4"
-          variant="underline"
-          value={activeTab}
-          onChange={(key) => setActiveTab(key as typeof activeTab)}
-          items={[
-            { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks').toUpperCase() },
-            { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes').toUpperCase() },
-            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials').toUpperCase() },
-            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations').toUpperCase() },
-          ]}
-        />
+        <div className="px-4 flex items-end gap-2 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex-1 min-w-0">
+            <SegmentedTabs
+              variant="underline"
+              noBorder
+              value={activeTab}
+              onChange={(key) => { setActiveTab(key as typeof activeTab); }}
+              items={[
+                { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks') },
+                { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes') },
+                { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
+                { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
+              ]}
+            />
+          </div>
+          <div className="flex items-center gap-2 pb-2.5">
+            {activeTab === 'tasks' && (
+              <>
+                {taskFilterGroups.length > 0 && (
+                  <FilterControl groups={taskFilterGroups} onClear={() => setTaskFilterTags(new Set())} />
+                )}
+                <button
+                  onClick={() => setTasksAddOpen(true)}
+                  className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+                >
+                  <Plus size={14} />
+                </button>
+              </>
+            )}
+            {activeTab === 'notes' && (
+              <button
+                onClick={() => setNotesAddOpen(true)}
+                className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+              >
+                <Plus size={14} />
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Tasks */}
-      {!isTeacher && activeTab === 'tasks' && <StudentTasksTab courseId={courseId as string} />}
+      {!isTeacher && activeTab === 'tasks' && (
+        <StudentTasksTab
+          courseId={courseId as string}
+          addOpen={tasksAddOpen}
+          onAddOpenChange={setTasksAddOpen}
+          filterTags={taskFilterTags}
+        />
+      )}
 
       {/* Notes */}
-      {!isTeacher && activeTab === 'notes' && <StudentNotesTab courseId={courseId as string} />}
+      {!isTeacher && activeTab === 'notes' && (
+        <StudentNotesTab
+          courseId={courseId as string}
+          addOpen={notesAddOpen}
+          onAddOpenChange={setNotesAddOpen}
+        />
+      )}
 
       {/* Materials (student view) */}
       {!isTeacher && activeTab === 'materials' && (

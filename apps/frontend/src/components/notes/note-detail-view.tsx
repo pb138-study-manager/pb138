@@ -262,16 +262,21 @@ export default function NoteDetailView({
       </div>
 
       {/* Tags row */}
-      <div className="flex flex-wrap items-center gap-1 mb-3">
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
         {tags.map((tag) => (
-          <button
+          <span
             key={tag}
-            onClick={() => handleRemoveTag(tag)}
-            className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 dark:hover:text-red-400 transition-colors border border-gray-200 dark:border-gray-700"
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-medium"
           >
             #{tag}
-            <XIcon size={9} />
-          </button>
+            <button
+              type="button"
+              onClick={() => handleRemoveTag(tag)}
+              className="hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            >
+              <XIcon size={10} />
+            </button>
+          </span>
         ))}
         <input
           value={tagInput}
@@ -280,10 +285,11 @@ export default function NoteDetailView({
             if (e.key === 'Enter' || e.key === ',') {
               e.preventDefault();
               handleAddTag(tagInput);
+              setTagInput('');
             }
           }}
           placeholder="+ tag"
-          className="text-xs px-2 py-0.5 rounded-full bg-transparent text-gray-400 dark:text-gray-500 placeholder-gray-300 dark:placeholder-gray-600 focus:outline-none focus:text-gray-700 dark:focus:text-gray-300 w-12 focus:w-24 transition-all"
+          className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 bg-transparent text-gray-500 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 w-14 focus:w-28 transition-all"
         />
       </div>
 

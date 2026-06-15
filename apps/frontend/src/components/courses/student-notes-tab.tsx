@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Plus, BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
@@ -14,11 +12,21 @@ export interface CourseNote {
   folderId: number | null;
 }
 
-export default function StudentNotesTab({ courseId }: { courseId: string }) {
+export default function StudentNotesTab({
+  courseId,
+  addOpen,
+  onAddOpenChange,
+}: {
+  courseId: string;
+  addOpen?: boolean;
+  onAddOpenChange?: (v: boolean) => void;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [showNewNote, setShowNewNote] = useState(false);
+  const [showNewNoteInternal, setShowNewNoteInternal] = useState(false);
+  const showNewNote = addOpen !== undefined ? addOpen : showNewNoteInternal;
+  const setShowNewNote = onAddOpenChange ?? setShowNewNoteInternal;
 
   const { data: allNotes = [] } = useQuery({
     queryKey: ['notes'],
@@ -39,23 +47,6 @@ export default function StudentNotesTab({ courseId }: { courseId: string }) {
 
   return (
     <div className="px-4 mt-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-yellow-500" />
-          <span className="font-semibold text-gray-900 dark:text-white">
-            {t('notes.title', 'Notes')}
-          </span>
-          <span className="text-gray-400 text-sm">{notes.length}</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-7 h-7 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={() => setShowNewNote(true)}
-        >
-          <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        </Button>
-      </div>
 
       {notes.length === 0 && (
         <p className="text-sm text-gray-400 py-4 text-center">

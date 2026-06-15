@@ -39,11 +39,10 @@ export default function FoldersView({
   }
 
   return (
-    <div className="space-y-1">
-
+    <div className="space-y-2">
       {folders.map((folder) => (
+        <div key={folder.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-800 hover:shadow-md transition-shadow">
         <ListRow
-          key={folder.id}
           icon={<Folder size={18} className="text-blue-500 dark:text-blue-400" />}
           title={folder.name}
           subtitle={
@@ -97,6 +96,7 @@ export default function FoldersView({
             </Popover>
           }
         />
+        </div>
       ))}
 
       <DeleteFolderDialog
