@@ -49,7 +49,7 @@ export default function NoteDetailView({
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const { words, minutes } = getReadingStats(content);
+  const { words } = getReadingStats(content);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -194,8 +194,7 @@ export default function NoteDetailView({
       {/* Stats + course badge + AI buttons */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <span className="text-xs text-gray-400 dark:text-gray-500">
-          {t('notes.wordCount', { words, minutes })}
-          {isSaving && <span className="ml-2 text-indigo-400">{t('notes.saving')}</span>}
+          {isSaving && <span className="text-indigo-400">{t('notes.saving')}</span>}
         </span>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Course badge */}

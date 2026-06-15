@@ -12,8 +12,6 @@ import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Event, Task } from '@/types';
 import { getWeekStart, isSameDay, shiftDate } from '@/hooks/timeline-utils';
-import { ViewTabs } from '@/components/ai/ViewTabs';
-import { AiSummaryView } from '@/components/ai/AiSummaryView';
 
 export const Route = createFileRoute('/timeline/')({
   component: TimelinePage,
@@ -71,7 +69,6 @@ function TimelinePage() {
   const lang = i18n.language === 'cs' ? 'cs-CZ' : 'en-US';
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [page_view, set_page_view] = useState<'standard' | 'ai'>('standard');
   const [calendarUrl, setCalendarUrl] = useState<string | null>(null);
   const [calendarModalOpen, setCalendarModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -166,23 +163,6 @@ function TimelinePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-24">
-      {/* View tabs */}
-      <div className="px-4 pt-6">
-        <ViewTabs
-          tabs={[
-            { value: 'standard', label: t('nav.timeline', 'Timeline') },
-            { value: 'ai', label: t('ai.aiSummary') },
-          ]}
-          value={page_view}
-          onChange={(v) => set_page_view(v as 'standard' | 'ai')}
-        />
-      </div>
-
-      {/* AI summary (kept mounted to cache result across tab switches) */}
-      <div className={page_view === 'ai' ? '' : 'hidden'}>
-        <AiSummaryView active={page_view === 'ai'} />
-      </div>
-
       {/* Calendar subscription modal */}
       {calendarModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -225,8 +205,6 @@ function TimelinePage() {
         </div>
       )}
 
-      {page_view === 'standard' && (
-        <>
       {/* HEADER */}
       <div className="px-6 pt-8 pb-4 flex justify-between items-center">
         <div>
@@ -335,7 +313,7 @@ function TimelinePage() {
                   <div
                     className={`
                     w-10 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border transition-colors
-                    ${isActive ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-200' : isToday ? 'bg-gray-100 dark:bg-gray-700 border-red-400 text-gray-900 dark:text-white' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
+                    ${isActive ? 'bg-red-500 border-red-500 text-white' : isToday ? 'bg-gray-100 dark:bg-gray-700 border-red-400 text-gray-900 dark:text-white' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white'}
                   `}
                   >
                     <span className="font-bold">{date.getDate()}</span>
@@ -412,8 +390,6 @@ function TimelinePage() {
           )
         )}
       </div>
-        </>
-      )}
     </div>
   );
 }

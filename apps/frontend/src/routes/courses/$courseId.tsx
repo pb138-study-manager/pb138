@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
+import { PublicProfileModal } from '@/components/profile/public-profile-modal';
 import { ChevronLeft } from 'lucide-react';
 import { useRoleMode } from '@/lib/roleMode';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ function CourseDetailPage() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'notes' | 'materials' | 'evaluations'>(
     'tasks'
   );
+  const [viewingTeacherId, setViewingTeacherId] = useState<number | null>(null);
 
   const { data: course, isPending: courseLoading } = useQuery({
     queryKey: ['course', courseId],
@@ -90,19 +92,22 @@ function CourseDetailPage() {
 
         {/* Teacher info — only shown in student mode */}
         {!isTeacher && (
-          <div className="flex items-center gap-3 mb-4">
+          <button
+            className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity text-left"
+            onClick={() => course.lectureTeacherId && setViewingTeacherId(course.lectureTeacherId)}
+          >
             {course.teacherAvatar ? (
               <img
                 src={course.teacherAvatar}
                 className="w-9 h-9 rounded-full object-cover shrink-0"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 shrink-0" />
             )}
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {course.teacherName ?? t('courses.unknownTeacher', 'Unknown teacher')}
             </span>
-          </div>
+          </button>
         )}
       </div>
 
@@ -170,6 +175,11 @@ function CourseDetailPage() {
       {isTeacher && teacherTab === 'evaluations' && (
         <TeacherEvaluationsTab courseId={courseId as string} />
       )}
+
+      <PublicProfileModal
+        userId={viewingTeacherId}
+        onClose={() => setViewingTeacherId(null)}
+      />
     </div>
   );
 }

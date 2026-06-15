@@ -1,4 +1,4 @@
-import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check } from 'lucide-react';
+import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -83,10 +83,16 @@ export default function EditTaskDialog({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open && subtasksExpanded) saveSubtasks();
+          onOpenChange(open);
+        }}
+      >
         <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="hidden">Edit Task</DialogTitle>
+            <DialogTitle className="hidden">{t('tasks.namePlaceholder')}</DialogTitle>
           </DialogHeader>
           <div className="px-6 py-6 space-y-0">
             <Input
@@ -142,15 +148,22 @@ export default function EditTaskDialog({
 
               {!isSubtask && (
                 <Button
+                  type="button"
                   variant={totalSubtasks > 0 ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => setSubtasksExpanded((v) => !v)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (subtasksExpanded) saveSubtasks();
+                    setSubtasksExpanded((v) => !v);
+                  }}
                   className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
                 >
                   <ListChecks className="w-3.5 h-3.5" />
                   {totalSubtasks > 0
                     ? `${totalSubtasks} ${t('tasks.subtasksPill')}`
                     : t('tasks.subtasksPill')}
+                  {subtasksExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                 </Button>
               )}
 
@@ -206,7 +219,7 @@ export default function EditTaskDialog({
             )}
 
             {tagInputOpen && (
-              <div className="pt-3">
+              <div className="pt-3" onMouseDown={(e) => e.stopPropagation()}>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {tags.map((tag) => (
                     <span
@@ -214,14 +227,14 @@ export default function EditTaskDialog({
                       className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium"
                     >
                       {tag}
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => setTags((prev) => prev.filter((t) => t !== tag))}
                         className="text-gray-400 hover:text-red-500"
                       >
                         <X className="w-3 h-3" />
-                      </Button>
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -234,102 +247,63 @@ export default function EditTaskDialog({
                   onBlur={() => {
                     if (tagInput.trim()) addTag(tagInput);
                     setTagInput('');
-                    setTagInputOpen(false);
                   }}
                   className="text-sm h-8"
                 />
               </div>
             )}
+
+            {/* Inline subtasks — avoids nested Dialog closing the parent */}
+            {!isSubtask && subtasksExpanded && (
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-800 mt-3" onMouseDown={(e) => e.stopPropagation()}>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    placeholder="Add a subtask..."
+                    value={newSubInput}
+                    onChange={(e) => setNewSubInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addNewSub();
+                      }
+                    }}
+                    className="text-sm"
+                  />
+                  <Button type="button" onClick={addNewSub} size="icon" variant="outline" className="flex-shrink-0">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="space-y-1 max-h-40 overflow-y-auto">
+                  {existingSubs.map((sub) => (
+                    <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
+                      <span className="truncate mr-2 text-gray-700 dark:text-gray-300">{sub.title}</span>
+                      <button
+                        type="button"
+                        onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))}
+                        className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {newSubTitles.map((subTitle, i) => (
+                    <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm">
+                      <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">{subTitle}</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-
-      {!isSubtask && (
-        <Dialog
-          open={subtasksExpanded}
-          onOpenChange={(open) => {
-            if (!open) saveSubtasks();
-            setSubtasksExpanded(open);
-          }}
-        >
-          <DialogContent className="max-w-sm">
-            <DialogHeader>
-              <DialogTitle>{t('tasks.subtasksPill')}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a subtask..."
-                  value={newSubInput}
-                  onChange={(e) => setNewSubInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addNewSub();
-                    }
-                  }}
-                  className="text-sm"
-                  autoFocus
-                />
-                <Button onClick={addNewSub} size="icon" variant="outline" className="flex-shrink-0">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="space-y-1 max-h-[40vh] overflow-y-auto">
-                {existingSubs.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
-                  >
-                    <span className="truncate mr-2 text-gray-700 dark:text-gray-300">
-                      {sub.title}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))}
-                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {newSubTitles.map((subTitle, i) => (
-                  <div
-                    key={`new-${i}`}
-                    className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm"
-                  >
-                    <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">
-                      {subTitle}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                {existingSubs.length === 0 && newSubTitles.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-4">No subtasks yet.</p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end pt-2">
-              <Button
-                onClick={() => {
-                  saveSubtasks();
-                  setSubtasksExpanded(false);
-                }}
-              >
-                {t('notes.save')}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       <DatePickerDialog
         isOpen={isDateOpen}

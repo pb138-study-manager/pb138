@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle, CalendarDays, CalendarRange, Clock, CheckCircle2 } from 'lucide-react';
 import TaskSection from '@/components/tasks/tasks-section';
 import { useTranslation } from 'react-i18next';
 import { useTasksManager } from '@/hooks/useTasksManager';
@@ -65,12 +65,12 @@ export function TasksPage() {
 
   const tabItems: TabItem[] = [
     ...(overdue.length > 0
-      ? [{ key: 'overdue', label: t('tasks.overdue'), count: filteredOverdue.length }]
+      ? [{ key: 'overdue', icon: <AlertCircle size={14} className="text-red-500" />, label: t('tasks.overdue'), count: filteredOverdue.length }]
       : []),
-    { key: 'today', label: t('tasks.today'), count: filteredToday.length },
-    { key: 'thisWeek', label: t('tasks.thisWeek'), count: filteredThisWeek.length },
-    { key: 'later', label: t('tasks.later'), count: filteredLater.length },
-    { key: 'done', label: t('tasks.done'), count: filteredDone.length },
+    { key: 'today', icon: <CalendarDays size={14} />, label: t('tasks.today'), count: filteredToday.length },
+    { key: 'thisWeek', icon: <CalendarRange size={14} />, label: t('tasks.thisWeek'), count: filteredThisWeek.length },
+    { key: 'later', icon: <Clock size={14} />, label: t('tasks.later'), count: filteredLater.length },
+    { key: 'done', icon: <CheckCircle2 size={14} />, label: t('tasks.done'), count: filteredDone.length },
   ];
 
   const filterGroups: FilterGroup[] = [
