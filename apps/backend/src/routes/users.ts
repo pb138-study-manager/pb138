@@ -12,10 +12,10 @@ import { alias } from 'drizzle-orm/pg-core';
 import { zodBody } from '../lib/validation';
 
 const UpdateProfileSchema = z.object({
-  name: z.string().optional(),
-  title: z.string().optional(),
-  organization: z.string().optional(),
-  bio: z.string().optional(),
+  name: z.string().nullish(),
+  title: z.string().nullish(),
+  organization: z.string().nullish(),
+  bio: z.string().nullish(),
   login: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_.-]+$/).optional(),
 });
 

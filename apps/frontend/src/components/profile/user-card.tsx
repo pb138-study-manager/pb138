@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { api } from '@/lib/api';
 
 interface UserCardProps {
   login: string;
@@ -8,7 +7,7 @@ interface UserCardProps {
   title?: string | null;
   bio?: string | null;
   email: string;
-  onProfileUpdated?: (updated: { name: string | null; title: string | null; bio: string | null }) => void;
+  onProfileUpdated?: (updated: { name: string | null; title: string | null; bio: string | null }) => Promise<void>;
 }
 
 export default function UserCard({ login, name, title, bio, email, onProfileUpdated }: UserCardProps) {
@@ -17,14 +16,14 @@ export default function UserCard({ login, name, title, bio, email, onProfileUpda
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
+    if (!onProfileUpdated) return;
     setIsSaving(true);
     try {
-      await api.patch('/users/me/profile', {
+      await onProfileUpdated({
         name: form.name || null,
         title: form.title || null,
         bio: form.bio || null,
       });
-      onProfileUpdated?.({ name: form.name || null, title: form.title || null, bio: form.bio || null });
       setIsEditing(false);
     } catch (err) {
       console.error('Failed to update profile:', err);

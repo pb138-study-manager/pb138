@@ -84,6 +84,14 @@ export function useProfileManager() {
     }
   };
 
+  const updateProfile = async (data: { name: string | null; title: string | null; bio: string | null }) => {
+    await api.patch('/users/me/profile', data);
+    queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
+      if (!prev) return prev;
+      return { ...prev, profile: { ...prev.profile, ...data } };
+    });
+  };
+
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout', {});
@@ -104,6 +112,7 @@ export function useProfileManager() {
     changeLanguage,
     updateSettings,
     updateCustomNav,
+    updateProfile,
     handleLogout,
   };
 }

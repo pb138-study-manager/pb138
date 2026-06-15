@@ -20,6 +20,7 @@ function ProfilePage() {
     notificationsEnabled,
     changeLanguage,
     updateSettings,
+    updateProfile,
     handleLogout,
   } = useProfileManager();
 
@@ -54,6 +55,7 @@ function ProfilePage() {
           title={userData.profile.title}
           bio={userData.profile.bio}
           email={userData.email}
+          onProfileUpdated={updateProfile}
         />
 
         <SettingsCard
