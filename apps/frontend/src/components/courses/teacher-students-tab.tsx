@@ -270,11 +270,11 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
                         className="shrink-0"
                       >
                         {taskItem.evalScore !== null ? (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
                             {taskItem.evalScore} b.
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+                          <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
                             <Star className="w-3 h-3" />
                             {t('courses.evaluate')}
                           </span>

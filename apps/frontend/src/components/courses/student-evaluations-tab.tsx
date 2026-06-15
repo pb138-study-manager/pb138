@@ -51,16 +51,16 @@ export default function StudentEvaluationsTab({ courseId }: { courseId: string }
                 </p>
                 {e.evalType === 'pass_fail' ? (
                   e.score === 1 ? (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 text-green-700 shrink-0">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 shrink-0">
                       ✓ {t('courses.evalPass', 'Pass')}
                     </span>
                   ) : (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700 shrink-0">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 shrink-0">
                       ✗ {t('courses.evalFail', 'Fail')}
                     </span>
                   )
                 ) : e.evalType === 'graded' ? (
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700 shrink-0">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shrink-0">
                     {e.score}/100
                   </span>
                 ) : null}

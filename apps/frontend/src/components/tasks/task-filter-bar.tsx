@@ -8,17 +8,17 @@ const PRIORITY_PILLS: { value: Priority; labelKey: string; activeClass: string }
   {
     value: 'LOW',
     labelKey: 'tasks.priorityLow',
-    activeClass: 'bg-green-100 text-green-700 border-green-300',
+    activeClass: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-800',
   },
   {
     value: 'MEDIUM',
     labelKey: 'tasks.priorityMedium',
-    activeClass: 'bg-amber-100 text-amber-700 border-amber-300',
+    activeClass: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800',
   },
   {
     value: 'HIGH',
     labelKey: 'tasks.priorityHigh',
-    activeClass: 'bg-red-100 text-red-700 border-red-300',
+    activeClass: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-800',
   },
 ];
 
@@ -76,7 +76,7 @@ export default function TaskFilterBar({
               key={tag}
               type="button"
               variant="outline"
-              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : INACTIVE}`}
+              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800' : INACTIVE}`}
               onClick={() => onToggleTag(tag)}
             >
               {tag}

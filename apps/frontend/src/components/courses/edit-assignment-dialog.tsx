@@ -315,12 +315,12 @@ export default function EditAssignmentDialog({
                             >
                               {evalType === 'pass_fail' && s.evalScore !== null ? (
                                 s.evalScore === 1 ? (
-                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 text-green-700">✓ Pass</span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓ Pass</span>
                                 ) : (
-                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 text-red-700">✗ Fail</span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">✗ Fail</span>
                                 )
                               ) : evalType === 'graded' && s.evalScore !== null ? (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 text-indigo-700">{s.evalScore} b.</span>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">{s.evalScore} b.</span>
                               ) : (
                                 <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
                                   <Star className="w-3 h-3" />
