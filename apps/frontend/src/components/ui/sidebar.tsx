@@ -7,7 +7,6 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Menu,
   BookOpen,
   CalendarDays,
   GraduationCap,
@@ -72,12 +71,6 @@ export default function Sidebar({ activeTab }: { activeTab: string }) {
       icon: <Users className="w-5 h-5 shrink-0" />,
       label: t('nav.profile'),
       href: '/profile',
-    },
-    {
-      id: 'others',
-      icon: <Menu className="w-5 h-5 shrink-0" />,
-      label: t('nav.others'),
-      href: '/others',
     },
   ];
 
