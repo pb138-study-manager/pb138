@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { users, userProfiles } from '../db/schema';
+import { users, userProfiles, roles, userRoles } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { zodBody } from '../lib/validation';
@@ -43,6 +43,11 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         userId: newUser.id,
         name: fullName || null,
       });
+
+      const [userRole] = await db.select().from(roles).where(eq(roles.name, 'USER'));
+      if (userRole) {
+        await db.insert(userRoles).values({ userId: newUser.id, roleId: userRole.id });
+      }
 
       return newUser;
     },
