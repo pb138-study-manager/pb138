@@ -90,7 +90,11 @@ function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
   activeTab: string;
   isPublicRoute: boolean;
 }) {
-  const { isOpen } = useAIPanel();
+  const { isOpen, close } = useAIPanel();
+
+  useEffect(() => {
+    if (isAdminRoute) close();
+  }, [isAdminRoute]);
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
