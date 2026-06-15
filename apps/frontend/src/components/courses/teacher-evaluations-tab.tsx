@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import EvalDialog from '@/components/courses/eval-dialog';
+import { Avatar } from '@/components/ui/avatar';
 
 interface EvalRow {
   taskId: number;
@@ -18,15 +19,6 @@ interface EvalRow {
   status: 'TODO' | 'IN PROGRESS' | 'DONE';
   evalScore: number | null;
   evalFeedback: string | null;
-}
-
-function getInitials(name: string | null, email: string) {
-  return (name ?? email)
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 }
 
 function EvalBadge({ row, onEval, evaluateLabel }: {
@@ -67,15 +59,7 @@ function EvalRowItem({ row, onEval, evaluateLabel }: {
 }) {
   return (
     <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm">
-      {row.studentAvatar ? (
-        <img src={row.studentAvatar} className="w-8 h-8 rounded-full object-cover shrink-0" />
-      ) : (
-        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-            {getInitials(row.studentName, row.studentEmail)}
-          </span>
-        </div>
-      )}
+      <Avatar src={row.studentAvatar} name={row.studentName ?? row.studentEmail} size="sm" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
           {row.studentName ?? row.studentEmail}

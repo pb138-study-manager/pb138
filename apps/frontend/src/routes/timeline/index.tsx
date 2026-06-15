@@ -180,7 +180,7 @@ function TimelinePage() {
 
       {/* AI summary (kept mounted to cache result across tab switches) */}
       <div className={page_view === 'ai' ? '' : 'hidden'}>
-        <AiSummaryView endpoint="/ai/timeline_summary" active={page_view === 'ai'} />
+        <AiSummaryView active={page_view === 'ai'} />
       </div>
 
       {/* Calendar subscription modal */}

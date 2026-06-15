@@ -77,7 +77,7 @@ export default function NewTaskDialog({
           </DialogHeader>
           <div className="px-6 py-6 space-y-0">
             <Input
-              placeholder="Task name..."
+              placeholder={t('tasks.namePlaceholder')}
               value={taskName}
               onChange={(e) => setTaskName(e.target.value)}
               autoFocus
@@ -99,7 +99,7 @@ export default function NewTaskDialog({
                 onClick={() => setIsDateOpen(true)}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {selectedDate ? selectedDate.toLocaleDateString() : 'Date'}
+                {selectedDate ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US') : t('tasks.datePill')}
               </Button>
 
               {/* Tags pill */}
@@ -141,8 +141,8 @@ export default function NewTaskDialog({
               >
                 <ListChecks className="w-3.5 h-3.5" />
                 {subtasks.length > 0
-                  ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}`
-                  : 'Subtasks'}
+                  ? `${subtasks.length} ${t('tasks.subtasksPill')}`
+                  : t('tasks.subtasksPill')}
               </Button>
 
               {/* Course dropdown */}
@@ -155,7 +155,7 @@ export default function NewTaskDialog({
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  {selectedCourse ? selectedCourse.code : 'Course'}
+                  {selectedCourse ? selectedCourse.code : t('tasks.coursePill')}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   {courses.length === 0 ? (

@@ -31,7 +31,7 @@ function CourseProgressBar({ courseId, accentClass }: { courseId: number; accent
         <span>{data.done}/{data.total} {t('courses.tasks', 'tasks')}</span>
         <span>{pct}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-white/50 dark:bg-black/20 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
         <div className={`h-full rounded-full transition-all ${accentClass}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -105,17 +105,24 @@ function CoursesPage() {
               <div
                 key={course.id}
                 onClick={() => navigate({ to: `/courses/${course.id}` })}
-                className={`rounded-2xl p-4 cursor-pointer active:scale-95 transition border space-y-3 ${color.bg} ${color.border}`}
+                className="flex gap-3 rounded-2xl p-4 cursor-pointer active:scale-95 transition border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md"
               >
-                <div className={`w-3 h-3 rounded-full ${color.accent}`} />
-                <div>
-                  <h3 className={`font-bold ${color.text}`}>{course.code}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{course.name ?? course.code}</p>
+                {/* Left color accent bar */}
+                <div className={`w-1 self-stretch rounded-full shrink-0 ${color.accent}`} />
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div>
+                    <h3 className={`font-bold text-sm ${color.text}`}>{course.code}</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate leading-snug">
+                      {course.name ?? course.code}
+                    </p>
+                  </div>
+                  <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                    {course.semester}
+                  </span>
+                  <CourseProgressBar courseId={course.id} accentClass={color.accent} />
                 </div>
-                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20 text-gray-600 dark:text-gray-300">
-                  {course.semester}
-                </span>
-                <CourseProgressBar courseId={course.id} accentClass={color.accent} />
               </div>
             )
           })

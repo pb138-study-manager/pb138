@@ -8,7 +8,6 @@ import { useAuth } from '@/lib/auth';
 import { RoleModeProvider } from '@/lib/roleMode';
 import { AIPanelProvider, useAIPanel } from '@/context/AIPanelContext';
 import { AICopilotPanel } from '@/components/ai/AICopilotPanel';
-import { Sparkles } from 'lucide-react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,7 +90,7 @@ function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
   activeTab: string;
   isPublicRoute: boolean;
 }) {
-  const { isOpen, toggle } = useAIPanel();
+  const { isOpen } = useAIPanel();
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col md:flex-row overflow-hidden">
@@ -116,19 +115,6 @@ function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
       </div>
 
       {!hideNav && <BottomNav active={activeTab} />}
-
-      {/* AI toggle button — hidden when panel is open on desktop */}
-      {!isPublicRoute && (
-        <button
-          onClick={toggle}
-          title="AI Copilot"
-          className={`fixed top-4 right-4 z-50 w-9 h-9 rounded-full items-center justify-center shadow-lg transition-colors ${
-            isOpen ? 'hidden' : 'flex'
-          } bg-white dark:bg-gray-800 text-indigo-500 border border-gray-200 dark:border-gray-700`}
-        >
-          <Sparkles size={16} />
-        </button>
-      )}
 
       {/* Mobile: overlay panel */}
       {!isPublicRoute && (

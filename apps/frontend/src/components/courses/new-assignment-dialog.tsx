@@ -114,7 +114,7 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
               className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
 
-            <div className="border-t" />
+            <div className="border-t border-gray-100 dark:border-gray-800" />
 
             <div className="flex flex-wrap gap-2 pt-4">
               {/* Date pill */}
@@ -124,8 +124,8 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                   onClick={pill.onClick}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     pill.active
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <pill.icon className="w-3.5 h-3.5" />
@@ -138,8 +138,8 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     evalType !== 'none'
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <ClipboardCheck className="w-3.5 h-3.5" />
@@ -164,8 +164,8 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                     sendTo === 'student'
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -197,19 +197,19 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
             {/* Student search — shown when sendTo === 'student' */}
             {sendTo === 'student' && (
               <>
-                <div className="border-t my-3" />
+                <div className="border-t border-gray-100 dark:border-gray-800 my-3" />
                 <div className="relative">
                   {selectedStudent ? (
-                    <div className="flex items-center gap-2 px-2 py-1.5 bg-indigo-50 rounded-xl text-sm">
-                      <span className="flex-1 text-indigo-700 font-medium truncate">
+                    <div className="flex items-center gap-2 px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm">
+                      <span className="flex-1 text-indigo-700 dark:text-indigo-300 font-medium truncate">
                         {selectedStudent.name ?? selectedStudent.email}
                         {selectedStudent.name && (
-                          <span className="text-indigo-400 ml-1 text-xs">{selectedStudent.email}</span>
+                          <span className="text-indigo-400 dark:text-indigo-500 ml-1 text-xs">{selectedStudent.email}</span>
                         )}
                       </span>
                       <button
                         onClick={() => { setSelectedStudent(null); setStudentQuery(''); }}
-                        className="text-indigo-400 hover:text-indigo-600 flex-shrink-0"
+                        className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 flex-shrink-0"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -224,15 +224,15 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                         autoFocus
                       />
                       {studentResults.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 overflow-hidden">
+                        <div className="absolute top-full left-0 right-0 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg mt-1 overflow-hidden">
                           {studentResults.map((u) => (
                             <button
                               key={u.id}
                               onClick={() => { setSelectedStudent(u); setStudentQuery(''); }}
-                              className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+                              className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
                             >
-                              <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
-                              {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
+                              <span className="font-medium text-gray-900 dark:text-white">{u.name ?? u.email}</span>
+                              {u.name && <span className="text-gray-400 dark:text-gray-500 ml-2 text-xs">{u.email}</span>}
                             </button>
                           ))}
                         </div>
