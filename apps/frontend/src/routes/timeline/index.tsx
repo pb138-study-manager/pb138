@@ -297,6 +297,9 @@ function TimelinePage() {
               );
               const hasEvent = dayEvents.some((e) => e.type === 'EVENT');
               const hasDeadline = dayEvents.some((e) => e.type === 'DEADLINE');
+              const hasTask = tasks.some(
+                (tk) => tk.dueDate && new Date(tk.dueDate).toDateString() === date.toDateString()
+              );
               return (
                 <button
                   key={i}
@@ -313,10 +316,11 @@ function TimelinePage() {
                   `}
                   >
                     <span className="font-bold">{date.getDate()}</span>
-                    {(hasEvent || hasDeadline) && !isActive && (
+                    {(hasEvent || hasDeadline || hasTask) && !isActive && (
                       <div className="flex gap-0.5">
                         {hasEvent && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
                         {hasDeadline && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                        {hasTask && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
                       </div>
                     )}
                   </div>
