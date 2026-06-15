@@ -55,19 +55,28 @@ export default function UserCard({
     <>
       <Card className="border-0 rounded-3xl shadow-md dark:bg-gray-800 transition-colors">
         <CardContent className="p-6">
-          <button
-            className="flex items-start gap-4 w-full text-left group"
-            onClick={() => setEditOpen(true)}
-          >
-            <div className="relative shrink-0">
+          <div className="flex items-start gap-4 w-full">
+            <button
+              className="relative shrink-0 group"
+              onClick={() => onAvatarUploaded && setAvatarDialogOpen(true)}
+              disabled={!onAvatarUploaded}
+            >
               <img
                 src={avatarSrc}
                 alt={name || login}
                 className="w-16 h-16 rounded-full object-cover"
               />
-              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <div className="flex-1 min-w-0">
+              {onAvatarUploaded && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={16} className="text-white" />
+                </div>
+              )}
+            </button>
+
+            <button
+              className="flex-1 min-w-0 text-left"
+              onClick={() => setEditOpen(true)}
+            >
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{name || login}</h2>
               {title && (
                 <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{title}</p>
@@ -76,18 +85,8 @@ export default function UserCard({
               {bio && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed line-clamp-2">{bio}</p>
               )}
-            </div>
-          </button>
-
-          {onAvatarUploaded && (
-            <button
-              onClick={() => setAvatarDialogOpen(true)}
-              className="mt-3 flex items-center gap-1.5 text-xs text-gray-400 hover:text-indigo-500 transition-colors"
-            >
-              <Camera size={12} />
-              {t('profile.changeAvatar', 'Change avatar')}
             </button>
-          )}
+          </div>
         </CardContent>
       </Card>
 
