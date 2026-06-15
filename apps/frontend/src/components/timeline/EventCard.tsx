@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Event } from '@/types'
+import { Event, EventType } from '@/types'
 import EditEventDialog from '@/components/timeline/EditEventDialog'
 
 interface EventCardProps {
   event: Event
   onDelete?: () => void
-  onEdit: (data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string }) => Promise<void>
+  onEdit: (data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type: EventType }) => Promise<void>
   compact?: boolean
 }
 
@@ -37,8 +37,8 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
         )}
         <div className={`w-1.5 rounded-full shrink-0 ${isDeadline ? 'bg-red-500' : 'bg-green-500'}`} />
         <Card
-          className={`flex-1 min-w-0 border-gray-100 dark:border-gray-700 shadow-sm rounded-xl ${!isDeadline ? 'cursor-pointer' : ''}`}
-          onClick={!isDeadline ? () => setEditOpen(true) : undefined}
+          className="flex-1 min-w-0 border-gray-100 dark:border-gray-700 shadow-sm rounded-xl cursor-pointer"
+          onClick={() => setEditOpen(true)}
         >
           <CardContent className={`flex items-center gap-2 ${compact ? 'p-3' : 'p-4'}`}>
             <div className="flex-1 min-w-0">
@@ -48,7 +48,7 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
                 {isDeadline && <span className="ml-1 text-red-400 font-medium">· deadline</span>}
               </p>
             </div>
-            {onDelete && !compact && !isDeadline && (
+            {onDelete && !compact && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
@@ -61,14 +61,12 @@ export function EventCard({ event, onDelete, onEdit, compact = false }: EventCar
         </Card>
       </div>
 
-      {!isDeadline && (
-        <EditEventDialog
-          event={event}
-          isOpen={editOpen}
-          onOpenChange={setEditOpen}
-          onSave={onEdit}
-        />
-      )}
+      <EditEventDialog
+        event={event}
+        isOpen={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={onEdit}
+      />
     </>
   )
 }
