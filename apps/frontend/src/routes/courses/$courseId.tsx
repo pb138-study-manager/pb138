@@ -113,7 +113,7 @@ function CourseDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate({ to: '/courses' })}
+            onClick={() => navigate({ to: isTeacherMode ? '/teachers' : '/courses' })}
             className="size-8 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <ChevronLeft className="size-6" />
@@ -181,15 +181,17 @@ function CourseDetailPage() {
                 {taskFilterGroups.length > 0 && (
                   <FilterControl groups={taskFilterGroups} onClear={() => setTaskFilterTags(new Set())} />
                 )}
-                <button
-                  onClick={() => setTasksAddOpen(true)}
-                  className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
-                >
-                  <Plus size={14} />
-                </button>
+                {course.enrolled && (
+                  <button
+                    onClick={() => setTasksAddOpen(true)}
+                    className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
+                  >
+                    <Plus size={14} />
+                  </button>
+                )}
               </>
             )}
-            {activeTab === 'notes' && (
+            {activeTab === 'notes' && course.enrolled && (
               <button
                 onClick={() => setNotesAddOpen(true)}
                 className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
