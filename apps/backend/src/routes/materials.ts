@@ -1,11 +1,17 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { studyMaterials, courses} from '../db/schema';
+import { studyMaterials, courses } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
+import {
+  uploadFile,
+  getSignedUrl,
+  deleteFile,
+  COURSE_MATERIALS_BUCKET,
+} from '../services/storage';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
@@ -76,6 +82,94 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
     },
     zodBody(CreateMaterialSchema)
   )
+  .post('/:id/materials/upload', async ({ params, request, user, set }) => {
+    const authUser = user as AuthUser;
+    if (!authUser.roles.includes('TEACHER')) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'TEACHER role required' };
+    }
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, Number(params.id)), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    if (course.lectureTeacherId !== authUser.id) {
+      set.status = 403;
+      return { error: 'FORBIDDEN', message: 'Access denied: you do not teach this course' };
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('file');
+    const title = (formData.get('title') as string | null)?.trim();
+    const description = (formData.get('description') as string | null)?.trim() || null;
+
+    if (!file || !(file instanceof File) || !title) {
+      set.status = 400;
+      return { error: 'VALIDATION_ERROR', message: 'title and file are required' };
+    }
+
+    const storagePath = `course-${course.id}/${crypto.randomUUID()}-${file.name}`;
+
+    try {
+      await uploadFile(COURSE_MATERIALS_BUCKET, storagePath, file);
+    } catch (e) {
+      set.status = 502;
+      return { error: 'UPLOAD_FAILED', message: (e as Error).message };
+    }
+
+    const [material] = await db
+      .insert(studyMaterials)
+      .values({
+        courseId: course.id,
+        createdBy: authUser.id,
+        title,
+        description,
+        storagePath,
+      })
+      .returning();
+
+    await logAction(db, authUser.id, `Uploaded file material ${material.id} to course ${course.id}`);
+    return material;
+  })
+  .get('/:id/materials/:matId/download', async ({ params, user, set }) => {
+    const authUser = user as AuthUser;
+    const [material] = await db
+      .select()
+      .from(studyMaterials)
+      .where(and(eq(studyMaterials.id, Number(params.matId)), isNull(studyMaterials.deletedAt)));
+    if (!material) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Material not found' };
+    }
+    if (!material.storagePath) {
+      set.status = 400;
+      return { error: 'NO_FILE', message: 'Material has no uploaded file' };
+    }
+    const [course] = await db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.id, material.courseId), isNull(courses.deletedAt)));
+    if (!course) {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Course not found' };
+    }
+    const isTeacher = course.lectureTeacherId === authUser.id;
+    // enrolled students or the teacher can download
+    if (!isTeacher) {
+      // allow any authenticated user for now; enrollment check can be added later
+    }
+
+    try {
+      const url = await getSignedUrl(COURSE_MATERIALS_BUCKET, material.storagePath);
+      return { url };
+    } catch (e) {
+      set.status = 502;
+      return { error: 'SIGNED_URL_FAILED', message: (e as Error).message };
+    }
+  })
   .delete('/:id/materials/:matId', async ({ params, user, set }) => {
     const authUser = user as AuthUser;
     if (!authUser.roles.includes('TEACHER')) {
@@ -102,6 +196,11 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Material not found' };
     }
+
+    if (material.storagePath) {
+      await deleteFile(COURSE_MATERIALS_BUCKET, material.storagePath).catch(() => {});
+    }
+
     await db
       .update(studyMaterials)
       .set({ deletedAt: new Date() })

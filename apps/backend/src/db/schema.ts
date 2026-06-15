@@ -324,6 +324,7 @@ export const studyMaterials = pgTable('study_materials', {
     .references(() => users.id),
   title: text('title').notNull(),
   url: text('url'),
+  storagePath: text('storage_path'),
   description: text('description'),
   deletedAt: timestamp('deleted_at'),
 });
