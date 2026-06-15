@@ -97,7 +97,7 @@ export function AdminLogsView() {
           <>
             <table className="w-full min-w-[640px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
+                <tr className="border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
                   <th className="pb-2 pr-4 font-medium">Time</th>
                   <th className="pb-2 pr-4 font-medium">Actor</th>
                   <th className="pb-2 font-medium">Description</th>
@@ -114,8 +114,8 @@ export function AdminLogsView() {
                   adminLogs.map((row) => {
                     const isAdminAction = row.description.startsWith('Admin ');
                     return (
-                      <tr key={row.id} className="border-b border-gray-100 last:border-0">
-                        <td className="py-2 pr-4 align-top text-gray-600 whitespace-nowrap">
+                      <tr key={row.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                        <td className="py-2 pr-4 align-top text-gray-600 dark:text-gray-400 whitespace-nowrap">
                           {new Date(row.happenedAt).toLocaleString()}
                         </td>
                         <td className="py-2 pr-4 align-top font-medium text-gray-900 dark:text-white">

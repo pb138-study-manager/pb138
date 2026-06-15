@@ -23,9 +23,9 @@ export function AdminSidebar() {
   const { t } = useTranslation();
 
   return (
-    <aside className="w-56 shrink-0 border-r border-gray-200 bg-white flex flex-col">
-      <div className="flex h-14 items-center border-b border-gray-200 px-4">
-        <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+    <aside className="w-56 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
+      <div className="flex h-14 items-center border-b border-gray-200 dark:border-gray-800 px-4">
+        <span className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
           <Server className="size-4 text-indigo-600" />
           Admin
         </span>
@@ -42,8 +42,8 @@ export function AdminSidebar() {
               className={cn(
                 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                 active
-                  ? 'bg-indigo-50 text-indigo-800'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
               )}
             >
               {item.icon}
@@ -52,10 +52,10 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-gray-200 p-2">
+      <div className="border-t border-gray-200 dark:border-gray-800 p-2">
         <Link
           to="/profile"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="size-4" />
           {t('profile.backToApp')}

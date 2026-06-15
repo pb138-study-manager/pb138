@@ -171,7 +171,7 @@ export function AdminUsersManager() {
           ) : (
             <table className="w-full min-w-[720px] border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500">
+                <tr className="border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
                   <th className="pb-2 pr-4 font-medium">ID</th>
                   <th className="pb-2 pr-4 font-medium">Login</th>
                   <th className="pb-2 pr-4 font-medium">Email</th>
@@ -186,9 +186,9 @@ export function AdminUsersManager() {
                   return (
                     <tr
                       key={u.id}
-                      className={`border-b border-gray-100 last:border-0 ${isDeactivated ? 'opacity-50' : ''}`}
+                      className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isDeactivated ? 'opacity-50' : ''}`}
                     >
-                      <td className="py-2 pr-4 text-gray-600">{u.id}</td>
+                      <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{u.id}</td>
                       <td className="py-2 pr-4 font-medium text-gray-900 dark:text-white">{u.login}</td>
                       <td className="py-2 pr-4 text-gray-700 dark:text-gray-300">{u.email}</td>
                       <td className="py-2 pr-4">
@@ -200,9 +200,9 @@ export function AdminUsersManager() {
                       </td>
                       <td className="py-2 pr-4">
                         {isDeactivated ? (
-                          <Badge variant="outline" className="text-gray-400 border-gray-300">Deactivated</Badge>
+                          <Badge variant="outline" className="text-gray-400 border-gray-300 dark:border-gray-600">Deactivated</Badge>
                         ) : (
-                          <Badge variant="outline" className="text-green-600 border-green-300">Active</Badge>
+                          <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-300 dark:border-green-800">Active</Badge>
                         )}
                       </td>
                       <td className="py-2">
@@ -211,7 +211,7 @@ export function AdminUsersManager() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+                              className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700"
                               onClick={() => openReactivateDialog(u)}
                             >
                               Reactivate
