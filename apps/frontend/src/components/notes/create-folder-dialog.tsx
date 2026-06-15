@@ -47,8 +47,7 @@ export default function CreateFolderDialog({
             className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
           />
         </div>
-        <div className="border-t border-gray-100 dark:border-gray-800" />
-        <div className="flex justify-end px-6 py-4">
+        <div className="flex justify-end px-6 pb-5">
           <button
             type="button"
             onClick={handleSubmit}

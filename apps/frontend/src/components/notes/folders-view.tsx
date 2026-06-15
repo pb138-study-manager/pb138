@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Folder, Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Folder, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { FolderModel } from '@/types/index';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,6 @@ import { ListRow } from '@/components/ui/list-row';
 interface FoldersViewProps {
   folders: FolderModel[];
   onOpenFolder: (id: number) => void;
-  onAddFolder: () => void;
   onRenameFolder: (id: number, newName: string) => Promise<void>;
   onDeleteFolder: (id: number) => Promise<void>;
 }
@@ -19,7 +18,6 @@ interface FoldersViewProps {
 export default function FoldersView({
   folders,
   onOpenFolder,
-  onAddFolder,
   onRenameFolder,
   onDeleteFolder,
 }: FoldersViewProps) {
@@ -42,19 +40,6 @@ export default function FoldersView({
 
   return (
     <div className="space-y-1">
-      {/* Header row with "New folder" button */}
-      <div className="flex items-center justify-between px-1 mb-2">
-        <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-          {t('notes.title')}
-        </span>
-        <button
-          onClick={onAddFolder}
-          className="flex items-center gap-1 px-3 py-1 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        >
-          <Plus size={14} />
-          {t('notes.addFolder')}
-        </button>
-      </div>
 
       {folders.map((folder) => (
         <ListRow
