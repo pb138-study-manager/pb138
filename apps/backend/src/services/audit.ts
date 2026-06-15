@@ -1,4 +1,4 @@
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+  import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { auditLogs } from '../db/schema';
 
 export async function logAction(

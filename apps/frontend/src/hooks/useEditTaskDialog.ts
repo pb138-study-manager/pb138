@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => any;
+
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
 
 export interface Course {
@@ -61,6 +64,8 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
+  const onSaveRef = useRef<AnyFn>(onSave);
+  useEffect(() => { onSaveRef.current = onSave; });
 
   const { data: courses = [] } = useQuery({
     queryKey: ['courses', 'enrolled'],
@@ -91,19 +96,20 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
   useEffect(() => {
     if (!isOpen) {
       initializedRef.current = false;
+      setTagInputOpen(false);
+      setSubtasksExpanded(false);
       return;
     }
 
+    // Snapshot task at open time — do NOT re-run when task updates mid-session
     setTitle(task.title);
     setDescription(task.description ?? '');
     setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
     setPriority((task.priority as Priority) ?? null);
     setTags(task.tags ?? []);
-    setTagInputOpen(false);
     setTagInput('');
     setNewSubTitles([]);
     setNewSubInput('');
-    setSubtasksExpanded(false);
 
     if (!task.courseId) {
       setSelectedCourse(null);
@@ -116,7 +122,8 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     return () => {
       clearTimeout(timeout);
     };
-  }, [isOpen, task]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // intentionally omit `task` — we only init on open, not on every task update
 
   useEffect(() => {
     if (tagInputOpen) {
@@ -132,7 +139,7 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     }
 
     debounceRef.current = setTimeout(() => {
-      onSave({
+      onSaveRef.current({
         title: title.trim(),
         dueDate: selectedDate?.toISOString(),
         description: description.trim() || undefined,
@@ -150,7 +157,8 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
         clearTimeout(debounceRef.current);
       }
     };
-  }, [title, description, selectedDate, status, priority, tags, selectedCourse, onSave]);
+    // onSaveRef is stable — intentionally excluded from deps
+  }, [title, description, selectedDate, status, priority, tags, selectedCourse]);
 
   const cyclePriority = useCallback(() => {
     const index = PRIORITY_CYCLE.indexOf(priority);

@@ -48,6 +48,22 @@ const AgentSchema = z.object({
   lang: z.string().optional(),
 });
 
+function formatActionLabel(toolName: string, args: Record<string, unknown>): string {
+  const name = (args.title ?? args.name ?? args.text ?? '') as string;
+  const actionMap: Record<string, string> = {
+    create_task: `Vytvoriť úlohu${name ? ` "${name}"` : ''}`,
+    update_task: `Aktualizovať úlohu${name ? ` "${name}"` : ''}`,
+    delete_task: `Zmazať úlohu`,
+    create_event: `Vytvoriť udalosť${name ? ` "${name}"` : ''}`,
+    update_event: `Aktualizovať udalosť${name ? ` "${name}"` : ''}`,
+    delete_event: `Zmazať udalosť`,
+    create_note: `Vytvoriť poznámku${name ? ` "${name}"` : ''}`,
+    update_note: `Aktualizovať poznámku${name ? ` "${name}"` : ''}`,
+    delete_note: `Zmazať poznámku`,
+  };
+  return actionMap[toolName] ?? `Vykonať: ${toolName.replace(/_/g, ' ')}${name ? ` "${name}"` : ''}`;
+}
+
 export const aiRoutes = new Elysia({ prefix: '/ai' })
   .use(authMiddleware)
   .onBeforeHandle(({ user, set }) => {
@@ -344,7 +360,7 @@ Respond in ${langLabel}. Never expose raw JSON.`;
           pendingAction: {
             name: toolName,
             args: toolArgs,
-            label: `Vykonať: ${toolName.replace(/_/g, ' ')} ${JSON.stringify(toolArgs)}`,
+            label: formatActionLabel(toolName, toolArgs),
           },
         };
       }
