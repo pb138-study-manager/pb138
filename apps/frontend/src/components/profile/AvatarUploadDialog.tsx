@@ -8,8 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-const MAX_SIZE = 1 * 1024 * 1024;
+const MAX_SIZE = 256 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
 interface AvatarUploadDialogProps {
@@ -19,6 +20,7 @@ interface AvatarUploadDialogProps {
 }
 
 export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: AvatarUploadDialogProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -32,11 +34,11 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
     setError(null);
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setError('Only JPEG and PNG images are allowed.');
+      setError(t('profile.avatarErrorType'));
       return;
     }
     if (file.size > MAX_SIZE) {
-      setError('File is too large. Maximum size is 1 MB.');
+      setError(t('profile.avatarErrorSize'));
       return;
     }
 
@@ -52,7 +54,7 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
       await onUpload(selectedFile);
       handleClose();
     } catch (err: unknown) {
-      const msg = (err as { message?: string })?.message ?? 'Upload failed. Please try again.';
+      const msg = (err as { message?: string })?.message ?? t('profile.avatarErrorType');
       setError(msg);
     } finally {
       setIsUploading(false);
@@ -70,15 +72,12 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Change avatar</DialogTitle>
+          <DialogTitle>{t('profile.avatarDialogTitle')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Upload a profile picture. Accepted formats:{' '}
-            <span className="font-medium text-gray-700 dark:text-gray-300">JPEG, PNG</span>.
-            Maximum file size:{' '}
-            <span className="font-medium text-gray-700 dark:text-gray-300">1 MB</span>.
+            {t('profile.avatarInfo')}
           </p>
 
           <div
@@ -97,7 +96,7 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
                   <ImageIcon className="w-7 h-7 text-gray-400" />
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Click to select an image
+                  {t('profile.avatarClickToSelect')}
                 </p>
               </>
             )}
@@ -127,7 +126,7 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
             disabled={!selectedFile || isUploading}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
-            {isUploading ? 'Uploading…' : 'Upload'}
+            {isUploading ? t('profile.avatarUploading') : t('profile.avatarUpload')}
           </Button>
         </DialogFooter>
       </DialogContent>

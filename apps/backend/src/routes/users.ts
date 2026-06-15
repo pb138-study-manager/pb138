@@ -194,10 +194,10 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       return { error: 'VALIDATION_ERROR', message: 'Only JPEG and PNG images are allowed' };
     }
 
-    const MAX_SIZE = 1 * 1024 * 1024;
+    const MAX_SIZE = 256 * 1024;
     if (file.size > MAX_SIZE) {
       set.status = 400;
-      return { error: 'VALIDATION_ERROR', message: 'File must be smaller than 1 MB' };
+      return { error: 'VALIDATION_ERROR', message: 'File must be smaller than 256 KB' };
     }
 
     const ext = file.type === 'image/png' ? 'png' : 'jpg';

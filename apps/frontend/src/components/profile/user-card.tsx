@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AvatarUploadDialog from './AvatarUploadDialog';
 
 interface UserCardProps {
@@ -24,6 +25,7 @@ export default function UserCard({
   onProfileUpdated,
   onAvatarUploaded,
 }: UserCardProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({ name: name ?? '', title: title ?? '', bio: bio ?? '' });
   const [isSaving, setIsSaving] = useState(false);
@@ -89,45 +91,45 @@ export default function UserCard({
                 onClick={() => setIsEditing(true)}
                 className="shrink-0 text-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700 rounded-lg px-3 py-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
               >
-                Edit
+                {t('profile.edit')}
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  Name
+                  {t('profile.nameLabel')}
                 </label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Your name"
+                  placeholder={t('profile.namePlaceholder')}
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  Title
+                  {t('profile.titleLabel')}
                 </label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="e.g. Computer Science student"
+                  placeholder={t('profile.titlePlaceholder')}
                 />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                  Bio
+                  {t('profile.bioLabel')}
                 </label>
                 <textarea
                   value={form.bio}
                   onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
                   rows={3}
                   className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                  placeholder="A short bio about yourself"
+                  placeholder={t('profile.bioPlaceholder')}
                 />
               </div>
               <div className="flex gap-2 justify-end">
@@ -136,14 +138,14 @@ export default function UserCard({
                   disabled={isSaving}
                   className="text-sm text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  {t('profile.cancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
                   className="text-sm text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2 transition-colors disabled:opacity-50"
                 >
-                  {isSaving ? 'Saving…' : 'Save'}
+                  {isSaving ? t('profile.saving') : t('profile.save')}
                 </button>
               </div>
             </div>
