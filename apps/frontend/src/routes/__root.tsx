@@ -84,7 +84,12 @@ function RootLayout() {
   );
 }
 
-function AppShell({ hideNav, isAdminRoute, activeTab, isPublicRoute }: {
+function AppShell({
+  hideNav,
+  isAdminRoute,
+  activeTab,
+  isPublicRoute,
+}: {
   hideNav: boolean;
   isAdminRoute: boolean;
   activeTab: string;

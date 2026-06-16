@@ -11,10 +11,11 @@
 ### Root cause
 
 `allEvents` is assembled as:
+
 ```ts
 const allEvents = [
-    ...events.filter((e) => e.type !== 'DEADLINE'),
-    ...deadlineEvents, // synthetic events built from task.assignmentDeadline
+  ...events.filter((e) => e.type !== 'DEADLINE'),
+  ...deadlineEvents, // synthetic events built from task.assignmentDeadline
 ];
 ```
 
@@ -25,6 +26,7 @@ The backend already creates real DEADLINE events in the `events` table for each 
 ### Fix
 
 Remove the DEADLINE filter and the synthetic `deadlineEvents` construction entirely:
+
 ```ts
 const allEvents = events; // all event types, including DEADLINE
 ```
@@ -40,14 +42,31 @@ const allEvents = events; // all event types, including DEADLINE
 ### Fix
 
 Shift `selectedDate` by ±7 days in tandem with `weekStart` inside both navigation functions:
+
 ```ts
 function prevWeek() {
-    setWeekStart((prev) => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; });
-    setSelectedDate((prev) => { const d = new Date(prev); d.setDate(d.getDate() - 7); return d; });
+  setWeekStart((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() - 7);
+    return d;
+  });
+  setSelectedDate((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() - 7);
+    return d;
+  });
 }
 function nextWeek() {
-    setWeekStart((prev) => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; });
-    setSelectedDate((prev) => { const d = new Date(prev); d.setDate(d.getDate() + 7); return d; });
+  setWeekStart((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() + 7);
+    return d;
+  });
+  setSelectedDate((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() + 7);
+    return d;
+  });
 }
 ```
 
@@ -57,8 +76,8 @@ This preserves which day-of-week the user was viewing and immediately loads that
 
 ## Files changed
 
-| File | Change |
-|------|--------|
+| File                                            | Change                                                               |
+| ----------------------------------------------- | -------------------------------------------------------------------- |
 | `apps/frontend/src/hooks/useTimelineManager.ts` | Remove `deadlineEvents` + DEADLINE filter; fix `prevWeek`/`nextWeek` |
 
 No backend changes. No other frontend files.

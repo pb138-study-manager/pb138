@@ -99,7 +99,9 @@ export default function NewTaskDialog({
                 onClick={() => setIsDateOpen(true)}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {selectedDate ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US') : t('tasks.datePill')}
+                {selectedDate
+                  ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US')
+                  : t('tasks.datePill')}
               </Button>
 
               {/* Tags pill */}

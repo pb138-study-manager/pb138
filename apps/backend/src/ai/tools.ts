@@ -21,7 +21,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           },
           dueDateOn: {
             type: 'string',
-            description: 'Filter tasks due on this specific date (YYYY-MM-DD). Use for "tasks for today" queries.',
+            description:
+              'Filter tasks due on this specific date (YYYY-MM-DD). Use for "tasks for today" queries.',
           },
         },
       },
@@ -180,7 +181,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           limit: {
             type: 'number',
-            description: 'Maximum number of events to return, sorted by nearest first. Omit to return all.',
+            description:
+              'Maximum number of events to return, sorted by nearest first. Omit to return all.',
           },
         },
       },

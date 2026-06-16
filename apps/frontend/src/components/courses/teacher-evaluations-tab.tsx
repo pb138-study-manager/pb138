@@ -21,7 +21,11 @@ interface EvalRow {
   evalFeedback: string | null;
 }
 
-function EvalBadge({ row, onEval, evaluateLabel }: {
+function EvalBadge({
+  row,
+  onEval,
+  evaluateLabel,
+}: {
   row: EvalRow;
   onEval: (row: EvalRow) => void;
   evaluateLabel: string;
@@ -33,9 +37,13 @@ function EvalBadge({ row, onEval, evaluateLabel }: {
       {hasEval ? (
         row.evalType === 'pass_fail' ? (
           row.evalScore === 1 ? (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓ Pass</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+              ✓ Pass
+            </span>
           ) : (
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">✗ Fail</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+              ✗ Fail
+            </span>
           )
         ) : (
           <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
@@ -52,7 +60,11 @@ function EvalBadge({ row, onEval, evaluateLabel }: {
   );
 }
 
-function EvalRowItem({ row, onEval, evaluateLabel }: {
+function EvalRowItem({
+  row,
+  onEval,
+  evaluateLabel,
+}: {
   row: EvalRow;
   onEval: (row: EvalRow) => void;
   evaluateLabel: string;
@@ -93,8 +105,15 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
   } | null>(null);
 
   const submitEvalMutation = useMutation({
-    mutationFn: ({ taskId, score, feedback }: { taskId: number; score: number; feedback: string }) =>
-      api.post(`/tasks/${taskId}/eval`, { score, feedback }),
+    mutationFn: ({
+      taskId,
+      score,
+      feedback,
+    }: {
+      taskId: number;
+      score: number;
+      feedback: string;
+    }) => api.post(`/tasks/${taskId}/eval`, { score, feedback }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseEvaluations', courseId] });
       setEvalDialogState(null);
@@ -157,7 +176,12 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
           </div>
           <div className="space-y-2">
             {done.map((row) => (
-              <EvalRowItem key={row.taskId} row={row} onEval={handleEval} evaluateLabel={evaluateLabel} />
+              <EvalRowItem
+                key={row.taskId}
+                row={row}
+                onEval={handleEval}
+                evaluateLabel={evaluateLabel}
+              />
             ))}
           </div>
         </div>
@@ -173,7 +197,12 @@ export default function TeacherEvaluationsTab({ courseId }: { courseId: string }
           </div>
           <div className="space-y-2">
             {pending.map((row) => (
-              <EvalRowItem key={row.taskId} row={row} onEval={handleEval} evaluateLabel={evaluateLabel} />
+              <EvalRowItem
+                key={row.taskId}
+                row={row}
+                onEval={handleEval}
+                evaluateLabel={evaluateLabel}
+              />
             ))}
           </div>
         </div>

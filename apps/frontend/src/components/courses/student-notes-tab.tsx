@@ -47,7 +47,6 @@ export default function StudentNotesTab({
 
   return (
     <div className="px-4 mt-6">
-
       {notes.length === 0 && (
         <p className="text-sm text-gray-400 py-4 text-center">
           {t('courses.noNotes', 'No notes for this course')}

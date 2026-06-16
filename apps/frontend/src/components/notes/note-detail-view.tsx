@@ -24,12 +24,7 @@ interface NoteDetailViewProps {
   onDelete: (id: number) => Promise<void>;
 }
 
-export default function NoteDetailView({
-  note,
-  autoEdit,
-  onSave,
-  onDelete,
-}: NoteDetailViewProps) {
+export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: NoteDetailViewProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingBody, setIsEditingBody] = useState(autoEdit || false);
   const [title, setTitle] = useState(note.title);
@@ -301,7 +296,9 @@ export default function NoteDetailView({
             <span>{t('notes.mdHeading')}</span>
             <span>{t('notes.mdList')}</span>
             <span>{t('notes.mdCode')}</span>
-            <span className="ml-auto text-indigo-400 font-sans font-medium">{t('notes.escToSave')}</span>
+            <span className="ml-auto text-indigo-400 font-sans font-medium">
+              {t('notes.escToSave')}
+            </span>
           </div>
           <textarea
             ref={textareaRef}
@@ -326,17 +323,43 @@ export default function NoteDetailView({
             <div className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm space-y-1.5">
               <ReactMarkdown
                 components={{
-                  h1: ({ children }) => <h1 className="text-xl font-bold mt-3 mb-1 text-gray-900 dark:text-white">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-lg font-bold mt-3 mb-1 text-gray-900 dark:text-white">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-base font-semibold mt-2 mb-1 text-gray-800 dark:text-gray-100">{children}</h3>,
+                  h1: ({ children }) => (
+                    <h1 className="text-xl font-bold mt-3 mb-1 text-gray-900 dark:text-white">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-lg font-bold mt-3 mb-1 text-gray-900 dark:text-white">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-base font-semibold mt-2 mb-1 text-gray-800 dark:text-gray-100">
+                      {children}
+                    </h3>
+                  ),
                   p: ({ children }) => <p className="mb-1.5 leading-relaxed">{children}</p>,
-                  strong: ({ children }) => <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>,
+                  strong: ({ children }) => (
+                    <strong className="font-bold text-gray-900 dark:text-white">{children}</strong>
+                  ),
                   em: ({ children }) => <em className="italic">{children}</em>,
-                  code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 text-xs font-mono">{children}</code>,
-                  ul: ({ children }) => <ul className="list-disc pl-5 mb-1.5 space-y-0.5">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal pl-5 mb-1.5 space-y-0.5">{children}</ol>,
+                  code: ({ children }) => (
+                    <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 text-xs font-mono">
+                      {children}
+                    </code>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-5 mb-1.5 space-y-0.5">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal pl-5 mb-1.5 space-y-0.5">{children}</ol>
+                  ),
                   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                  blockquote: ({ children }) => <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-3 italic text-gray-500 dark:text-gray-400 my-2">{children}</blockquote>,
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-3 italic text-gray-500 dark:text-gray-400 my-2">
+                      {children}
+                    </blockquote>
+                  ),
                 }}
               >
                 {content}

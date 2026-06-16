@@ -47,7 +47,9 @@ export default function BottomNav({ active }: { active: string }) {
   const { data: me } = useQuery({
     queryKey: ['userMe'],
     queryFn: () =>
-      api.get<{ roles: string[]; settings: { customNav?: NavItem[] | null } }>('/users/me').catch(() => null),
+      api
+        .get<{ roles: string[]; settings: { customNav?: NavItem[] | null } }>('/users/me')
+        .catch(() => null),
   });
 
   const isTeacher = me?.roles?.includes('TEACHER') ?? false;
@@ -60,13 +62,14 @@ export default function BottomNav({ active }: { active: string }) {
 
   function buildStudentItems(): NavItem[] {
     const saved = me?.settings?.customNav;
-    const ids: string[] = saved && Array.isArray(saved) && saved.length > 0
-      ? saved.map((n) => n.id)
-      : DEFAULT_STUDENT_IDS;
+    const ids: string[] =
+      saved && Array.isArray(saved) && saved.length > 0
+        ? saved.map((n) => n.id)
+        : DEFAULT_STUDENT_IDS;
 
     return ids
       .map((id) => AVAILABLE_ITEMS.find((item) => item.id === id))
-      .filter((item): item is typeof AVAILABLE_ITEMS[number] => item !== undefined)
+      .filter((item): item is (typeof AVAILABLE_ITEMS)[number] => item !== undefined)
       .map((item) => ({
         id: item.id,
         label: item.label.includes('.') ? t(item.label) : item.label,
@@ -89,10 +92,17 @@ export default function BottomNav({ active }: { active: string }) {
           to={item.href}
           className="flex flex-col items-center justify-center py-3 px-4 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
         >
-          <span className={cn('mb-1', active === item.id ? 'text-indigo-600 dark:text-indigo-400' : '')}>
+          <span
+            className={cn('mb-1', active === item.id ? 'text-indigo-600 dark:text-indigo-400' : '')}
+          >
             {ICON_MAP[item.id] ?? <Menu className="w-5 h-5" />}
           </span>
-          <span className={cn('text-xs font-medium', active === item.id ? 'text-indigo-600 dark:text-indigo-400' : '')}>
+          <span
+            className={cn(
+              'text-xs font-medium',
+              active === item.id ? 'text-indigo-600 dark:text-indigo-400' : ''
+            )}
+          >
             {item.label}
           </span>
         </Link>

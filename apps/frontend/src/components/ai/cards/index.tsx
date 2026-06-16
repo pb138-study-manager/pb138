@@ -14,14 +14,17 @@ export function TaskCard({ item }: { item: Record<string, unknown> }) {
 
   return (
     <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
-      <div className={`w-2 h-2 rounded-full shrink-0 ${priorityDot[priority] ?? 'bg-indigo-400'}`} />
+      <div
+        className={`w-2 h-2 rounded-full shrink-0 ${priorityDot[priority] ?? 'bg-indigo-400'}`}
+      />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
           {String(item.title ?? '')}
         </p>
         {dueDate && (
           <p className={`text-xs ${overdue ? 'text-red-500' : 'text-gray-400'}`}>
-            {overdue ? 'Overdue · ' : ''}{dueDate.toLocaleDateString()}
+            {overdue ? 'Overdue · ' : ''}
+            {dueDate.toLocaleDateString()}
           </p>
         )}
       </div>
@@ -46,14 +49,17 @@ export function EventCard({ item }: { item: Record<string, unknown> }) {
 
   return (
     <div className="flex items-stretch gap-2">
-      <div className={`w-1.5 rounded-full shrink-0 ${isDeadline ? 'bg-red-500' : 'bg-green-500'}`} />
+      <div
+        className={`w-1.5 rounded-full shrink-0 ${isDeadline ? 'bg-red-500' : 'bg-green-500'}`}
+      />
       <div className="flex-1 bg-white dark:bg-gray-700 rounded-xl px-3 py-2.5 border border-gray-200 dark:border-gray-600 shadow-sm min-w-0">
         <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
           {String(item.title ?? '')}
         </p>
         {startTime && (
           <p className="text-xs text-gray-400 mt-0.5">
-            {startTime}{duration ? ` · ${duration}` : ''}
+            {startTime}
+            {duration ? ` · ${duration}` : ''}
             {isDeadline && <span className="text-red-400 font-medium"> · deadline</span>}
           </p>
         )}
@@ -78,7 +84,8 @@ export function CourseCard({ item }: { item: Record<string, unknown> }) {
     <div className="flex items-center gap-2.5 bg-white dark:bg-gray-700 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
       <BookOpen size={14} className="text-indigo-400 shrink-0" />
       <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-        {item.code ? `${item.code} — ` : ''}{String(item.name ?? '')}
+        {item.code ? `${item.code} — ` : ''}
+        {String(item.name ?? '')}
       </p>
     </div>
   );

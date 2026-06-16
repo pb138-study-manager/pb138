@@ -55,8 +55,15 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
   } | null>(null);
 
   const submitEvalMutation = useMutation({
-    mutationFn: ({ taskId, score, feedback }: { taskId: number; score: number; feedback: string }) =>
-      api.post(`/tasks/${taskId}/eval`, { score, feedback }),
+    mutationFn: ({
+      taskId,
+      score,
+      feedback,
+    }: {
+      taskId: number;
+      score: number;
+      feedback: string;
+    }) => api.post(`/tasks/${taskId}/eval`, { score, feedback }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['studentDetail', courseId, selectedStudentId] });
       setEvalDialogState(null);
@@ -261,12 +268,14 @@ export default function TeacherStudentsTab({ courseId }: { courseId: string }) {
                     </div>
                     {taskItem.status === 'DONE' && taskItem.evalType !== 'none' && (
                       <button
-                        onClick={() => setEvalDialogState({
-                          taskId: taskItem.taskId,
-                          evalType: taskItem.evalType as 'pass_fail' | 'graded',
-                          currentScore: taskItem.evalScore,
-                          currentFeedback: taskItem.evalFeedback ?? '',
-                        })}
+                        onClick={() =>
+                          setEvalDialogState({
+                            taskId: taskItem.taskId,
+                            evalType: taskItem.evalType as 'pass_fail' | 'graded',
+                            currentScore: taskItem.evalScore,
+                            currentFeedback: taskItem.evalFeedback ?? '',
+                          })
+                        }
                         className="shrink-0"
                       >
                         {taskItem.evalScore !== null ? (

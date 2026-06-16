@@ -45,7 +45,6 @@ export interface FeaturedTaskItem {
   color: 'yellow' | 'green';
 }
 
-
 export type EventType = 'EVENT' | 'DEADLINE';
 
 export interface Event {

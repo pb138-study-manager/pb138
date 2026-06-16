@@ -35,7 +35,10 @@ export async function executeTool(
       if (!Array.isArray(tasks)) return tasks;
       let result = tasks as Record<string, unknown>[];
       if (args.onlyWithDueDate) result = result.filter((t) => t.dueDate != null);
-      if (args.dueDateOn) result = result.filter((t) => t.dueDate && String(t.dueDate).startsWith(String(args.dueDateOn)));
+      if (args.dueDateOn)
+        result = result.filter(
+          (t) => t.dueDate && String(t.dueDate).startsWith(String(args.dueDateOn))
+        );
       if (args.limit) {
         result = [...result].sort((a, b) => {
           if (!a.dueDate) return 1;
@@ -104,7 +107,11 @@ export async function executeTool(
     case 'list_course_materials':
       return callApi('GET', `/courses/${args.courseId}/materials`, authHeader);
     case 'read_material_content':
-      return callApi('GET', `/courses/${args.courseId}/materials/${args.materialId}/content`, authHeader);
+      return callApi(
+        'GET',
+        `/courses/${args.courseId}/materials/${args.materialId}/content`,
+        authHeader
+      );
 
     // --- Teacher: Groups ---
     case 'list_groups':

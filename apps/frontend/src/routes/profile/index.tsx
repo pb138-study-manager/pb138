@@ -75,8 +75,12 @@ function ProfilePage() {
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('profile.adminPanel')}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{t('profile.adminPanelDesc')}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t('profile.adminPanel')}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('profile.adminPanelDesc')}
+                  </p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />

@@ -12,19 +12,20 @@
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `apps/backend/src/db/schema.ts` | Add `groupTypeEnum`; add `type` column to `groups` table |
-| `apps/backend/drizzle/` | New migration (generated + applied) |
-| `apps/backend/src/routes/groups.ts` | Create — 8 endpoints |
-| `apps/backend/src/routes/groups.test.ts` | Create — 13 tests |
-| `apps/backend/src/index.ts` | Add `import + .use(groupsRoutes)` |
+| File                                     | Action                                                   |
+| ---------------------------------------- | -------------------------------------------------------- |
+| `apps/backend/src/db/schema.ts`          | Add `groupTypeEnum`; add `type` column to `groups` table |
+| `apps/backend/drizzle/`                  | New migration (generated + applied)                      |
+| `apps/backend/src/routes/groups.ts`      | Create — 8 endpoints                                     |
+| `apps/backend/src/routes/groups.test.ts` | Create — 13 tests                                        |
+| `apps/backend/src/index.ts`              | Add `import + .use(groupsRoutes)`                        |
 
 ---
 
 ### Task 1: Add groupTypeEnum to schema + migration
 
 **Files:**
+
 - Modify: `apps/backend/src/db/schema.ts`
 - Generate: `apps/backend/drizzle/` (new migration file)
 
@@ -79,6 +80,7 @@ git commit -m "feat: add groupTypeEnum and type column to groups table"
 ### Task 2: Scaffold groups test + GET /groups
 
 **Files:**
+
 - Create: `apps/backend/src/routes/groups.test.ts`
 - Create: `apps/backend/src/routes/groups.ts`
 
@@ -89,7 +91,14 @@ import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
 import {
-  users, userRoles, roles, groups, groupMembers, assignments, tasks, auditLogs,
+  users,
+  userRoles,
+  roles,
+  groups,
+  groupMembers,
+  assignments,
+  tasks,
+  auditLogs,
 } from '../db/schema';
 import { groupsRoutes } from './groups';
 import { eq } from 'drizzle-orm';
@@ -102,9 +111,7 @@ process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub: authId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 let userId: number;
@@ -125,13 +132,23 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ email: 'groups-user@example.com', login: 'groups-test-user', pwdHash: '', authId: USER_AUTH_ID })
+    .values({
+      email: 'groups-user@example.com',
+      login: 'groups-test-user',
+      pwdHash: '',
+      authId: USER_AUTH_ID,
+    })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ email: 'groups-teacher@example.com', login: 'groups-test-teacher', pwdHash: '', authId: TEACHER_AUTH_ID })
+    .values({
+      email: 'groups-teacher@example.com',
+      login: 'groups-test-teacher',
+      pwdHash: '',
+      authId: TEACHER_AUTH_ID,
+    })
     .returning();
   teacherId = teacher.id;
 
@@ -149,7 +166,10 @@ afterAll(async () => {
   await db.delete(auditLogs).where(eq(auditLogs.actorId, teacherId));
   // tasks assigned via assignments
   if (teacherGroupId) {
-    const assignmentRows = await db.select({ id: assignments.id }).from(assignments).where(eq(assignments.groupId, teacherGroupId));
+    const assignmentRows = await db
+      .select({ id: assignments.id })
+      .from(assignments)
+      .where(eq(assignments.groupId, teacherGroupId));
     for (const a of assignmentRows) {
       await db.delete(tasks).where(eq(tasks.assignmentId, a.id));
     }
@@ -191,9 +211,7 @@ Expected: FAIL — `Cannot find module './groups'`
 ```typescript
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
-import {
-  groups, groupMembers, assignments, tasks, users,
-} from '../db/schema';
+import { groups, groupMembers, assignments, tasks, users } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, inArray, or } from 'drizzle-orm';
@@ -255,6 +273,7 @@ git commit -m "feat: scaffold groups routes and add GET /groups"
 ### Task 3: POST /groups
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 - Modify: `apps/backend/src/routes/groups.test.ts`
 
@@ -355,6 +374,7 @@ git commit -m "feat: add POST /groups with auto SEMINAR/GROUP type"
 ### Task 4: GET /groups/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 - Modify: `apps/backend/src/routes/groups.test.ts`
 
@@ -447,6 +467,7 @@ git commit -m "feat: add GET /groups/:id with member list and access control"
 ### Task 5: DELETE /groups/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 - Modify: `apps/backend/src/routes/groups.test.ts`
 
@@ -543,6 +564,7 @@ git commit -m "feat: add DELETE /groups/:id with mentor-only soft delete"
 ### Task 6: POST + DELETE /groups/:id/members
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 - Modify: `apps/backend/src/routes/groups.test.ts`
 
@@ -562,7 +584,9 @@ describe('POST /groups/:id/members', () => {
     expect((await res.json()).success).toBe(true);
 
     // Member now appears in group detail
-    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const detail = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}`, teacherAuth)
+    );
     const body = await detail.json();
     expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(true);
   });
@@ -582,7 +606,9 @@ describe('POST /groups/:id/members', () => {
 describe('DELETE /groups/:id/members/:userId', () => {
   it('returns 404 when user is not a member', async () => {
     const res = await testApp.handle(
-      req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, { method: 'DELETE' })
+      req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, {
+        method: 'DELETE',
+      })
     );
     expect(res.status).toBe(404);
   });
@@ -590,13 +616,17 @@ describe('DELETE /groups/:id/members/:userId', () => {
   it('mentor can remove a member', async () => {
     // Add userId to teacherGroupId first (already done in previous test block)
     const res = await testApp.handle(
-      req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, { method: 'DELETE' })
+      req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, {
+        method: 'DELETE',
+      })
     );
     expect(res.status).toBe(200);
     expect((await res.json()).success).toBe(true);
 
     // Confirm removed
-    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const detail = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}`, teacherAuth)
+    );
     const body = await detail.json();
     expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(false);
   });
@@ -706,6 +736,7 @@ git commit -m "feat: add POST + DELETE /groups/:id/members"
 ### Task 7: GET + POST /groups/:id/assignments
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 - Modify: `apps/backend/src/routes/groups.test.ts`
 
@@ -750,7 +781,11 @@ describe('POST /groups/:id/assignments', () => {
       req(`http://localhost/groups/${teacherGroupId}/assignments`, teacherAuth, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Lab 1', dueDate: '2026-05-01T23:59:00.000Z', description: 'First lab' }),
+        body: JSON.stringify({
+          title: 'Lab 1',
+          dueDate: '2026-05-01T23:59:00.000Z',
+          description: 'First lab',
+        }),
       })
     );
     expect(res.status).toBe(200);
@@ -895,6 +930,7 @@ git commit -m "feat: add GET + POST /groups/:id/assignments with per-member task
 ### Task 8: Register groupsRoutes in index.ts + full suite
 
 **Files:**
+
 - Modify: `apps/backend/src/index.ts`
 
 - [ ] **Step 1: Register `groupsRoutes` in `index.ts`**

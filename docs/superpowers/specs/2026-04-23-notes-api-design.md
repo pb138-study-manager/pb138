@@ -12,24 +12,24 @@
 
 ### `folders` table (new)
 
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| name | text | NOT NULL |
-| deleted_at | timestamp | nullable |
+| Column     | Type      | Constraints             |
+| ---------- | --------- | ----------------------- |
+| id         | serial    | PK                      |
+| user_id    | integer   | NOT NULL, FK → users.id |
+| name       | text      | NOT NULL                |
+| deleted_at | timestamp | nullable                |
 
 ### `notes` table (existing — add two columns)
 
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| title | text | NOT NULL |
-| description | text | nullable |
-| folder_id | integer | nullable, FK → folders.id |
-| course_id | integer | nullable, FK → courses.id (future) |
-| deleted_at | timestamp | nullable |
+| Column      | Type      | Constraints                        |
+| ----------- | --------- | ---------------------------------- |
+| id          | serial    | PK                                 |
+| user_id     | integer   | NOT NULL, FK → users.id            |
+| title       | text      | NOT NULL                           |
+| description | text      | nullable                           |
+| folder_id   | integer   | nullable, FK → folders.id          |
+| course_id   | integer   | nullable, FK → courses.id (future) |
+| deleted_at  | timestamp | nullable                           |
 
 > `course_id` is accepted in POST/PATCH bodies and stored but not validated against courses table — courses are not yet implemented.
 
@@ -40,12 +40,14 @@
 ## Folders Endpoints (`/folders`)
 
 ### GET /folders
+
 Returns all non-deleted folders belonging to the authenticated user.
 
 - Auth: required
 - Response: `Folder[]`
 
 ### POST /folders
+
 Creates a new folder.
 
 - Auth: required
@@ -54,6 +56,7 @@ Creates a new folder.
 - Side effect: `logAction` — `"Created folder {id}: {name}"`
 
 ### PATCH /folders/:id
+
 Renames a folder.
 
 - Auth: required
@@ -63,6 +66,7 @@ Renames a folder.
 - Side effect: `logAction` — `"Updated folder {id}"`
 
 ### DELETE /folders/:id
+
 Soft-deletes a folder. Notes inside become unfoldered (folder_id set to null).
 
 - Auth: required
@@ -77,6 +81,7 @@ Soft-deletes a folder. Notes inside become unfoldered (folder_id set to null).
 ## Notes Endpoints (`/notes`)
 
 ### GET /notes
+
 Returns all non-deleted notes belonging to the authenticated user.
 
 - Auth: required
@@ -84,6 +89,7 @@ Returns all non-deleted notes belonging to the authenticated user.
 - Response: `Note[]`
 
 ### POST /notes
+
 Creates a new note.
 
 - Auth: required
@@ -92,6 +98,7 @@ Creates a new note.
 - Side effect: `logAction` — `"Created note {id}: {title}"`
 
 ### GET /notes/:id
+
 Returns a single note by ID.
 
 - Auth: required
@@ -99,6 +106,7 @@ Returns a single note by ID.
 - Response: `Note`
 
 ### PATCH /notes/:id
+
 Partially updates a note.
 
 - Auth: required
@@ -109,6 +117,7 @@ Partially updates a note.
 - Side effect: `logAction` — `"Updated note {id}"`
 
 ### DELETE /notes/:id
+
 Soft-deletes a note.
 
 - Auth: required
@@ -121,36 +130,38 @@ Soft-deletes a note.
 
 ## Error Responses
 
-| Status | Code | When |
-|---|---|---|
-| 401 | `UNAUTHORIZED` | Missing or invalid JWT |
-| 404 | `NOT_FOUND` | Resource doesn't exist or belongs to another user |
-| 422 | (Elysia default) | Body validation failure |
+| Status | Code             | When                                              |
+| ------ | ---------------- | ------------------------------------------------- |
+| 401    | `UNAUTHORIZED`   | Missing or invalid JWT                            |
+| 404    | `NOT_FOUND`      | Resource doesn't exist or belongs to another user |
+| 422    | (Elysia default) | Body validation failure                           |
 
 ---
 
 ## Files
 
-| File | Action |
-|---|---|
-| `apps/backend/src/db/schema.ts` | Add `folders` table, add `folder_id` + `course_id` to `notes` |
-| `apps/backend/src/routes/folders.ts` | Create — 4 endpoints |
-| `apps/backend/src/routes/notes.ts` | Create — 5 endpoints |
-| `apps/backend/src/routes/folders.test.ts` | Create |
-| `apps/backend/src/routes/notes.test.ts` | Create |
-| `apps/backend/src/index.ts` | Add imports + `.use(foldersRoutes)` + `.use(notesRoutes)` |
+| File                                      | Action                                                        |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| `apps/backend/src/db/schema.ts`           | Add `folders` table, add `folder_id` + `course_id` to `notes` |
+| `apps/backend/src/routes/folders.ts`      | Create — 4 endpoints                                          |
+| `apps/backend/src/routes/notes.ts`        | Create — 5 endpoints                                          |
+| `apps/backend/src/routes/folders.test.ts` | Create                                                        |
+| `apps/backend/src/routes/notes.test.ts`   | Create                                                        |
+| `apps/backend/src/index.ts`               | Add imports + `.use(foldersRoutes)` + `.use(notesRoutes)`     |
 
 ---
 
 ## Test Plan
 
 ### folders.test.ts (~10 tests)
+
 - `GET /folders` — empty list; returns user's folders
 - `POST /folders` — creates folder; 422 when name missing
 - `PATCH /folders/:id` — renames; 404 for wrong user
 - `DELETE /folders/:id` — soft deletes; notes become unfoldered; 404 on second delete
 
 ### notes.test.ts (~14 tests)
+
 - `GET /notes` — empty list; returns user's notes
 - `POST /notes` — creates note; description optional; folder_id optional; 422 when title missing
 - `GET /notes/:id` — returns note; 404 for unknown id

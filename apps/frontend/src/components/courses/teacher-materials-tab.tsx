@@ -51,7 +51,15 @@ export default function TeacherMaterialsTab({ courseId }: { courseId: string }) 
   });
 
   const uploadFileMutation = useMutation({
-    mutationFn: ({ title, file, description }: { title: string; file: File; description?: string }) => {
+    mutationFn: ({
+      title,
+      file,
+      description,
+    }: {
+      title: string;
+      file: File;
+      description?: string;
+    }) => {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('file', file);
@@ -69,10 +77,18 @@ export default function TeacherMaterialsTab({ courseId }: { courseId: string }) 
     const title = matTitle.trim();
     if (!title) return;
     if (addMode === 'link') {
-      addLinkMutation.mutate({ title, url: matUrl.trim() || undefined, description: matDesc.trim() || undefined });
+      addLinkMutation.mutate({
+        title,
+        url: matUrl.trim() || undefined,
+        description: matDesc.trim() || undefined,
+      });
     } else {
       if (!selectedFile) return;
-      uploadFileMutation.mutate({ title, file: selectedFile, description: matDesc.trim() || undefined });
+      uploadFileMutation.mutate({
+        title,
+        file: selectedFile,
+        description: matDesc.trim() || undefined,
+      });
     }
   }
 
@@ -81,7 +97,9 @@ export default function TeacherMaterialsTab({ courseId }: { courseId: string }) 
 
   async function handleDownload(material: StudyMaterial) {
     try {
-      const { url } = await api.get<{ url: string }>(`/courses/${courseId}/materials/${material.id}/download`);
+      const { url } = await api.get<{ url: string }>(
+        `/courses/${courseId}/materials/${material.id}/download`
+      );
       window.open(url, '_blank');
     } catch (e) {
       alert(`Could not open file: ${(e as Error)?.message ?? 'Unknown error'}`);
@@ -207,7 +225,13 @@ export default function TeacherMaterialsTab({ courseId }: { courseId: string }) 
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full border border-dashed border-gray-300 dark:border-gray-600 rounded-xl px-3 py-3 text-sm text-left transition-colors hover:border-indigo-400 dark:hover:border-indigo-500"
                 >
-                  <span className={selectedFile ? 'text-gray-800 dark:text-gray-200 font-medium' : 'text-gray-400'}>
+                  <span
+                    className={
+                      selectedFile
+                        ? 'text-gray-800 dark:text-gray-200 font-medium'
+                        : 'text-gray-400'
+                    }
+                  >
                     {selectedFile ? selectedFile.name : t('courses.chooseFile', 'Choose file…')}
                   </span>
                 </button>
@@ -225,17 +249,18 @@ export default function TeacherMaterialsTab({ courseId }: { courseId: string }) 
               <Button
                 variant="ghost"
                 className="flex-1 hover:bg-gray-100 dark:hover:bg-gray-800"
-                onClick={() => { setShowAddMaterial(false); resetDialog(); }}
+                onClick={() => {
+                  setShowAddMaterial(false);
+                  resetDialog();
+                }}
               >
                 {t('common.cancel', 'Cancel')}
               </Button>
-              <Button
-                className="flex-1"
-                onClick={handleAdd}
-                disabled={isPending || !canSubmit}
-              >
+              <Button className="flex-1" onClick={handleAdd} disabled={isPending || !canSubmit}>
                 {isPending
-                  ? (addMode === 'file' ? t('courses.uploading', 'Uploading…') : t('common.saving', 'Saving…'))
+                  ? addMode === 'file'
+                    ? t('courses.uploading', 'Uploading…')
+                    : t('common.saving', 'Saving…')
                   : t('common.add', 'Add')}
               </Button>
             </div>

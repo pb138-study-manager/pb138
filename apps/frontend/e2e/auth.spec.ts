@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 
-const PROTECTED_ROUTES = ['/today', '/tasks', '/notes', '/timeline', '/courses', '/profile', '/dashboard'];
+const PROTECTED_ROUTES = [
+  '/today',
+  '/tasks',
+  '/notes',
+  '/timeline',
+  '/courses',
+  '/profile',
+  '/dashboard',
+];
 
 test.describe('Auth guard', () => {
   for (const route of PROTECTED_ROUTES) {

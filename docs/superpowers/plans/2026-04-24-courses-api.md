@@ -12,17 +12,18 @@
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `apps/backend/src/routes/courses.ts` | Create — 9 endpoints |
-| `apps/backend/src/routes/courses.test.ts` | Create — ~18 tests |
-| `apps/backend/src/index.ts` | Modify — import + `.use(coursesRoutes)` |
+| File                                      | Action                                  |
+| ----------------------------------------- | --------------------------------------- |
+| `apps/backend/src/routes/courses.ts`      | Create — 9 endpoints                    |
+| `apps/backend/src/routes/courses.test.ts` | Create — ~18 tests                      |
+| `apps/backend/src/index.ts`               | Modify — import + `.use(coursesRoutes)` |
 
 ---
 
 ### Task 1: Scaffold courses test + GET /courses
 
 **Files:**
+
 - Create: `apps/backend/src/routes/courses.ts`
 - Create: `apps/backend/src/routes/courses.test.ts`
 
@@ -48,9 +49,7 @@ process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub: authId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 export let userId: number;
@@ -69,13 +68,23 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ email: 'courses-user@example.com', login: 'courses-test-user', pwdHash: '', authId: USER_AUTH_ID })
+    .values({
+      email: 'courses-user@example.com',
+      login: 'courses-test-user',
+      pwdHash: '',
+      authId: USER_AUTH_ID,
+    })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ email: 'courses-teacher@example.com', login: 'courses-test-teacher', pwdHash: '', authId: TEACHER_AUTH_ID })
+    .values({
+      email: 'courses-teacher@example.com',
+      login: 'courses-test-teacher',
+      pwdHash: '',
+      authId: TEACHER_AUTH_ID,
+    })
     .returning();
   teacherId = teacher.id;
 
@@ -169,10 +178,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .from(courses)
       .leftJoin(
         userCourses,
-        and(
-          eq(userCourses.courseId, courses.id),
-          eq(userCourses.userId, (user as AuthUser).id)
-        )
+        and(eq(userCourses.courseId, courses.id), eq(userCourses.userId, (user as AuthUser).id))
       )
       .where(isNull(courses.deletedAt));
   });
@@ -198,6 +204,7 @@ git commit -m "feat: scaffold courses routes and add GET /courses"
 ### Task 2: GET /courses/enrolled
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -287,6 +294,7 @@ git commit -m "feat: add GET /courses/enrolled"
 ### Task 3: POST /courses
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -394,6 +402,7 @@ git commit -m "feat: add POST /courses with TEACHER role check"
 ### Task 4: GET /courses/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -479,6 +488,7 @@ git commit -m "feat: add GET /courses/:id with enrolledCount"
 ### Task 5: PATCH /courses/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -620,6 +630,7 @@ git commit -m "feat: add PATCH /courses/:id with TEACHER ownership check"
 ### Task 6: DELETE /courses/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -723,6 +734,7 @@ git commit -m "feat: add DELETE /courses/:id with soft delete"
 ### Task 7: POST /courses/:id/enroll
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -820,6 +832,7 @@ git commit -m "feat: add POST /courses/:id/enroll with idempotent insert"
 ### Task 8: DELETE /courses/:id/enroll
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -920,6 +933,7 @@ git commit -m "feat: add DELETE /courses/:id/enroll"
 ### Task 9: GET /courses/:id/progress
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -945,7 +959,9 @@ describe('GET /courses/:id/progress', () => {
   });
 
   it('returns correct progress counts', async () => {
-    const res = await testApp.handle(req(`http://localhost/courses/${courseId}/progress`, userAuth));
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/progress`, userAuth)
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.total).toBe(3);
@@ -1029,6 +1045,7 @@ git commit -m "feat: add GET /courses/:id/progress"
 ### Task 10: Register routes in index.ts + full suite
 
 **Files:**
+
 - Modify: `apps/backend/src/index.ts`
 
 - [ ] **Step 1: Update `apps/backend/src/index.ts`**

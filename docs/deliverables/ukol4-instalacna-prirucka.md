@@ -54,11 +54,11 @@ pnpm install
 
 Vytvorte nový projekt na [supabase.com](https://supabase.com). Z dashboardu potrebujete:
 
-- `Project URL` a `anon key` — v *Project Settings → API*
-- `JWT Secret` — v *Project Settings → JWT Settings*
+- `Project URL` a `anon key` — v _Project Settings → API_
+- `JWT Secret` — v _Project Settings → JWT Settings_
 - `service_role key` — tamtiež, skryté pole
 
-V *Authentication → URL Configuration* nastavte:
+V _Authentication → URL Configuration_ nastavte:
 
 - Site URL: `http://localhost:3000`
 - Redirect URLs: `http://localhost:3000/verify-email`
@@ -112,7 +112,7 @@ pnpm --filter @pb138/frontend dev
 
 App beží na `http://localhost:3000`, API na `http://localhost:3001`.
 
-Pri prvom otvorení kliknite na *Register*, overte email a prihláste sa.
+Pri prvom otvorení kliknite na _Register_, overte email a prihláste sa.
 
 ---
 

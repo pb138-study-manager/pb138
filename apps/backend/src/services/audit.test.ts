@@ -26,10 +26,7 @@ afterAll(async () => {
 describe('logAction', () => {
   it('inserts a row into audit_logs', async () => {
     await logAction(db, testUserId, 'test action');
-    const logs = await db
-      .select()
-      .from(auditLogs)
-      .where(eq(auditLogs.actorId, testUserId));
+    const logs = await db.select().from(auditLogs).where(eq(auditLogs.actorId, testUserId));
     expect(logs.length).toBeGreaterThan(0);
     expect(logs[0].description).toBe('test action');
     expect(logs[0].actorId).toBe(testUserId);

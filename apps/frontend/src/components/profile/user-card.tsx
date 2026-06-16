@@ -12,7 +12,11 @@ interface UserCardProps {
   bio?: string | null;
   email: string;
   avatar?: string | null;
-  onProfileUpdated?: (updated: { name: string | null; title: string | null; bio: string | null }) => Promise<void>;
+  onProfileUpdated?: (updated: {
+    name: string | null;
+    title: string | null;
+    bio: string | null;
+  }) => Promise<void>;
   onAvatarUploaded?: (file: File) => Promise<void>;
 }
 
@@ -73,17 +77,18 @@ export default function UserCard({
               )}
             </button>
 
-            <button
-              className="flex-1 min-w-0 text-left"
-              onClick={() => setEditOpen(true)}
-            >
+            <button className="flex-1 min-w-0 text-left" onClick={() => setEditOpen(true)}>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{name || login}</h2>
               {title && (
-                <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">{title}</p>
+                <p className="text-sm text-indigo-500 dark:text-indigo-400 font-medium mt-0.5">
+                  {title}
+                </p>
               )}
               <p className="text-gray-600 dark:text-gray-300 text-sm">{email}</p>
               {bio && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed line-clamp-2">{bio}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 leading-relaxed line-clamp-2">
+                  {bio}
+                </p>
               )}
             </button>
           </div>

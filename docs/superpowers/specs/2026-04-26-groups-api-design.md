@@ -43,16 +43,16 @@ Type is set at creation and never changes. Requires one migration (generate + ap
 
 Single file: `apps/backend/src/routes/groups.ts`, registered as `.use(groupsRoutes)` in `index.ts`.
 
-| Method | Path | Auth | Who | Description |
-|---|---|---|---|---|
-| `GET` | `/groups` | Yes | Any | List groups where user is mentor OR member |
-| `POST` | `/groups` | Yes | Any | Create group; type auto-set from creator's role |
-| `GET` | `/groups/:id` | Yes | Member or mentor | Group detail + members list |
-| `DELETE` | `/groups/:id` | Yes | Mentor only | Soft delete own group |
-| `POST` | `/groups/:id/members` | Yes | Mentor only | Add members `{ userIds: number[] }` |
-| `DELETE` | `/groups/:id/members/:userId` | Yes | Mentor only | Remove one member |
-| `GET` | `/groups/:id/assignments` | Yes | Member or mentor | List assignments for group |
-| `POST` | `/groups/:id/assignments` | Yes | Mentor only | Create assignment → one task per member |
+| Method   | Path                          | Auth | Who              | Description                                     |
+| -------- | ----------------------------- | ---- | ---------------- | ----------------------------------------------- |
+| `GET`    | `/groups`                     | Yes  | Any              | List groups where user is mentor OR member      |
+| `POST`   | `/groups`                     | Yes  | Any              | Create group; type auto-set from creator's role |
+| `GET`    | `/groups/:id`                 | Yes  | Member or mentor | Group detail + members list                     |
+| `DELETE` | `/groups/:id`                 | Yes  | Mentor only      | Soft delete own group                           |
+| `POST`   | `/groups/:id/members`         | Yes  | Mentor only      | Add members `{ userIds: number[] }`             |
+| `DELETE` | `/groups/:id/members/:userId` | Yes  | Mentor only      | Remove one member                               |
+| `GET`    | `/groups/:id/assignments`     | Yes  | Member or mentor | List assignments for group                      |
+| `POST`   | `/groups/:id/assignments`     | Yes  | Mentor only      | Create assignment → one task per member         |
 
 ### Authorization rules
 
@@ -76,6 +76,7 @@ Single file: `apps/backend/src/routes/groups.ts`, registered as `.use(groupsRout
 ## Response Shapes
 
 ### `GET /groups`
+
 ```json
 [
   {
@@ -90,20 +91,20 @@ Single file: `apps/backend/src/routes/groups.ts`, registered as `.use(groupsRout
 ```
 
 ### `GET /groups/:id`
+
 ```json
 {
   "id": 1,
   "name": "PB138 Seminar A",
   "type": "SEMINAR",
   "mentorId": 3,
-  "members": [
-    { "id": 7, "login": "student1", "email": "s1@muni.cz" }
-  ],
+  "members": [{ "id": 7, "login": "student1", "email": "s1@muni.cz" }],
   "deletedAt": null
 }
 ```
 
 ### `GET /groups/:id/assignments`
+
 ```json
 [
   {
@@ -118,6 +119,7 @@ Single file: `apps/backend/src/routes/groups.ts`, registered as `.use(groupsRout
 ```
 
 ### `POST /groups/:id/assignments` response
+
 ```json
 {
   "assignment": { "id": 1, "groupId": 1, "title": "Lab 3", ... },
@@ -131,33 +133,33 @@ Single file: `apps/backend/src/routes/groups.ts`, registered as `.use(groupsRout
 
 ~13 tests, real DB, JWT tokens, full `beforeAll`/`afterAll` cleanup.
 
-| Test | Verifies |
-|---|---|
-| `GET /groups` — user sees own groups | Returns groups where user is mentor or member |
-| `POST /groups` — TEACHER creates SEMINAR | `type === 'SEMINAR'` |
-| `POST /groups` — regular user creates GROUP | `type === 'GROUP'` |
-| `GET /groups/:id` — returns members array | Shape + member list |
-| `GET /groups/:id` — 403 for non-member | Isolation |
-| `DELETE /groups/:id` — mentor can delete | `deletedAt` is set |
-| `DELETE /groups/:id` — non-mentor gets 403 | Ownership guard |
-| `POST /groups/:id/members` — adds members | Member count increases |
-| `DELETE /groups/:id/members/:userId` — removes member | Member count decreases |
-| `DELETE /groups/:id/members/:userId` — 404 if not a member | Edge case |
-| `GET /groups/:id/assignments` — lists assignments | Returns array |
-| `POST /groups/:id/assignments` — creates N tasks | One task per member, all share `assignmentId` |
-| `POST /groups/:id/assignments` — non-mentor gets 403 | Ownership guard |
+| Test                                                       | Verifies                                      |
+| ---------------------------------------------------------- | --------------------------------------------- |
+| `GET /groups` — user sees own groups                       | Returns groups where user is mentor or member |
+| `POST /groups` — TEACHER creates SEMINAR                   | `type === 'SEMINAR'`                          |
+| `POST /groups` — regular user creates GROUP                | `type === 'GROUP'`                            |
+| `GET /groups/:id` — returns members array                  | Shape + member list                           |
+| `GET /groups/:id` — 403 for non-member                     | Isolation                                     |
+| `DELETE /groups/:id` — mentor can delete                   | `deletedAt` is set                            |
+| `DELETE /groups/:id` — non-mentor gets 403                 | Ownership guard                               |
+| `POST /groups/:id/members` — adds members                  | Member count increases                        |
+| `DELETE /groups/:id/members/:userId` — removes member      | Member count decreases                        |
+| `DELETE /groups/:id/members/:userId` — 404 if not a member | Edge case                                     |
+| `GET /groups/:id/assignments` — lists assignments          | Returns array                                 |
+| `POST /groups/:id/assignments` — creates N tasks           | One task per member, all share `assignmentId` |
+| `POST /groups/:id/assignments` — non-mentor gets 403       | Ownership guard                               |
 
 ---
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `apps/backend/src/db/schema.ts` | Add `groupTypeEnum`, add `type` column to `groups` |
-| `apps/backend/drizzle/` | New migration (generate + apply) |
-| `apps/backend/src/routes/groups.ts` | Create — 8 endpoints |
-| `apps/backend/src/routes/groups.test.ts` | Create — ~13 tests |
-| `apps/backend/src/index.ts` | Add `import + .use(groupsRoutes)` |
+| File                                     | Action                                             |
+| ---------------------------------------- | -------------------------------------------------- |
+| `apps/backend/src/db/schema.ts`          | Add `groupTypeEnum`, add `type` column to `groups` |
+| `apps/backend/drizzle/`                  | New migration (generate + apply)                   |
+| `apps/backend/src/routes/groups.ts`      | Create — 8 endpoints                               |
+| `apps/backend/src/routes/groups.test.ts` | Create — ~13 tests                                 |
+| `apps/backend/src/index.ts`              | Add `import + .use(groupsRoutes)`                  |
 
 ---
 

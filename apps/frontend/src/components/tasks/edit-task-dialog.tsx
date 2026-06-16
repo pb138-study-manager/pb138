@@ -1,4 +1,15 @@
-import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Calendar,
+  Tag,
+  Flag,
+  BookOpen,
+  ListChecks,
+  Plus,
+  X,
+  Check,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -113,7 +124,9 @@ export default function EditTaskDialog({
                 className="flex items-center gap-1.5 rounded-xl text-sm font-medium"
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {selectedDate ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US') : t('tasks.datePill')}
+                {selectedDate
+                  ? selectedDate.toLocaleDateString(navigator.language ?? 'en-US')
+                  : t('tasks.datePill')}
               </Button>
 
               {isAssignmentTask && task.assignmentDeadline && (
@@ -163,7 +176,11 @@ export default function EditTaskDialog({
                   {totalSubtasks > 0
                     ? `${totalSubtasks} ${t('tasks.subtasksPill')}`
                     : t('tasks.subtasksPill')}
-                  {subtasksExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  {subtasksExpanded ? (
+                    <ChevronUp className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
                 </Button>
               )}
 
@@ -209,7 +226,9 @@ export default function EditTaskDialog({
                     {task.eval.score} b.
                   </span>
                   <span className="text-xs text-gray-400">
-                    {new Date(task.eval.evaluatedAt).toLocaleDateString(navigator.language ?? 'en-US')}
+                    {new Date(task.eval.evaluatedAt).toLocaleDateString(
+                      navigator.language ?? 'en-US'
+                    )}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
@@ -255,7 +274,10 @@ export default function EditTaskDialog({
 
             {/* Inline subtasks — avoids nested Dialog closing the parent */}
             {!isSubtask && subtasksExpanded && (
-              <div className="pt-3 border-t border-gray-100 dark:border-gray-800 mt-3" onMouseDown={(e) => e.stopPropagation()}>
+              <div
+                className="pt-3 border-t border-gray-100 dark:border-gray-800 mt-3"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
                 <div className="flex gap-2 mb-2">
                   <Input
                     placeholder="Add a subtask..."
@@ -269,17 +291,30 @@ export default function EditTaskDialog({
                     }}
                     className="text-sm"
                   />
-                  <Button type="button" onClick={addNewSub} size="icon" variant="outline" className="flex-shrink-0">
+                  <Button
+                    type="button"
+                    onClick={addNewSub}
+                    size="icon"
+                    variant="outline"
+                    className="flex-shrink-0"
+                  >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {existingSubs.map((sub) => (
-                    <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
-                      <span className="truncate mr-2 text-gray-700 dark:text-gray-300">{sub.title}</span>
+                    <div
+                      key={sub.id}
+                      className="flex items-center justify-between px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
+                    >
+                      <span className="truncate mr-2 text-gray-700 dark:text-gray-300">
+                        {sub.title}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))}
+                        onClick={() =>
+                          setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))
+                        }
                         className="text-gray-400 hover:text-red-500 flex-shrink-0"
                       >
                         <X className="w-4 h-4" />
@@ -287,11 +322,18 @@ export default function EditTaskDialog({
                     </div>
                   ))}
                   {newSubTitles.map((subTitle, i) => (
-                    <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm">
-                      <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">{subTitle}</span>
+                    <div
+                      key={`new-${i}`}
+                      className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-sm"
+                    >
+                      <span className="truncate mr-2 text-indigo-700 dark:text-indigo-300">
+                        {subTitle}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))}
+                        onClick={() =>
+                          setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))
+                        }
                         className="text-gray-400 hover:text-red-500 flex-shrink-0"
                       >
                         <X className="w-4 h-4" />

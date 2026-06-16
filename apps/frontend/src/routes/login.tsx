@@ -88,7 +88,10 @@ function LoginPage() {
           <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
           <p className="text-sm text-gray-700 dark:text-gray-300">
             Not a member?{' '}
-            <Link to="/register" className="underline text-gray-900 dark:text-white font-medium hover:text-gray-600 dark:hover:text-gray-300">
+            <Link
+              to="/register"
+              className="underline text-gray-900 dark:text-white font-medium hover:text-gray-600 dark:hover:text-gray-300"
+            >
               Register
             </Link>
           </p>

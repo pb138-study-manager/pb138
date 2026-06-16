@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Calendar, ClipboardCheck, Users, ArrowUp, Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
@@ -177,7 +182,11 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem
-                    onClick={() => { setSendTo('class'); setSelectedStudent(null); setStudentQuery(''); }}
+                    onClick={() => {
+                      setSendTo('class');
+                      setSelectedStudent(null);
+                      setStudentQuery('');
+                    }}
                     className="flex items-center justify-between gap-4"
                   >
                     Whole class
@@ -204,11 +213,16 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                       <span className="flex-1 text-indigo-700 dark:text-indigo-300 font-medium truncate">
                         {selectedStudent.name ?? selectedStudent.email}
                         {selectedStudent.name && (
-                          <span className="text-indigo-400 dark:text-indigo-500 ml-1 text-xs">{selectedStudent.email}</span>
+                          <span className="text-indigo-400 dark:text-indigo-500 ml-1 text-xs">
+                            {selectedStudent.email}
+                          </span>
                         )}
                       </span>
                       <button
-                        onClick={() => { setSelectedStudent(null); setStudentQuery(''); }}
+                        onClick={() => {
+                          setSelectedStudent(null);
+                          setStudentQuery('');
+                        }}
                         className="text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 flex-shrink-0"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -228,11 +242,20 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
                           {studentResults.map((u) => (
                             <button
                               key={u.id}
-                              onClick={() => { setSelectedStudent(u); setStudentQuery(''); }}
+                              onClick={() => {
+                                setSelectedStudent(u);
+                                setStudentQuery('');
+                              }}
                               className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm"
                             >
-                              <span className="font-medium text-gray-900 dark:text-white">{u.name ?? u.email}</span>
-                              {u.name && <span className="text-gray-400 dark:text-gray-500 ml-2 text-xs">{u.email}</span>}
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {u.name ?? u.email}
+                              </span>
+                              {u.name && (
+                                <span className="text-gray-400 dark:text-gray-500 ml-2 text-xs">
+                                  {u.email}
+                                </span>
+                              )}
                             </button>
                           ))}
                         </div>

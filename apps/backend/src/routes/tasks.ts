@@ -91,13 +91,16 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
       assignmentDeadline: task.assignmentDeadline?.toISOString() ?? null,
       subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
       doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
-      eval: evalId != null ? {
-        id: evalId,
-        taskId: task.id,
-        score: evalScore!,
-        feedback: evalFeedback!,
-        evaluatedAt: evalEvaluatedAt!.toISOString(),
-      } : null,
+      eval:
+        evalId != null
+          ? {
+              id: evalId,
+              taskId: task.id,
+              score: evalScore!,
+              feedback: evalFeedback!,
+              evaluatedAt: evalEvaluatedAt!.toISOString(),
+            }
+          : null,
     }));
   })
   .post(

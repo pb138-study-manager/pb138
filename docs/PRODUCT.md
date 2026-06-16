@@ -74,7 +74,8 @@ TEACHER  ⇄
 Domovská stránka. To prvé čo student vidí po prihlásení.
 
 **Čo obsahuje:**
-- Personalizovaný pozdrav: *"Good morning, Peter 👋 — Thursday, May 15 · 3 tasks due today"*
+
+- Personalizovaný pozdrav: _"Good morning, Peter 👋 — Thursday, May 15 · 3 tasks due today"_
 - **Week strip** — 7 dní v rade, dnešok zvýraznený, bodky pod dňami kde sú tasky/eventy
 - **Today's Tasks** — tasky s deadline = dnes, každý s checkboxom (toggle done), badge "DUE TODAY" / "TOMORROW"
 - Teacher-assigned tasky sú označené: `📚 PB138 · From teacher`
@@ -82,6 +83,7 @@ Domovská stránka. To prvé čo student vidí po prihlásení.
 - Tlačidlo `+ Add task for today`
 
 **AI panel** (pravý, default otvorený):
+
 - Overload warning ak je priveľa taskov v týždni
 - Priority nudge pre najdôležitejší task
 - Skrátené zhrnutie notes pre kurz s blížiacim deadlinom
@@ -93,6 +95,7 @@ Domovská stránka. To prvé čo student vidí po prihlásení.
 Kompletný zoznam všetkých taskov používateľa.
 
 **Čo obsahuje:**
+
 - Zoznam taskov (karty) — title, due date, status badge, kurz (ak je priradený)
 - Teacher-assigned tasky označené `📚 [KÓD KURZU] · From teacher`
 - Kliknutie na task → detail s popisom + subtasky + eval (ak existuje)
@@ -108,10 +111,12 @@ Kompletný zoznam všetkých taskov používateľa.
 Zoznam kurzov v ktorých je student zapísaný.
 
 **Čo obsahuje:**
+
 - Karta kurzu: kód (`PB138`), názov, semester, progress bar (`75% · 9/12 tasks done`)
 - Kliknutie → Course detail
 
 **Course detail** (single scroll page, nie taby):
+
 - **Header** — gradient podľa farby kurzu, kód + názov, rozvrh (`Mon 10:00 lecture · Thu 14:00 seminar`), meno učiteľa, progress bar + percento
 - **Tasks sekcia** — tasky priradené k tomuto kurzu (aj teacher-assigned)
 - **Study Materials sekcia** — linky/súbory zdieľané učiteľom (title, URL/link, popis)
@@ -124,6 +129,7 @@ Zoznam kurzov v ktorých je student zapísaný.
 Osobné poznámky s priečinkami.
 
 **Čo obsahuje:**
+
 - Ľavý panel: zoznam priečinkov + tlačidlo `+ New folder`
 - Pravý panel: zoznam notes v aktívnom priečinku
 - Kliknutie na note → detail/edit (title + rich text / markdown description)
@@ -137,6 +143,7 @@ Osobné poznámky s priečinkami.
 Kalendárový/chronologický pohľad na eventy a deadliny.
 
 **Čo obsahuje:**
+
 - Zoznam nadchádzajúcich eventov (title, dátum, čas, miesto)
 - Deadliny z kurzov sú viditeľné tu tiež
 - Tlačidlo `+ New event` → modal (title, start date/time, end date/time, miesto, popis)
@@ -147,10 +154,12 @@ Kalendárový/chronologický pohľad na eventy a deadliny.
 ### 👤 Profile / Settings
 
 **Profile tab:**
+
 - Avatar (URL), meno, titul, organizácia, bio
 - Formulár na zmenu
 
 **Settings tab:**
+
 - Prepínač Dark / Light mode (ukladá sa do DB + aplikuje okamžite)
 - Prepínač jazyka EN / CS (ukladá sa do localStorage)
 - Prepínač notifikácií (zapnúť/vypnúť)
@@ -164,6 +173,7 @@ Kalendárový/chronologický pohľad na eventy a deadliny.
 Domovská stránka učiteľa po prepnutí na teacher view.
 
 **Čo obsahuje:**
+
 - Karta kurzu: kód, názov, počet zapísaných, rozvrh, badge `N pending evals`
 - Stav kurzu: Active / Archived
 - Tlačidlo `+ Create new course` → modal (kód, názov, semester, farba, rozvrh prednášky, rozvrh seminára)
@@ -173,12 +183,14 @@ Domovská stránka učiteľa po prepnutí na teacher view.
 ### 📋 Assignments
 
 **Čo obsahuje:**
+
 - Zoznam assignmentov pre každý kurz
 - Vytvorenie assignment: `POST /groups/:id/assignments` — automaticky vytvorí task pre každého zapísaného študenta v kurze
 - Task sa objaví v zozname taskov každého študenta s tagom `📚 [KÓD] · From teacher`
 - Sledovanie stavu: koľko % študentov má task ako DONE
 
 **Vytvorenie assignment:**
+
 - Výber kurzu
 - Title + popis + due date
 - Publish → task sa vytvorí pre každého zapísaného
@@ -188,6 +200,7 @@ Domovská stránka učiteľa po prepnutí na teacher view.
 ### 📊 Evaluations
 
 **Čo obsahuje:**
+
 - Zoznam taskov kde `status = DONE` alebo je po deadline — bez hodnotenia
 - Kliknutie → eval formulár: score (0–100) + textový feedback
 - Po odovzdaní hodnotenia → student dostane notifikáciu
@@ -198,6 +211,7 @@ Domovská stránka učiteľa po prepnutí na teacher view.
 ### 📦 Study Materials
 
 **Čo obsahuje:**
+
 - Zoznam materiálov per kurz
 - Pridanie materiálu: title + URL (externý link) + voliteľný popis
 - Odstránenie (soft delete)
@@ -208,6 +222,7 @@ Domovská stránka učiteľa po prepnutí na teacher view.
 ### 👥 Students
 
 **Čo obsahuje:**
+
 - Per kurz: zoznam zapísaných študentov (meno, email)
 - Enroll: vyhľadávanie používateľov podľa mena/emailu + pridanie do kurzu
 - Remove: odobratie zo kurzu
@@ -225,21 +240,22 @@ Pravý panel — collapsible na desktope, tab na mobile. Dostupný na všetkých
 
 Panel zobrazuje kontextuálne karty bez toho aby sa pýtal:
 
-| Typ karty | Popis |
-|---|---|
+| Typ karty           | Popis                                                              |
+| ------------------- | ------------------------------------------------------------------ |
 | ⚠️ Overload warning | "5 taskov + 2 skúšky tento týždeň — začni s PB138 projektom teraz" |
-| 📌 Priority nudge | "PB138 Project 2 — deadline za 3 dni, stále TODO" |
-| ✅ Progress | "8 taskov hotových tento týždeň — o 60% viac ako minulý" |
-| 📝 Note summary | "Tvoje PB138 notes pokrývajú REST, auth, Drizzle ORM" |
+| 📌 Priority nudge   | "PB138 Project 2 — deadline za 3 dni, stále TODO"                  |
+| ✅ Progress         | "8 taskov hotových tento týždeň — o 60% viac ako minulý"           |
+| 📝 Note summary     | "Tvoje PB138 notes pokrývajú REST, auth, Drizzle ORM"              |
 
 Každá karta má akčné tlačidlá (napr. "Generate plan", "Reschedule").
 
 **② Chat**
 
 Plnohodnotný chat. Študent sa pýta čokoľvek:
-- *"Čo by som mal dnes študovať?"*
-- *"Zhrň moje PB138 notes"*
-- *"Som na dobrej ceste tento týždeň?"*
+
+- _"Čo by som mal dnes študovať?"_
+- _"Zhrň moje PB138 notes"_
+- _"Som na dobrej ceste tento týždeň?"_
 
 AI odpovedá s kontextom z reálnych dát používateľa (tasky, deadliny, notes).
 
@@ -250,6 +266,7 @@ Tlačidlo v paneli alebo cez chat. AI prečíta všetky tasky + eventy na nasled
 ### AI pre učiteľa
 
 Na teacher view zobrazuje panel **AI Insights** (nie copilot):
+
 - "4 študenti v PB138 neodovzdali minulotýždňový task"
 - "Títo študenti majú najviac oneskorených taskov: ..."
 - Tlačidlo "Draft assignment description with AI"
@@ -257,6 +274,7 @@ Na teacher view zobrazuje panel **AI Insights** (nie copilot):
 ### Čo AI vie (a čo nie)
 
 **Vie:**
+
 - Tvoje tasky + deadliny + stav
 - Kurzy v ktorých si zapísaný
 - Obsah tvojich notes
@@ -264,6 +282,7 @@ Na teacher view zobrazuje panel **AI Insights** (nie copilot):
 - Timeline eventy
 
 **Nevie (privacy):**
+
 - Notes jedného študenta nie sú viditeľné inému
 - Učiteľ vidí cez AI iba agregované/anonymizované štatistiky — nikdy osobné dáta konkrétneho študenta
 
@@ -279,12 +298,12 @@ Na teacher view zobrazuje panel **AI Insights** (nie copilot):
 
 ### Typy notifikácií
 
-| Typ | Komu | Kedy |
-|---|---|---|
-| `ASSIGNMENT_CREATED` | Študent | Učiteľ vytvorí nový assignment v kurze |
-| `MATERIAL_ADDED` | Študent | Učiteľ pridá study material do kurzu |
-| `TASK_EVALUATED` | Študent | Učiteľ ohodnotí task (score + feedback) |
-| `GROUP_INVITE` | Používateľ | Pridanie do skupiny |
+| Typ                  | Komu       | Kedy                                    |
+| -------------------- | ---------- | --------------------------------------- |
+| `ASSIGNMENT_CREATED` | Študent    | Učiteľ vytvorí nový assignment v kurze  |
+| `MATERIAL_ADDED`     | Študent    | Učiteľ pridá study material do kurzu    |
+| `TASK_EVALUATED`     | Študent    | Učiteľ ohodnotí task (score + feedback) |
+| `GROUP_INVITE`       | Používateľ | Pridanie do skupiny                     |
 
 ---
 
@@ -301,12 +320,12 @@ Na teacher view zobrazuje panel **AI Insights** (nie copilot):
 
 Prístupný iba pre rolu ADMIN. Sekcie:
 
-| Stránka | Čo obsahuje |
-|---|---|
-| Users | Tabuľka všetkých používateľov, edit, deaktivácia (soft delete) |
-| Roles | Pridelenie/odobratie role konkrétnemu používateľovi |
+| Stránka    | Čo obsahuje                                                                        |
+| ---------- | ---------------------------------------------------------------------------------- |
+| Users      | Tabuľka všetkých používateľov, edit, deaktivácia (soft delete)                     |
+| Roles      | Pridelenie/odobratie role konkrétnemu používateľovi                                |
 | Audit Logs | Chronologický zoznam všetkých mutácií v systéme, filter podľa používateľa a dátumu |
-| Settings | Globálne nastavenia systému |
+| Settings   | Globálne nastavenia systému                                                        |
 
 ---
 

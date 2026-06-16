@@ -114,7 +114,10 @@ export function AdminLogsView() {
                   adminLogs.map((row) => {
                     const isAdminAction = row.description.startsWith('Admin ');
                     return (
-                      <tr key={row.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                      <tr
+                        key={row.id}
+                        className="border-b border-gray-100 dark:border-gray-800 last:border-0"
+                      >
                         <td className="py-2 pr-4 align-top text-gray-600 dark:text-gray-400 whitespace-nowrap">
                           {new Date(row.happenedAt).toLocaleString()}
                         </td>

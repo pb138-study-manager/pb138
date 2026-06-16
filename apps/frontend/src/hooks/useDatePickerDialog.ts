@@ -31,7 +31,9 @@ export function useDatePickerDialog({
 
     if (currentDate) {
       const d = new Date(currentDate);
-      setTime(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
+      setTime(
+        `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+      );
     }
 
     if (currentDate && currentEndDate) {

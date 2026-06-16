@@ -15,6 +15,7 @@ The backend currently uses Elysia's native TypeBox (`t.Object()`) for request bo
 ## Goal
 
 Replace all `t.Object()` body validation with Zod schemas while preserving:
+
 - Full TypeScript inference on `body` inside route handlers
 - Runtime 400 validation on bad requests
 - Consistent error response format
@@ -71,17 +72,17 @@ Consistent with the existing error shape used across all routes (`{ error, messa
 
 ## Scope of Changes
 
-| File | Change |
-|---|---|
-| `apps/backend/src/lib/validation.ts` | **New** — `zodBody()` helper |
-| `apps/backend/src/routes/tasks.ts` | Replace `t.Object()` with Zod schemas + `zodBody()` |
-| `apps/backend/src/routes/events.ts` | Same |
-| `apps/backend/src/routes/notes.ts` | Same |
-| `apps/backend/src/routes/folders.ts` | Same |
-| `apps/backend/src/routes/groups.ts` | Same |
-| `apps/backend/src/routes/users.ts` | Same |
-| `apps/backend/src/routes/courses.ts` | Same |
-| `apps/backend/package.json` | Add `zod` dependency |
+| File                                 | Change                                              |
+| ------------------------------------ | --------------------------------------------------- |
+| `apps/backend/src/lib/validation.ts` | **New** — `zodBody()` helper                        |
+| `apps/backend/src/routes/tasks.ts`   | Replace `t.Object()` with Zod schemas + `zodBody()` |
+| `apps/backend/src/routes/events.ts`  | Same                                                |
+| `apps/backend/src/routes/notes.ts`   | Same                                                |
+| `apps/backend/src/routes/folders.ts` | Same                                                |
+| `apps/backend/src/routes/groups.ts`  | Same                                                |
+| `apps/backend/src/routes/users.ts`   | Same                                                |
+| `apps/backend/src/routes/courses.ts` | Same                                                |
+| `apps/backend/package.json`          | Add `zod` dependency                                |
 
 `auth.ts` — excluded (no body validation needed).  
 `admin.ts` — excluded (not yet implemented).
@@ -114,12 +115,12 @@ const UpdateTaskSchema = z.object({
 
 ## Where Zod Adds Real Value Over TypeBox
 
-| Scenario | Before | After |
-|---|---|---|
-| Cross-field check (`startDate ≤ endDate`) | Manual if-check inside handler | `.refine()` on schema |
-| Email / regex format | Manual check | `z.string().email()`, `.regex()` |
-| Reusing shapes | Copy-paste | `.extend()`, `.pick()`, `.omit()` |
-| TypeScript inference outside routes | Not possible | `z.infer<typeof Schema>` anywhere |
+| Scenario                                  | Before                         | After                             |
+| ----------------------------------------- | ------------------------------ | --------------------------------- |
+| Cross-field check (`startDate ≤ endDate`) | Manual if-check inside handler | `.refine()` on schema             |
+| Email / regex format                      | Manual check                   | `z.string().email()`, `.regex()`  |
+| Reusing shapes                            | Copy-paste                     | `.extend()`, `.pick()`, `.omit()` |
+| TypeScript inference outside routes       | Not possible                   | `z.infer<typeof Schema>` anywhere |
 
 ---
 

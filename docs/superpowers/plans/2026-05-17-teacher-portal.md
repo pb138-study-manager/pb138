@@ -12,17 +12,17 @@
 
 ## File Map
 
-| File | Action | What changes |
-|---|---|---|
-| `apps/backend/src/routes/courses.ts` | Modify | Add 2 new GET endpoints |
-| `apps/backend/src/routes/courses.test.ts` | Modify | Tests for the 2 new endpoints |
-| `apps/frontend/src/components/ui/sidebar.tsx` | Modify | Teacher nav → My Classes + Profile only |
-| `apps/frontend/src/components/ui/bottom-nav.tsx` | Modify | Teacher bottom nav → Classes + Profile only |
-| `apps/frontend/src/routes/courses/index.tsx` | Modify | `shadow-sm` → `shadow-md` on cards |
-| `apps/frontend/src/routes/courses/$courseId.tsx` | Modify | Role-aware tabs + teacher tab content |
-| `apps/frontend/src/routes/teachers/assignments.tsx` | Delete | Replaced by course detail tab |
-| `apps/frontend/src/routes/teachers/materials.tsx` | Delete | Replaced by course detail tab |
-| `apps/frontend/src/routes/teachers/students.tsx` | Delete | Replaced by course detail tab |
+| File                                                | Action | What changes                                |
+| --------------------------------------------------- | ------ | ------------------------------------------- |
+| `apps/backend/src/routes/courses.ts`                | Modify | Add 2 new GET endpoints                     |
+| `apps/backend/src/routes/courses.test.ts`           | Modify | Tests for the 2 new endpoints               |
+| `apps/frontend/src/components/ui/sidebar.tsx`       | Modify | Teacher nav → My Classes + Profile only     |
+| `apps/frontend/src/components/ui/bottom-nav.tsx`    | Modify | Teacher bottom nav → Classes + Profile only |
+| `apps/frontend/src/routes/courses/index.tsx`        | Modify | `shadow-sm` → `shadow-md` on cards          |
+| `apps/frontend/src/routes/courses/$courseId.tsx`    | Modify | Role-aware tabs + teacher tab content       |
+| `apps/frontend/src/routes/teachers/assignments.tsx` | Delete | Replaced by course detail tab               |
+| `apps/frontend/src/routes/teachers/materials.tsx`   | Delete | Replaced by course detail tab               |
+| `apps/frontend/src/routes/teachers/students.tsx`    | Delete | Replaced by course detail tab               |
 
 ---
 
@@ -31,6 +31,7 @@
 Returns all assignments for a course with done/total student counts. TEACHER role required.
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -100,8 +101,18 @@ describe('GET /courses/:id/assignments', () => {
 ```
 
 You also need to add `assignments` to the imports at the top of the test file:
+
 ```typescript
-import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments } from '../db/schema';
+import {
+  courses,
+  userCourses,
+  users,
+  userRoles,
+  roles,
+  auditLogs,
+  tasks,
+  assignments,
+} from '../db/schema';
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -117,11 +128,13 @@ Expected: FAIL — route does not exist yet (404 or handler missing).
 Add the following to `apps/backend/src/routes/courses.ts`. Place it after the existing `GET /:id/progress` handler and before `POST /:id/assignments`.
 
 First add `sql` to the drizzle-orm import if not present:
+
 ```typescript
 import { and, count, eq, isNull, isNotNull, sql } from 'drizzle-orm';
 ```
 
 Add the endpoint:
+
 ```typescript
   .get('/:id/assignments', async ({ params, user, set }) => {
     if (!(user as AuthUser).roles.includes('TEACHER')) {
@@ -157,6 +170,7 @@ Add the endpoint:
 ```
 
 Also ensure `assignments` and `tasks` are imported from schema at the top of `courses.ts`:
+
 ```typescript
 import { assignments, courses, tasks, userCourses, users, userProfiles } from '../db/schema';
 ```
@@ -183,6 +197,7 @@ git commit -m "feat: add GET /courses/:id/assignments for teacher view"
 Returns enrolled students with per-student task completion stats for a course. TEACHER role required.
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -314,6 +329,7 @@ git commit -m "feat: add GET /courses/:id/students for teacher view"
 Teacher sidebar and bottom nav show only My Classes + Profile.
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/ui/sidebar.tsx`
 - Modify: `apps/frontend/src/components/ui/bottom-nav.tsx`
 
@@ -365,6 +381,7 @@ git commit -m "feat: simplify teacher nav to My Classes + Profile"
 Upgrade card shadows on the courses list page.
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/index.tsx`
 
 - [ ] **Step 1: Update card className**
@@ -399,6 +416,7 @@ git commit -m "fix: upgrade course card shadow to shadow-md"
 Role-aware tabs in course detail: teacher sees Assignments | Materials | Students with full content.
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
 - [ ] **Step 1: Add types and imports**
@@ -440,7 +458,9 @@ const { mode } = useRoleMode();
 const isTeacher = mode === 'teacher';
 
 // Teacher-only tab state
-const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students'>('assignments');
+const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students'>(
+  'assignments'
+);
 
 // Teacher queries
 const { data: courseAssignments = [] } = useQuery({
@@ -518,40 +538,44 @@ async function handleAddAssignment() {
 Find the existing tab bar section (the `<div className="flex border-b ...">` with tasks/notes/materials tabs) and replace it with a role-aware version:
 
 ```tsx
-{/* Tab bar */}
-{isTeacher ? (
-  <div className="flex border-b border-gray-200 px-4">
-    {(['assignments', 'materials', 'students'] as const).map((tab) => (
-      <button
-        key={tab}
-        onClick={() => setTeacherTab(tab)}
-        className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-          teacherTab === tab
-            ? 'border-gray-800 text-gray-900'
-            : 'border-transparent text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        {tab}
-      </button>
-    ))}
-  </div>
-) : (
-  <div className="flex border-b border-gray-200 px-4">
-    {(['tasks', 'notes', 'materials'] as const).map((tab) => (
-      <button
-        key={tab}
-        onClick={() => setActiveTab(tab)}
-        className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-          activeTab === tab
-            ? 'border-gray-800 text-gray-900'
-            : 'border-transparent text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        {tab}
-      </button>
-    ))}
-  </div>
-)}
+{
+  /* Tab bar */
+}
+{
+  isTeacher ? (
+    <div className="flex border-b border-gray-200 px-4">
+      {(['assignments', 'materials', 'students'] as const).map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setTeacherTab(tab)}
+          className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
+            teacherTab === tab
+              ? 'border-gray-800 text-gray-900'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <div className="flex border-b border-gray-200 px-4">
+      {(['tasks', 'notes', 'materials'] as const).map((tab) => (
+        <button
+          key={tab}
+          onClick={() => setActiveTab(tab)}
+          className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
+            activeTab === tab
+              ? 'border-gray-800 text-gray-900'
+              : 'border-transparent text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 4: Add teacher tab content**
@@ -559,209 +583,268 @@ Find the existing tab bar section (the `<div className="flex border-b ...">` wit
 After the student tab content blocks (after the closing of the Materials `activeTab === 'materials'` block), add the teacher content. Wrap everything in `{isTeacher && (…)}`:
 
 ```tsx
-{/* Teacher: Assignments tab */}
-{isTeacher && teacherTab === 'assignments' && (
-  <div className="px-4 mt-6 mb-6">
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <ClipboardCheck className="w-5 h-5 text-indigo-500" />
-        <span className="font-semibold text-gray-900">Assignments</span>
-        <span className="text-gray-400 text-sm">{courseAssignments.length}</span>
-      </div>
-      <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowAddAssignment(true)}>
-        <Plus className="w-5 h-5 text-gray-700" />
-      </Button>
-    </div>
-
-    {courseAssignments.length === 0 ? (
-      <p className="text-sm text-gray-400 py-4 text-center">No assignments yet</p>
-    ) : (
-      <div className="space-y-2">
-        {courseAssignments.map((asg) => {
-          const pct = asg.total > 0 ? asg.done / asg.total : 0;
-          const badgeClass = pct >= 0.8
-            ? 'bg-green-100 text-green-800'
-            : pct >= 0.4
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-red-100 text-red-800';
-          return (
-            <div key={asg.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
-              <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                <ClipboardCheck className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{asg.title}</p>
-                <p className="text-xs text-gray-400">
-                  Due {new Date(asg.dueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                </p>
-              </div>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}>
-                {Number(asg.done)}/{Number(asg.total)} done
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    )}
-
-    {showAddAssignment && (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
-        <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">New Assignment</h2>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            placeholder="Title"
-            value={asgTitle}
-            onChange={(e) => setAsgTitle(e.target.value)}
-            autoFocus
-          />
-          <textarea
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none"
-            placeholder="Description (optional)"
-            rows={2}
-            value={asgDesc}
-            onChange={(e) => setAsgDesc(e.target.value)}
-          />
-          <input
-            type="datetime-local"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            value={asgDate}
-            onChange={(e) => setAsgDate(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Button variant="ghost" className="flex-1" onClick={() => setShowAddAssignment(false)}>Cancel</Button>
-            <Button className="flex-1" onClick={handleAddAssignment} disabled={savingAsg || !asgTitle.trim() || !asgDate}>
-              {savingAsg ? 'Saving…' : 'Create'}
-            </Button>
-          </div>
+{
+  /* Teacher: Assignments tab */
+}
+{
+  isTeacher && teacherTab === 'assignments' && (
+    <div className="px-4 mt-6 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="w-5 h-5 text-indigo-500" />
+          <span className="font-semibold text-gray-900">Assignments</span>
+          <span className="text-gray-400 text-sm">{courseAssignments.length}</span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-7 h-7"
+          onClick={() => setShowAddAssignment(true)}
+        >
+          <Plus className="w-5 h-5 text-gray-700" />
+        </Button>
       </div>
-    )}
-  </div>
-)}
 
-{/* Teacher: Materials tab */}
-{isTeacher && teacherTab === 'materials' && (
-  <div className="px-4 mt-6 mb-6">
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-5 h-5 text-indigo-500" />
-        <span className="font-semibold text-gray-900">Study Materials</span>
-        <span className="text-gray-400 text-sm">{materials.length}</span>
-      </div>
-      <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowAddMaterial(true)}>
-        <Plus className="w-5 h-5 text-gray-700" />
-      </Button>
-    </div>
-
-    {materials.length === 0 ? (
-      <p className="text-sm text-gray-400 py-4 text-center">No materials yet</p>
-    ) : (
-      <div className="space-y-2">
-        {materials.map((material) => (
-          <div key={material.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
-            <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{material.title}</p>
-              {material.description && (
-                <p className="text-xs text-gray-400 mt-0.5 truncate">{material.description}</p>
-              )}
-            </div>
-            <button
-              onClick={() => handleDeleteMaterial(material.id)}
-              className="text-gray-300 hover:text-red-400 transition-colors p-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-    )}
-
-    {showAddMaterial && (
-      <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
-        <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">Add Material</h2>
-          <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            placeholder="Title"
-            value={matTitle}
-            onChange={(e) => setMatTitle(e.target.value)}
-            autoFocus
-          />
-          <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            placeholder="URL (optional)"
-            value={matUrl}
-            onChange={(e) => setMatUrl(e.target.value)}
-          />
-          <input
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-            placeholder="Description (optional)"
-            value={matDesc}
-            onChange={(e) => setMatDesc(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <Button variant="ghost" className="flex-1" onClick={() => setShowAddMaterial(false)}>Cancel</Button>
-            <Button className="flex-1" onClick={handleAddMaterial} disabled={savingMat || !matTitle.trim()}>
-              {savingMat ? 'Saving…' : 'Add'}
-            </Button>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-)}
-
-{/* Teacher: Students tab */}
-{isTeacher && teacherTab === 'students' && (
-  <div className="px-4 mt-6 mb-6">
-    <div className="flex items-center gap-2 mb-3">
-      <Users className="w-5 h-5 text-indigo-500" />
-      <span className="font-semibold text-gray-900">Students</span>
-      <span className="text-gray-400 text-sm">{courseStudents.length}</span>
-    </div>
-
-    {courseStudents.length === 0 ? (
-      <p className="text-sm text-gray-400 py-4 text-center">No students enrolled</p>
-    ) : (
-      <div className="space-y-2">
-        {courseStudents.map((student) => {
-          const initials = (student.name ?? student.email)
-            .split(' ')
-            .map((w: string) => w[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
-          const pct = Number(student.total) > 0 ? Number(student.done) / Number(student.total) : 0;
-          const badgeClass = pct >= 0.8
-            ? 'bg-green-100 text-green-800'
-            : pct >= 0.4
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-red-100 text-red-800';
-          return (
-            <div key={student.id} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md">
-              {student.avatar ? (
-                <img src={student.avatar} className="w-9 h-9 rounded-full object-cover shrink-0" />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-indigo-600">{initials}</span>
+      {courseAssignments.length === 0 ? (
+        <p className="text-sm text-gray-400 py-4 text-center">No assignments yet</p>
+      ) : (
+        <div className="space-y-2">
+          {courseAssignments.map((asg) => {
+            const pct = asg.total > 0 ? asg.done / asg.total : 0;
+            const badgeClass =
+              pct >= 0.8
+                ? 'bg-green-100 text-green-800'
+                : pct >= 0.4
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-red-100 text-red-800';
+            return (
+              <div
+                key={asg.id}
+                className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+              >
+                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                  <ClipboardCheck className="w-4 h-4 text-blue-600" />
                 </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{student.name ?? student.email}</p>
-                <p className="text-xs text-gray-400 truncate">{student.email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{asg.title}</p>
+                  <p className="text-xs text-gray-400">
+                    Due{' '}
+                    {new Date(asg.dueDate).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}>
+                  {Number(asg.done)}/{Number(asg.total)} done
+                </span>
               </div>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}>
-                {Number(student.done)}/{Number(student.total)} done
-              </span>
+            );
+          })}
+        </div>
+      )}
+
+      {showAddAssignment && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
+            <h2 className="text-base font-semibold text-gray-900">New Assignment</h2>
+            <input
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              placeholder="Title"
+              value={asgTitle}
+              onChange={(e) => setAsgTitle(e.target.value)}
+              autoFocus
+            />
+            <textarea
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none"
+              placeholder="Description (optional)"
+              rows={2}
+              value={asgDesc}
+              onChange={(e) => setAsgDesc(e.target.value)}
+            />
+            <input
+              type="datetime-local"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              value={asgDate}
+              onChange={(e) => setAsgDate(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setShowAddAssignment(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleAddAssignment}
+                disabled={savingAsg || !asgTitle.trim() || !asgDate}
+              >
+                {savingAsg ? 'Saving…' : 'Create'}
+              </Button>
             </div>
-          );
-        })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+{
+  /* Teacher: Materials tab */
+}
+{
+  isTeacher && teacherTab === 'materials' && (
+    <div className="px-4 mt-6 mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-indigo-500" />
+          <span className="font-semibold text-gray-900">Study Materials</span>
+          <span className="text-gray-400 text-sm">{materials.length}</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-7 h-7"
+          onClick={() => setShowAddMaterial(true)}
+        >
+          <Plus className="w-5 h-5 text-gray-700" />
+        </Button>
       </div>
-    )}
-  </div>
-)}
+
+      {materials.length === 0 ? (
+        <p className="text-sm text-gray-400 py-4 text-center">No materials yet</p>
+      ) : (
+        <div className="space-y-2">
+          {materials.map((material) => (
+            <div
+              key={material.id}
+              className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+            >
+              <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{material.title}</p>
+                {material.description && (
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">{material.description}</p>
+                )}
+              </div>
+              <button
+                onClick={() => handleDeleteMaterial(material.id)}
+                className="text-gray-300 hover:text-red-400 transition-colors p-1"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showAddMaterial && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
+          <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
+            <h2 className="text-base font-semibold text-gray-900">Add Material</h2>
+            <input
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              placeholder="Title"
+              value={matTitle}
+              onChange={(e) => setMatTitle(e.target.value)}
+              autoFocus
+            />
+            <input
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              placeholder="URL (optional)"
+              value={matUrl}
+              onChange={(e) => setMatUrl(e.target.value)}
+            />
+            <input
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              placeholder="Description (optional)"
+              value={matDesc}
+              onChange={(e) => setMatDesc(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button variant="ghost" className="flex-1" onClick={() => setShowAddMaterial(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleAddMaterial}
+                disabled={savingMat || !matTitle.trim()}
+              >
+                {savingMat ? 'Saving…' : 'Add'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+{
+  /* Teacher: Students tab */
+}
+{
+  isTeacher && teacherTab === 'students' && (
+    <div className="px-4 mt-6 mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Users className="w-5 h-5 text-indigo-500" />
+        <span className="font-semibold text-gray-900">Students</span>
+        <span className="text-gray-400 text-sm">{courseStudents.length}</span>
+      </div>
+
+      {courseStudents.length === 0 ? (
+        <p className="text-sm text-gray-400 py-4 text-center">No students enrolled</p>
+      ) : (
+        <div className="space-y-2">
+          {courseStudents.map((student) => {
+            const initials = (student.name ?? student.email)
+              .split(' ')
+              .map((w: string) => w[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase();
+            const pct =
+              Number(student.total) > 0 ? Number(student.done) / Number(student.total) : 0;
+            const badgeClass =
+              pct >= 0.8
+                ? 'bg-green-100 text-green-800'
+                : pct >= 0.4
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-red-100 text-red-800';
+            return (
+              <div
+                key={student.id}
+                className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-md"
+              >
+                {student.avatar ? (
+                  <img
+                    src={student.avatar}
+                    className="w-9 h-9 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-indigo-600">{initials}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {student.name ?? student.email}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">{student.email}</p>
+                </div>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${badgeClass}`}>
+                  {Number(student.done)}/{Number(student.total)} done
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 5: Add missing imports to $courseId.tsx**
@@ -769,7 +852,15 @@ After the student tab content blocks (after the closing of the Materials `active
 Add `Trash2` and `ClipboardCheck` to the lucide-react import if not present:
 
 ```typescript
-import { ChevronLeft, Plus, CheckSquare, BookOpen, Users, ClipboardCheck, Trash2 } from 'lucide-react';
+import {
+  ChevronLeft,
+  Plus,
+  CheckSquare,
+  BookOpen,
+  Users,
+  ClipboardCheck,
+  Trash2,
+} from 'lucide-react';
 ```
 
 - [ ] **Step 6: Also update the student tab active style**
@@ -803,6 +894,7 @@ git commit -m "feat: teacher course detail with Assignments, Materials, Students
 Remove the three shell pages that are no longer needed.
 
 **Files:**
+
 - Delete: `apps/frontend/src/routes/teachers/assignments.tsx`
 - Delete: `apps/frontend/src/routes/teachers/materials.tsx`
 - Delete: `apps/frontend/src/routes/teachers/students.tsx`
@@ -847,6 +939,7 @@ git commit -m "feat: remove obsolete teacher sub-pages (content moved to course 
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Teacher nav → My Classes + Profile (Task 3)
 - ✅ Course list shadow (Task 4)
 - ✅ Course detail role-aware tabs (Task 5)
@@ -861,6 +954,7 @@ git commit -m "feat: remove obsolete teacher sub-pages (content moved to course 
 **Placeholder scan:** No TBDs, no vague steps, all code blocks complete.
 
 **Type consistency:**
+
 - `CourseAssignment` defined in Task 5 Step 1, used in Step 2 and Step 4 ✅
 - `CourseStudent` defined in Task 5 Step 1, used in Step 2 and Step 4 ✅
 - `handleDeleteMaterial(materialId)` defined in Step 2, called in Step 4 ✅

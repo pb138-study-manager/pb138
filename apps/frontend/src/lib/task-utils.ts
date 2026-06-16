@@ -35,8 +35,14 @@ export function splitTasks(tasks: Task[]) {
   const done: Task[] = [];
 
   for (const task of tasks) {
-    if (task.status === 'DONE') { done.push(task); continue; }
-    if (!task.dueDate) { later.push(task); continue; }
+    if (task.status === 'DONE') {
+      done.push(task);
+      continue;
+    }
+    if (!task.dueDate) {
+      later.push(task);
+      continue;
+    }
     const due = new Date(task.dueDate);
     if (due < todayStart) overdue.push(task);
     else if (due <= todayEnd) today.push(task);

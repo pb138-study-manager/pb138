@@ -9,10 +9,7 @@ export const Route = createFileRoute('/admin/users')({
 function AdminUsersPage() {
   return (
     <div>
-      <AdminPageHeader
-        title="Users"
-        description="Manage accounts, roles, and access."
-      />
+      <AdminPageHeader title="Users" description="Manage accounts, roles, and access." />
       <AdminUsersManager />
     </div>
   );

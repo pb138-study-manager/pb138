@@ -12,25 +12,26 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `apps/backend/src/db/schema.ts` | Add `taskPriorityEnum`, `priority` + `tags` columns to `tasks` |
-| `apps/backend/src/routes/tasks.ts` | Add `priority` + `tags` to `CreateTaskSchema`, `UpdateTaskSchema`, INSERT, PATCH |
-| `apps/frontend/src/types/index.ts` | Add `priority` + `tags` to `Task` interface |
-| `apps/frontend/src/locales/en.json` | Add 6 priority/tags keys |
-| `apps/frontend/src/locales/cs.json` | Same in Czech |
-| `apps/frontend/src/components/tasks/new-tasks-dialog.tsx` | Working priority + tags pill UI; updated `onSubmit` prop type |
-| `apps/frontend/src/components/tasks/edit-task-dialog.tsx` | Same UI pre-populated; updated `onSave` prop type |
-| `apps/frontend/src/components/tasks/tasks-card.tsx` | Show priority badge + tag chips; updated `EditData` type |
-| `apps/frontend/src/components/tasks/tasks-section.tsx` | Updated `onTaskCreated` prop type |
-| `apps/frontend/src/hooks/useTasksManager.ts` | Pass `priority` + `tags` in `handleCreate` + `handleEditFull` |
-| `apps/frontend/src/hooks/useTodayManager.ts` | Pass `priority` + `tags` in `handleCreate` |
+| File                                                      | Change                                                                           |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `apps/backend/src/db/schema.ts`                           | Add `taskPriorityEnum`, `priority` + `tags` columns to `tasks`                   |
+| `apps/backend/src/routes/tasks.ts`                        | Add `priority` + `tags` to `CreateTaskSchema`, `UpdateTaskSchema`, INSERT, PATCH |
+| `apps/frontend/src/types/index.ts`                        | Add `priority` + `tags` to `Task` interface                                      |
+| `apps/frontend/src/locales/en.json`                       | Add 6 priority/tags keys                                                         |
+| `apps/frontend/src/locales/cs.json`                       | Same in Czech                                                                    |
+| `apps/frontend/src/components/tasks/new-tasks-dialog.tsx` | Working priority + tags pill UI; updated `onSubmit` prop type                    |
+| `apps/frontend/src/components/tasks/edit-task-dialog.tsx` | Same UI pre-populated; updated `onSave` prop type                                |
+| `apps/frontend/src/components/tasks/tasks-card.tsx`       | Show priority badge + tag chips; updated `EditData` type                         |
+| `apps/frontend/src/components/tasks/tasks-section.tsx`    | Updated `onTaskCreated` prop type                                                |
+| `apps/frontend/src/hooks/useTasksManager.ts`              | Pass `priority` + `tags` in `handleCreate` + `handleEditFull`                    |
+| `apps/frontend/src/hooks/useTodayManager.ts`              | Pass `priority` + `tags` in `handleCreate`                                       |
 
 ---
 
 ### Task 1: Backend schema — add priority enum and columns
 
 **Files:**
+
 - Modify: `apps/backend/src/db/schema.ts`
 
 - [ ] **Step 1: Add the enum and columns**
@@ -89,6 +90,7 @@ git commit -m "feat: add priority enum and tags array columns to tasks schema"
 ### Task 2: Backend API — accept and return priority + tags
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 
 - [ ] **Step 1: Update CreateTaskSchema**
@@ -163,22 +165,21 @@ In the `PATCH /:id` handler, update `.set(...)` (currently lines 174–182):
 The `GET /` handler uses `db.select({...})` with explicit columns (lines 43–56). Add `priority` and `tags` to the select object:
 
 ```typescript
-const parentTasks = await db
-  .select({
-    id: tasks.id,
-    userId: tasks.userId,
-    assignmentId: tasks.assignmentId,
-    courseId: tasks.courseId,
-    parentId: tasks.parentId,
-    title: tasks.title,
-    description: tasks.description,
-    dueDate: tasks.dueDate,
-    status: tasks.status,
-    priority: tasks.priority,
-    tags: tasks.tags,
-    deletedAt: tasks.deletedAt,
-    assignmentDeadline: assignments.dueDate,
-  })
+const parentTasks = await db.select({
+  id: tasks.id,
+  userId: tasks.userId,
+  assignmentId: tasks.assignmentId,
+  courseId: tasks.courseId,
+  parentId: tasks.parentId,
+  title: tasks.title,
+  description: tasks.description,
+  dueDate: tasks.dueDate,
+  status: tasks.status,
+  priority: tasks.priority,
+  tags: tasks.tags,
+  deletedAt: tasks.deletedAt,
+  assignmentDeadline: assignments.dueDate,
+});
 ```
 
 - [ ] **Step 6: Commit**
@@ -193,6 +194,7 @@ git commit -m "feat: accept and return priority and tags in tasks API"
 ### Task 3: Frontend types — add priority and tags to Task
 
 **Files:**
+
 - Modify: `apps/frontend/src/types/index.ts`
 
 - [ ] **Step 1: Update Task interface**
@@ -233,6 +235,7 @@ git commit -m "feat: add priority and tags fields to Task type"
 ### Task 4: i18n — add priority and tags translation keys
 
 **Files:**
+
 - Modify: `apps/frontend/src/locales/en.json`
 - Modify: `apps/frontend/src/locales/cs.json`
 
@@ -274,6 +277,7 @@ git commit -m "feat: add i18n keys for priority and tags"
 ### Task 5: NewTaskDialog — working priority + tags pills
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/new-tasks-dialog.tsx`
 
 - [ ] **Step 1: Add state and update onSubmit type**
@@ -284,7 +288,12 @@ Replace the entire file with the following (imports, state, logic, JSX):
 import { useState, useEffect, useRef } from 'react';
 import { Calendar, Tag, Flag, BookOpen, ListChecks, ArrowUp, Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
@@ -292,7 +301,11 @@ import SubtasksDialog from '@/components/tasks/subtasks-dialog';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 
-interface Course { id: number; code: string; name: string | null; }
+interface Course {
+  id: number;
+  code: string;
+  name: string | null;
+}
 
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
 
@@ -339,7 +352,10 @@ export default function NewTaskDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    api.get<Course[]>('/courses/enrolled').then(setCourses).catch(() => {});
+    api
+      .get<Course[]>('/courses/enrolled')
+      .then(setCourses)
+      .catch(() => {});
   }, [isOpen]);
 
   useEffect(() => {
@@ -426,7 +442,9 @@ export default function NewTaskDialog({
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  selectedDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -437,7 +455,9 @@ export default function NewTaskDialog({
               <button
                 onClick={() => setTagInputOpen((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  tags.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  tags.length > 0
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" />
@@ -457,18 +477,24 @@ export default function NewTaskDialog({
               <button
                 onClick={() => setIsSubtasksOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  subtasks.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  subtasks.length > 0
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <ListChecks className="w-3.5 h-3.5" />
-                {subtasks.length > 0 ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}` : 'Subtasks'}
+                {subtasks.length > 0
+                  ? `${subtasks.length} Subtask${subtasks.length > 1 ? 's' : ''}`
+                  : 'Subtasks'}
               </button>
 
               {/* Course dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    selectedCourse ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    selectedCourse
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -485,7 +511,9 @@ export default function NewTaskDialog({
                         className="flex items-center justify-between gap-4"
                       >
                         {c.code}
-                        {selectedCourse?.id === c.id && <Check className="w-4 h-4 text-indigo-500" />}
+                        {selectedCourse?.id === c.id && (
+                          <Check className="w-4 h-4 text-indigo-500" />
+                        )}
                       </DropdownMenuItem>
                     ))
                   )}
@@ -567,6 +595,7 @@ git commit -m "feat: working priority and tags pills in NewTaskDialog"
 ### Task 6: Wire priority + tags through hooks and TaskSection
 
 **Files:**
+
 - Modify: `apps/frontend/src/hooks/useTasksManager.ts`
 - Modify: `apps/frontend/src/hooks/useTodayManager.ts`
 - Modify: `apps/frontend/src/components/tasks/tasks-section.tsx`
@@ -692,6 +721,7 @@ git commit -m "feat: pass priority and tags through create/edit hooks and TaskSe
 ### Task 7: EditTaskDialog — priority + tags UI, pre-populated
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/edit-task-dialog.tsx`
 
 - [ ] **Step 1: Replace the entire file**
@@ -700,7 +730,12 @@ git commit -m "feat: pass priority and tags through create/edit hooks and TaskSe
 import { useState, useEffect, useRef } from 'react';
 import { Calendar, Tag, Flag, BookOpen, ListChecks, Plus, X, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
@@ -708,7 +743,11 @@ import { Task, TaskStatus } from '@/types';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 
-interface Course { id: number; code: string; name: string | null; }
+interface Course {
+  id: number;
+  code: string;
+  name: string | null;
+}
 
 type ExistingSub = { id: number; title: string };
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
@@ -770,7 +809,10 @@ export default function EditTaskDialog({
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   useEffect(() => {
-    if (!isOpen) { initializedRef.current = false; return; }
+    if (!isOpen) {
+      initializedRef.current = false;
+      return;
+    }
     setTitle(task.title);
     setDescription(task.description ?? '');
     setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
@@ -781,10 +823,13 @@ export default function EditTaskDialog({
     setNewSubTitles([]);
     setNewSubInput('');
     setSubtasksExpanded(false);
-    api.get<Course[]>('/courses/enrolled').then((all) => {
-      setCourses(all);
-      setSelectedCourse(task.courseId ? (all.find((c) => c.id === task.courseId) ?? null) : null);
-    }).catch(() => {});
+    api
+      .get<Course[]>('/courses/enrolled')
+      .then((all) => {
+        setCourses(all);
+        setSelectedCourse(task.courseId ? (all.find((c) => c.id === task.courseId) ?? null) : null);
+      })
+      .catch(() => {});
 
     if (!isSubtask) {
       api
@@ -796,7 +841,9 @@ export default function EditTaskDialog({
         })
         .catch(() => {});
     }
-    setTimeout(() => { initializedRef.current = true; }, 100);
+    setTimeout(() => {
+      initializedRef.current = true;
+    }, 100);
   }, [isOpen, task, isSubtask]);
 
   useEffect(() => {
@@ -821,7 +868,9 @@ export default function EditTaskDialog({
         subtaskIdsToDelete: [],
       });
     }, 800);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [title, description, selectedDate, status, priority, tags, onSave]);
 
   function cyclePriority() {
@@ -898,7 +947,9 @@ export default function EditTaskDialog({
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  selectedDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  selectedDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -909,7 +960,9 @@ export default function EditTaskDialog({
               <button
                 onClick={() => setTagInputOpen((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  tags.length > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  tags.length > 0
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" />
@@ -930,11 +983,15 @@ export default function EditTaskDialog({
                 <button
                   onClick={() => setSubtasksExpanded((v) => !v)}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    totalSubtasks > 0 ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    totalSubtasks > 0
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <ListChecks className="w-3.5 h-3.5" />
-                  {totalSubtasks > 0 ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}` : 'Subtasks'}
+                  {totalSubtasks > 0
+                    ? `${totalSubtasks} Subtask${totalSubtasks > 1 ? 's' : ''}`
+                    : 'Subtasks'}
                 </button>
               )}
 
@@ -942,7 +999,9 @@ export default function EditTaskDialog({
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    selectedCourse ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    selectedCourse
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <BookOpen className="w-3.5 h-3.5" />
@@ -959,7 +1018,9 @@ export default function EditTaskDialog({
                         className="flex items-center justify-between gap-4"
                       >
                         {c.code}
-                        {selectedCourse?.id === c.id && <Check className="w-4 h-4 text-indigo-500" />}
+                        {selectedCourse?.id === c.id && (
+                          <Check className="w-4 h-4 text-indigo-500" />
+                        )}
                       </DropdownMenuItem>
                     ))
                   )}
@@ -1009,26 +1070,55 @@ export default function EditTaskDialog({
                       placeholder="Add a subtask..."
                       value={newSubInput}
                       onChange={(e) => setNewSubInput(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addNewSub(); } }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addNewSub();
+                        }
+                      }}
                       className="text-sm"
                     />
-                    <Button onClick={() => { addNewSub(); setTimeout(saveSubtasks, 0); }} size="icon" variant="outline" className="flex-shrink-0">
+                    <Button
+                      onClick={() => {
+                        addNewSub();
+                        setTimeout(saveSubtasks, 0);
+                      }}
+                      size="icon"
+                      variant="outline"
+                      className="flex-shrink-0"
+                    >
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
                   <div className="space-y-1 max-h-36 overflow-y-auto">
                     {existingSubs.map((sub) => (
-                      <div key={sub.id} className="flex items-center justify-between px-2 py-1.5 bg-gray-50 rounded-xl text-sm">
+                      <div
+                        key={sub.id}
+                        className="flex items-center justify-between px-2 py-1.5 bg-gray-50 rounded-xl text-sm"
+                      >
                         <span className="truncate mr-2 text-gray-700">{sub.title}</span>
-                        <button onClick={() => setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                        <button
+                          onClick={() =>
+                            setExistingSubs((prev) => prev.filter((s) => s.id !== sub.id))
+                          }
+                          className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
                     ))}
                     {newSubTitles.map((subTitle, i) => (
-                      <div key={`new-${i}`} className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 rounded-xl text-sm">
+                      <div
+                        key={`new-${i}`}
+                        className="flex items-center justify-between px-2 py-1.5 bg-indigo-50 rounded-xl text-sm"
+                      >
                         <span className="truncate mr-2 text-indigo-700">{subTitle}</span>
-                        <button onClick={() => setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                        <button
+                          onClick={() =>
+                            setNewSubTitles((prev) => prev.filter((_, idx) => idx !== i))
+                          }
+                          className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -1040,7 +1130,6 @@ export default function EditTaskDialog({
                 </div>
               </>
             )}
-
           </div>
         </DialogContent>
       </Dialog>
@@ -1068,6 +1157,7 @@ git commit -m "feat: priority and tags UI in EditTaskDialog, pre-populated from 
 ### Task 8: TaskCard — show priority badge and tag chips; wire editFull
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/tasks-card.tsx`
 
 - [ ] **Step 1: Update EditData type and handleSave**
@@ -1147,25 +1237,34 @@ const PRIORITY_LABELS: Record<string, string> = {
 Add priority badge and tag chips inside the task card body, after the countdown badge (after the `{task.status !== 'DONE' && countdown && ...}` block):
 
 ```tsx
-{task.priority && task.status !== 'DONE' && (
-  <span className={`inline-block mt-1 mr-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}>
-    {PRIORITY_LABELS[task.priority]}
-  </span>
-)}
-{task.tags && task.tags.length > 0 && task.status !== 'DONE' && (
-  <div className="flex flex-wrap gap-1 mt-1">
-    {task.tags.slice(0, 3).map((tag) => (
-      <span key={tag} className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
-        {tag}
-      </span>
-    ))}
-    {task.tags.length > 3 && (
-      <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
-        +{task.tags.length - 3} more
-      </span>
-    )}
-  </div>
-)}
+{
+  task.priority && task.status !== 'DONE' && (
+    <span
+      className={`inline-block mt-1 mr-1 text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority]}`}
+    >
+      {PRIORITY_LABELS[task.priority]}
+    </span>
+  );
+}
+{
+  task.tags && task.tags.length > 0 && task.status !== 'DONE' && (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {task.tags.slice(0, 3).map((tag) => (
+        <span
+          key={tag}
+          className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium"
+        >
+          {tag}
+        </span>
+      ))}
+      {task.tags.length > 3 && (
+        <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md font-medium">
+          +{task.tags.length - 3} more
+        </span>
+      )}
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 3: Update TaskCard's onEditFull and handleSubEditFull signatures consistently**
@@ -1184,6 +1283,7 @@ git commit -m "feat: show priority badge and tag chips on TaskCard"
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Schema: `taskPriorityEnum`, `priority`, `tags` on `tasks` table (Task 1)
 - ✅ Backend: `CreateTaskSchema`, `UpdateTaskSchema`, INSERT, PATCH, GET (Task 2)
 - ✅ Frontend type: `priority`, `tags` on `Task` (Task 3)
@@ -1198,6 +1298,7 @@ git commit -m "feat: show priority badge and tag chips on TaskCard"
 **Placeholder scan:** No TBDs. All code blocks are complete.
 
 **Type consistency:**
+
 - `Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null` defined in Task 5 and re-used in Task 7; Task 8 uses inline `'LOW' | 'MEDIUM' | 'HIGH' | null` (consistent)
 - `PRIORITY_CYCLE`, `PRIORITY_STYLES` defined in both Task 5 and Task 7 independently (no shared module needed)
 - `onSubmit` in NewTaskDialog → calls `handleCreate` in hooks (signatures match)

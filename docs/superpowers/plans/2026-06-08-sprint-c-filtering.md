@@ -12,21 +12,22 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/lib/task-utils.ts` | Add `filterTasks()` |
-| `apps/frontend/src/lib/task-utils.test.ts` | Add `filterTasks` tests |
-| `apps/frontend/src/components/tasks/task-filter-bar.tsx` | New component |
-| `apps/frontend/src/locales/en.json` | 3 i18n keys |
-| `apps/frontend/src/locales/cs.json` | Same in Czech |
-| `apps/frontend/src/routes/tasks/index.tsx` | Filter state + bar + filtered sections |
-| `apps/frontend/src/routes/today/index.tsx` | Same |
+| File                                                     | Change                                 |
+| -------------------------------------------------------- | -------------------------------------- |
+| `apps/frontend/src/lib/task-utils.ts`                    | Add `filterTasks()`                    |
+| `apps/frontend/src/lib/task-utils.test.ts`               | Add `filterTasks` tests                |
+| `apps/frontend/src/components/tasks/task-filter-bar.tsx` | New component                          |
+| `apps/frontend/src/locales/en.json`                      | 3 i18n keys                            |
+| `apps/frontend/src/locales/cs.json`                      | Same in Czech                          |
+| `apps/frontend/src/routes/tasks/index.tsx`               | Filter state + bar + filtered sections |
+| `apps/frontend/src/routes/today/index.tsx`               | Same                                   |
 
 ---
 
 ### Task 1: `filterTasks` utility + tests
 
 **Files:**
+
 - Modify: `apps/frontend/src/lib/task-utils.ts`
 - Modify: `apps/frontend/src/lib/task-utils.test.ts`
 
@@ -78,10 +79,7 @@ describe('filterTasks', () => {
   });
 
   it('requires all selected tags to be present (AND)', () => {
-    const tasks = [
-      makeTask({ id: 1, tags: ['math', 'hw'] }),
-      makeTask({ id: 2, tags: ['math'] }),
-    ];
+    const tasks = [makeTask({ id: 1, tags: ['math', 'hw'] }), makeTask({ id: 2, tags: ['math'] })];
     const result = filterTasks(tasks, new Set(), new Set(['math', 'hw']));
     expect(result.map((t) => t.id)).toEqual([1]);
   });
@@ -97,19 +95,13 @@ describe('filterTasks', () => {
   });
 
   it('excludes tasks with no priority when priority filter is active', () => {
-    const tasks = [
-      makeTask({ id: 1, priority: null }),
-      makeTask({ id: 2, priority: undefined }),
-    ];
+    const tasks = [makeTask({ id: 1, priority: null }), makeTask({ id: 2, priority: undefined })];
     const result = filterTasks(tasks, new Set(['HIGH']), new Set());
     expect(result).toHaveLength(0);
   });
 
   it('excludes tasks with no tags when tag filter is active', () => {
-    const tasks = [
-      makeTask({ id: 1, tags: [] }),
-      makeTask({ id: 2, tags: undefined }),
-    ];
+    const tasks = [makeTask({ id: 1, tags: [] }), makeTask({ id: 2, tags: undefined })];
     const result = filterTasks(tasks, new Set(), new Set(['math']));
     expect(result).toHaveLength(0);
   });
@@ -117,6 +109,7 @@ describe('filterTasks', () => {
 ```
 
 Also add `filterTasks` to the import at the top of the test file:
+
 ```typescript
 import { getUrgency, getCountdown, splitTasks, filterTasks } from './task-utils';
 ```
@@ -172,6 +165,7 @@ git commit -m "feat: add filterTasks utility with AND logic"
 ### Task 2: i18n keys
 
 **Files:**
+
 - Modify: `apps/frontend/src/locales/en.json`
 - Modify: `apps/frontend/src/locales/cs.json`
 
@@ -203,6 +197,7 @@ git commit -m "feat: add clearFilters i18n key"
 ### Task 3: `TaskFilterBar` component
 
 **Files:**
+
 - Create: `apps/frontend/src/components/tasks/task-filter-bar.tsx`
 
 - [ ] **Step 1: Create the component**
@@ -214,12 +209,25 @@ import { Task } from '@/types';
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 const PRIORITY_PILLS: { value: Priority; labelKey: string; activeClass: string }[] = [
-  { value: 'LOW',    labelKey: 'tasks.priorityLow',    activeClass: 'bg-green-100 text-green-700 border-green-300' },
-  { value: 'MEDIUM', labelKey: 'tasks.priorityMedium', activeClass: 'bg-amber-100 text-amber-700 border-amber-300' },
-  { value: 'HIGH',   labelKey: 'tasks.priorityHigh',   activeClass: 'bg-red-100 text-red-700 border-red-300' },
+  {
+    value: 'LOW',
+    labelKey: 'tasks.priorityLow',
+    activeClass: 'bg-green-100 text-green-700 border-green-300',
+  },
+  {
+    value: 'MEDIUM',
+    labelKey: 'tasks.priorityMedium',
+    activeClass: 'bg-amber-100 text-amber-700 border-amber-300',
+  },
+  {
+    value: 'HIGH',
+    labelKey: 'tasks.priorityHigh',
+    activeClass: 'bg-red-100 text-red-700 border-red-300',
+  },
 ];
 
-const INACTIVE = 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500';
+const INACTIVE =
+  'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500';
 
 export default function TaskFilterBar({
   allTasks,
@@ -238,9 +246,7 @@ export default function TaskFilterBar({
 }) {
   const { t } = useTranslation();
 
-  const allUniqueTags = Array.from(
-    new Set(allTasks.flatMap((t) => t.tags ?? []))
-  ).sort();
+  const allUniqueTags = Array.from(new Set(allTasks.flatMap((t) => t.tags ?? []))).sort();
 
   const hasAnyPriority = allTasks.some((t) => t.priority);
   const hasAnyTags = allUniqueTags.length > 0;
@@ -250,31 +256,33 @@ export default function TaskFilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 mb-4">
-      {hasAnyPriority && PRIORITY_PILLS.map(({ value, labelKey, activeClass }) => {
-        const active = activePriorities.has(value);
-        return (
-          <button
-            key={value}
-            onClick={() => onTogglePriority(value)}
-            className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? activeClass : INACTIVE}`}
-          >
-            {t(labelKey)}
-          </button>
-        );
-      })}
+      {hasAnyPriority &&
+        PRIORITY_PILLS.map(({ value, labelKey, activeClass }) => {
+          const active = activePriorities.has(value);
+          return (
+            <button
+              key={value}
+              onClick={() => onTogglePriority(value)}
+              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? activeClass : INACTIVE}`}
+            >
+              {t(labelKey)}
+            </button>
+          );
+        })}
 
-      {hasAnyTags && allUniqueTags.map((tag) => {
-        const active = activeTags.has(tag);
-        return (
-          <button
-            key={tag}
-            onClick={() => onToggleTag(tag)}
-            className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : INACTIVE}`}
-          >
-            {tag}
-          </button>
-        );
-      })}
+      {hasAnyTags &&
+        allUniqueTags.map((tag) => {
+          const active = activeTags.has(tag);
+          return (
+            <button
+              key={tag}
+              onClick={() => onToggleTag(tag)}
+              className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-colors ${active ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : INACTIVE}`}
+            >
+              {tag}
+            </button>
+          );
+        })}
 
       {isActive && (
         <button
@@ -301,6 +309,7 @@ git commit -m "feat: TaskFilterBar component with priority and tag pills"
 ### Task 4: Wire filters into `/tasks` page
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/tasks/index.tsx`
 
 - [ ] **Step 1: Read the current file**
@@ -310,6 +319,7 @@ Read `apps/frontend/src/routes/tasks/index.tsx` to understand the current struct
 - [ ] **Step 2: Add imports and filter state**
 
 At the top, add two imports:
+
 ```typescript
 import { useState } from 'react';
 import TaskFilterBar from '@/components/tasks/task-filter-bar';
@@ -342,11 +352,11 @@ function toggleTag(tag: string) {
 const allTasks = [...overdue, ...today, ...thisWeek, ...later, ...done];
 
 const filtered = {
-  overdue:  filterTasks(overdue,  activePriorities, activeTags),
-  today:    filterTasks(today,    activePriorities, activeTags),
+  overdue: filterTasks(overdue, activePriorities, activeTags),
+  today: filterTasks(today, activePriorities, activeTags),
   thisWeek: filterTasks(thisWeek, activePriorities, activeTags),
-  later:    filterTasks(later,    activePriorities, activeTags),
-  done:     filterTasks(done,     activePriorities, activeTags),
+  later: filterTasks(later, activePriorities, activeTags),
+  done: filterTasks(done, activePriorities, activeTags),
 };
 ```
 
@@ -371,7 +381,10 @@ return (
         activeTags={activeTags}
         onTogglePriority={togglePriority}
         onToggleTag={toggleTag}
-        onClear={() => { setActivePriorities(new Set()); setActiveTags(new Set()); }}
+        onClear={() => {
+          setActivePriorities(new Set());
+          setActiveTags(new Set());
+        }}
       />
 
       <div>
@@ -453,11 +466,13 @@ git commit -m "feat: filter bar on /tasks page"
 ### Task 5: Wire filters into `/today` page
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/today/index.tsx`
 
 - [ ] **Step 1: Add imports and filter state**
 
 At the top, add:
+
 ```typescript
 import { useState } from 'react';
 import TaskFilterBar from '@/components/tasks/task-filter-bar';
@@ -488,7 +503,7 @@ function toggleTag(tag: string) {
 }
 
 const allTasks = [...todayTasks, ...backlogTasks, ...doneTasks];
-const filteredToday   = filterTasks(todayTasks,   activePriorities, activeTags);
+const filteredToday = filterTasks(todayTasks, activePriorities, activeTags);
 const filteredBacklog = filterTasks(backlogTasks, activePriorities, activeTags);
 ```
 
@@ -506,7 +521,10 @@ The updated task sections div:
     activeTags={activeTags}
     onTogglePriority={togglePriority}
     onToggleTag={toggleTag}
-    onClear={() => { setActivePriorities(new Set()); setActiveTags(new Set()); }}
+    onClear={() => {
+      setActivePriorities(new Set());
+      setActiveTags(new Set());
+    }}
   />
   <TaskSection
     title={t('tasks.today')}
@@ -561,6 +579,7 @@ git commit -m "feat: filter bar on /today page"
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ `filterTasks` utility with AND logic (Task 1)
 - ✅ `clearFilters` i18n key in EN + CS (Task 2)
 - ✅ `TaskFilterBar` with priority pills (green/amber/red) + tag pills + Clear button (Task 3)

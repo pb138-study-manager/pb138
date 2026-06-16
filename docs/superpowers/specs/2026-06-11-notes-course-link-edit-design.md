@@ -7,12 +7,12 @@
 
 ## Summary
 
-| Feature | Entry point | Backend change? |
-|---|---|---|
-| Create note linked to course | Course detail → Notes tab → `+` | No — API already accepts `courseId` |
-| Link/unlink note to course | NoteDetailView → course badge dropdown | No — PATCH `/notes/:id` already accepts `courseId` |
-| Click-to-edit | Click note content area → auto-edit mode | No |
-| Markdown render | view mode renders MD, edit mode is raw textarea | `react-markdown` package install |
+| Feature                      | Entry point                                     | Backend change?                                    |
+| ---------------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| Create note linked to course | Course detail → Notes tab → `+`                 | No — API already accepts `courseId`                |
+| Link/unlink note to course   | NoteDetailView → course badge dropdown          | No — PATCH `/notes/:id` already accepts `courseId` |
+| Click-to-edit                | Click note content area → auto-edit mode        | No                                                 |
+| Markdown render              | view mode renders MD, edit mode is raw textarea | `react-markdown` package install                   |
 
 No backend changes needed. Backend notes routes already accept and return `courseId` in both POST and PATCH.
 
@@ -42,6 +42,7 @@ The new note appears immediately in the Notes tab list. Clicking a note in the l
 **File:** `apps/frontend/src/components/notes/note-detail-view.tsx`
 
 Add a course badge between the stats row and the AI buttons row. The badge shows:
+
 - If `note.courseId` is set: `📚 <course code> ▾` (indigo pill, clickable)
 - If no course: `+ Kurz` (ghost pill, clickable)
 
@@ -55,6 +56,7 @@ The dropdown closes on selection or click-outside (`useEffect` + `mousedown` lis
 **Course list source:** `useQuery(['courses'])` → `GET /courses` — already fetched on the courses page. Add this query inside NoteDetailView (TanStack Query deduplicates, no extra network call if already cached).
 
 **State in NoteDetailView:**
+
 ```typescript
 const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
 ```
@@ -91,11 +93,11 @@ Removed from the toolbar. The delete button and course badge remain. The toolbar
 
 ## Affected Files
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/routes/courses/$courseId.tsx` | Add `+` button + inline form in Notes tab |
+| File                                                      | Change                                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------- |
+| `apps/frontend/src/routes/courses/$courseId.tsx`          | Add `+` button + inline form in Notes tab                           |
 | `apps/frontend/src/components/notes/note-detail-view.tsx` | Click-to-edit, MD render, course badge+dropdown, remove Edit button |
-| `apps/frontend/package.json` | Add `react-markdown` |
+| `apps/frontend/package.json`                              | Add `react-markdown`                                                |
 
 ---
 

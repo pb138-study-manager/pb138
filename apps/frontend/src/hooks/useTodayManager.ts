@@ -29,8 +29,10 @@ export function useTodayManager() {
   });
 
   const now = new Date();
-  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
 
   const weekEnd = new Date(todayEnd);
   weekEnd.setDate(weekEnd.getDate() + 6);
@@ -38,7 +40,9 @@ export function useTodayManager() {
   const { data: events = [] } = useQuery({
     queryKey: ['events-today', todayStart.toISOString()],
     queryFn: () =>
-      api.get<Event[]>(`/events?from=${todayStart.toISOString()}&to=${weekEnd.toISOString()}`).catch(() => []),
+      api
+        .get<Event[]>(`/events?from=${todayStart.toISOString()}&to=${weekEnd.toISOString()}`)
+        .catch(() => []),
   });
 
   const todayEvents = events
@@ -58,7 +62,9 @@ export function useTodayManager() {
 
   const doneTasks = tasks.filter((t) => t.status === 'DONE');
 
-  const doneTodayTasks = tasks.filter((t) => t.status === 'DONE' && t.dueDate && isSameDay(new Date(t.dueDate), now));
+  const doneTodayTasks = tasks.filter(
+    (t) => t.status === 'DONE' && t.dueDate && isSameDay(new Date(t.dueDate), now)
+  );
 
   const counts = {
     today: todayTasks.length,
@@ -88,9 +94,18 @@ export function useTodayManager() {
     setActiveTags(new Set());
   }
 
-  const allTasks = useMemo(() => [...todayTasks, ...backlogTasks, ...doneTasks], [todayTasks, backlogTasks, doneTasks]);
-  const filteredToday = useMemo(() => filterTasks(todayTasks, activePriorities, activeTags), [todayTasks, activePriorities, activeTags]);
-  const filteredBacklog = useMemo(() => filterTasks(backlogTasks, activePriorities, activeTags), [backlogTasks, activePriorities, activeTags]);
+  const allTasks = useMemo(
+    () => [...todayTasks, ...backlogTasks, ...doneTasks],
+    [todayTasks, backlogTasks, doneTasks]
+  );
+  const filteredToday = useMemo(
+    () => filterTasks(todayTasks, activePriorities, activeTags),
+    [todayTasks, activePriorities, activeTags]
+  );
+  const filteredBacklog = useMemo(
+    () => filterTasks(backlogTasks, activePriorities, activeTags),
+    [backlogTasks, activePriorities, activeTags]
+  );
 
   const h = new Date().getHours();
   const greeting =
@@ -138,7 +153,15 @@ export function useTodayManager() {
 
   async function handleEditFull(
     id: number,
-    data: { title: string; dueDate?: string; description?: string; status?: TaskStatus; priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null; tags?: string[]; courseId?: number | null },
+    data: {
+      title: string;
+      dueDate?: string;
+      description?: string;
+      status?: TaskStatus;
+      priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+      tags?: string[];
+      courseId?: number | null;
+    },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
   ) {
@@ -156,7 +179,14 @@ export function useTodayManager() {
 
   async function editEvent(
     id: number,
-    data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type?: EventType }
+    data: {
+      title: string;
+      startDate: string;
+      endDate: string;
+      description?: string | null;
+      place?: string;
+      type?: EventType;
+    }
   ) {
     const updated = await api.patch<Event>(`/events/${id}`, data);
     queryClient.setQueryData<Event[]>(['events-today', todayStart.toISOString()], (prev = []) =>

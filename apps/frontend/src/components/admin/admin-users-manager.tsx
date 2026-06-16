@@ -189,20 +189,34 @@ export function AdminUsersManager() {
                       className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isDeactivated ? 'opacity-50' : ''}`}
                     >
                       <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{u.id}</td>
-                      <td className="py-2 pr-4 font-medium text-gray-900 dark:text-white">{u.login}</td>
+                      <td className="py-2 pr-4 font-medium text-gray-900 dark:text-white">
+                        {u.login}
+                      </td>
                       <td className="py-2 pr-4 text-gray-700 dark:text-gray-300">{u.email}</td>
                       <td className="py-2 pr-4">
                         <div className="flex flex-wrap gap-1">
                           {u.roles.map((r) => (
-                            <Badge key={r} variant="secondary">{r}</Badge>
+                            <Badge key={r} variant="secondary">
+                              {r}
+                            </Badge>
                           ))}
                         </div>
                       </td>
                       <td className="py-2 pr-4">
                         {isDeactivated ? (
-                          <Badge variant="outline" className="text-gray-400 border-gray-300 dark:border-gray-600">Deactivated</Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-gray-400 border-gray-300 dark:border-gray-600"
+                          >
+                            Deactivated
+                          </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-300 dark:border-green-800">Active</Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-green-600 dark:text-green-400 border-green-300 dark:border-green-800"
+                          >
+                            Active
+                          </Badge>
                         )}
                       </td>
                       <td className="py-2">
@@ -243,7 +257,12 @@ export function AdminUsersManager() {
       </Card>
 
       {/* Edit roles dialog */}
-      <Dialog open={!!editingUser} onOpenChange={(open) => { if (!open) setEditingUser(null); }}>
+      <Dialog
+        open={!!editingUser}
+        onOpenChange={(open) => {
+          if (!open) setEditingUser(null);
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Edit roles — {editingUser?.login}</DialogTitle>
@@ -257,13 +276,17 @@ export function AdminUsersManager() {
                   checked={pendingRoles.includes(role)}
                   onCheckedChange={() => toggleRole(role)}
                 />
-                <Label htmlFor={`role-${role}`} className="cursor-pointer font-normal">{role}</Label>
+                <Label htmlFor={`role-${role}`} className="cursor-pointer font-normal">
+                  {role}
+                </Label>
               </div>
             ))}
             {roleError && <p className="text-sm text-red-500">{roleError}</p>}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingUser(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Cancel
+            </Button>
             <Button onClick={saveRoles} disabled={saving}>
               {saving ? 'Saving…' : 'Save'}
             </Button>
@@ -272,7 +295,12 @@ export function AdminUsersManager() {
       </Dialog>
 
       {/* Simple confirm deactivate dialog (non-admin users) */}
-      <Dialog open={deactivateDialog.type === 'confirm'} onOpenChange={(open) => { if (!open) closeDeactivateDialog(); }}>
+      <Dialog
+        open={deactivateDialog.type === 'confirm'}
+        onOpenChange={(open) => {
+          if (!open) closeDeactivateDialog();
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Deactivate user</DialogTitle>
@@ -281,16 +309,15 @@ export function AdminUsersManager() {
               <span className="font-semibold text-gray-900 dark:text-white">
                 {deactivateDialog.type === 'confirm' ? deactivateDialog.user.login : ''}
               </span>
-              ? The account will be suspended but all data will be preserved. You can reactivate it later.
+              ? The account will be suspended but all data will be preserved. You can reactivate it
+              later.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDeactivateDialog}>Cancel</Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDeactivate}
-              disabled={actioning}
-            >
+            <Button variant="outline" onClick={closeDeactivateDialog}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeactivate} disabled={actioning}>
               {actioning ? 'Deactivating…' : 'Deactivate'}
             </Button>
           </DialogFooter>
@@ -298,12 +325,18 @@ export function AdminUsersManager() {
       </Dialog>
 
       {/* Security phrase dialog (admin user, not last) */}
-      <Dialog open={deactivateDialog.type === 'phrase'} onOpenChange={(open) => { if (!open) closeDeactivateDialog(); }}>
+      <Dialog
+        open={deactivateDialog.type === 'phrase'}
+        onOpenChange={(open) => {
+          if (!open) closeDeactivateDialog();
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Deactivate admin account</DialogTitle>
             <DialogDescription>
-              You are about to deactivate an admin account. To confirm, type the phrase below exactly:
+              You are about to deactivate an admin account. To confirm, type the phrase below
+              exactly:
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-2">
@@ -318,7 +351,9 @@ export function AdminUsersManager() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDeactivateDialog}>Cancel</Button>
+            <Button variant="outline" onClick={closeDeactivateDialog}>
+              Cancel
+            </Button>
             <Button
               variant="destructive"
               onClick={confirmDeactivate}
@@ -331,7 +366,12 @@ export function AdminUsersManager() {
       </Dialog>
 
       {/* Reactivate dialog */}
-      <Dialog open={!!reactivateUser_} onOpenChange={(open) => { if (!open) setReactivateUser_(null); }}>
+      <Dialog
+        open={!!reactivateUser_}
+        onOpenChange={(open) => {
+          if (!open) setReactivateUser_(null);
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Reactivate user</DialogTitle>
@@ -354,7 +394,9 @@ export function AdminUsersManager() {
             </Label>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReactivateUser_(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setReactivateUser_(null)}>
+              Cancel
+            </Button>
             <Button onClick={confirmReactivate} disabled={actioning}>
               {actioning ? 'Reactivating…' : 'Reactivate'}
             </Button>
@@ -363,7 +405,12 @@ export function AdminUsersManager() {
       </Dialog>
 
       {/* Last admin — cannot deactivate */}
-      <Dialog open={deactivateDialog.type === 'last-admin'} onOpenChange={(open) => { if (!open) closeDeactivateDialog(); }}>
+      <Dialog
+        open={deactivateDialog.type === 'last-admin'}
+        onOpenChange={(open) => {
+          if (!open) closeDeactivateDialog();
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Cannot deactivate this user</DialogTitle>
@@ -371,11 +418,14 @@ export function AdminUsersManager() {
               <span className="font-semibold text-gray-900 dark:text-white">
                 {deactivateDialog.type === 'last-admin' ? deactivateDialog.user.login : ''}
               </span>{' '}
-              is the only admin. Assign another user the ADMIN role before deactivating this account.
+              is the only admin. Assign another user the ADMIN role before deactivating this
+              account.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDeactivateDialog}>Close</Button>
+            <Button variant="outline" onClick={closeDeactivateDialog}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

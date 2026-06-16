@@ -12,7 +12,7 @@
 
 ## Context
 
-The AI feature is the centerpiece of this project. Today the AI backend (`apps/backend/src/routes/ai.ts`) is **stateless** — plain `chat.completions` calls with no tool-calling; it can talk *about* the user's data but cannot *act* on it. We want the AI to do everything a user can: create/edit/complete/delete tasks, manage notes/events/courses, and search the app. We also need a standalone **MCP server** so external AI clients (Claude Desktop, etc.) can act in Student OS on a user's behalf. Finally, the Today screen becomes tabbed with AI as the primary tab.
+The AI feature is the centerpiece of this project. Today the AI backend (`apps/backend/src/routes/ai.ts`) is **stateless** — plain `chat.completions` calls with no tool-calling; it can talk _about_ the user's data but cannot _act_ on it. We want the AI to do everything a user can: create/edit/complete/delete tasks, manage notes/events/courses, and search the app. We also need a standalone **MCP server** so external AI clients (Claude Desktop, etc.) can act in Student OS on a user's behalf. Finally, the Today screen becomes tabbed with AI as the primary tab.
 
 ## Decisions (locked during brainstorming)
 
@@ -43,6 +43,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part 0 — Probe model tool-calling ✅ DONE
 
 ### Task 0: Verify tool-calling support
+
 - [x] Probe skript `apps/backend/scripts/probe-tools.ts` napísaný a spustený.
 - [x] Výsledok: `tool_calls` funguje. Pokračujeme podľa pôvodného plánu.
 
@@ -51,18 +52,21 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part A — PAT auth (backend)
 
 ### Task A1: `access_tokens` table
+
 **Files:** Modify `apps/backend/src/db/schema.ts`; generate migration.
 
 - [ ] Add table `access_tokens`: `id serial pk`, `userId int notnull -> users.id`, `name text notnull`, `tokenHash text notnull`, `prefix text notnull` (first 12 chars, for display), `createdAt timestamp default now`, `lastUsedAt timestamp`, `revokedAt timestamp`.
 - [ ] Run `bun run db:generate` then `bun run db:push`.
 
 ### Task A2: Token service
+
 **Files:** Create `apps/backend/src/services/tokens.ts`.
 
 - [ ] Implement `generateToken()` — returns `{ token: 'sk_mcp_<random>', hash }`.
 - [ ] Implement `hashToken(token)` — deterministic SHA-256 (Bun crypto).
 
 ### Task A3: Token endpoints
+
 **Files:** Create `apps/backend/src/routes/tokens.ts`; register in `src/index.ts`.
 
 - [ ] `POST /users/me/tokens` body `{ name }` → create row, return plaintext token once. Audit-log.
@@ -70,6 +74,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 - [ ] `DELETE /users/me/tokens/:id` → set `revokedAt` (soft). Audit-log. Ownership check.
 
 ### Task A4: Extend `resolveUser` for PAT
+
 **Files:** Modify `apps/backend/src/middleware/auth.ts`.
 
 - [ ] If `token.startsWith('sk_mcp_')` → look up by hash where `revokedAt IS NULL`, set `lastUsedAt`, return user. Else fall through to JWT path.
@@ -79,6 +84,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part B — Tool manifest + executor (backend, shared) ✅ IN PROGRESS
 
 ### Task B1: Tool manifest ✅ DONE
+
 **Files:** `apps/backend/src/ai/tools.ts`
 
 - [x] `AGENT_TOOLS` s `list_tasks` a `create_task`.
@@ -86,6 +92,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 - [x] `TOOL_MUTATES` mapa.
 
 ### Task B2: Executor ✅ IN PROGRESS
+
 **Files:** `apps/backend/src/ai/executor.ts`
 
 - [x] `executeTool` s `list_tasks` a `create_task`.
@@ -93,6 +100,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 - [ ] Defaulty pre `create_task`: `dueDate = today`, `priority = LOW` ak nie sú zadané.
 
 ### Task B3: Global search endpoint
+
 **Files:** Create `apps/backend/src/routes/search.ts`; register in `index.ts`.
 
 - [ ] `GET /search?q=` → fulltext cez tasks/notes/events/courses. Max 10 výsledkov na entitu.
@@ -102,6 +110,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part C — Agent loop (backend) ✅ DONE
 
 ### Task C1: `/ai/agent` endpoint ✅ DONE
+
 **Files:** `apps/backend/src/routes/ai.ts`
 
 - [x] `POST /ai/agent` s rate-limitom, tool-calling loop, confirm gate, max 6 iterácií.
@@ -112,6 +121,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part D — Today tabs (frontend)
 
 ### Task D1: Tab shell
+
 **Files:** Modify `apps/frontend/src/routes/today/index.tsx`; i18n keys do `en.json` + `cs.json`.
 
 - [ ] 3 taby: AI (default) / Tasks / Events. Greeting + progress bar zostávajú nad tabmi.
@@ -122,6 +132,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part E — Agent chat UI (frontend) ✅ IN PROGRESS
 
 ### Task E2: AgentTab component ✅ DONE
+
 **Files:** `apps/frontend/src/components/ai/AgentTab.tsx`
 
 - [x] Chat UI s confirm kartou, auto-scroll, Enter na odoslanie.
@@ -129,6 +140,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 - [ ] Markdown rendering (rovnaký ako ChatTab).
 
 ### Task E3: Brief v AI tabe
+
 - [ ] `BriefTab` obsah hore, agent chat dole v Today AI tabe.
 
 ---
@@ -136,17 +148,20 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part F — MCP server (new package)
 
 ### Task F1: Scaffold
+
 **Files:** `apps/mcp-server/{package.json,tsconfig.json,src/index.ts,README.md}`
 
 - [ ] Bun package, dep `@modelcontextprotocol/sdk`. Env: `STUDENT_OS_API_URL`, `STUDENT_OS_TOKEN`.
 - [ ] stdio `Server` s `ListTools` + `CallTool` handlermi.
 
 ### Task F2: Tools over REST
+
 **Files:** `apps/mcp-server/src/tools.ts`, `src/client.ts`
 
 - [ ] Rovnaké názvy nástrojov ako `AGENT_TOOLS`. `CallTool` → `fetch` REST s PAT tokenом. Writes bez confirm.
 
 ### Task F3: Docs
+
 - [ ] README: ako vygenerovať PAT v Profile + `claude_desktop_config.json` snippet.
 
 ---
@@ -154,6 +169,7 @@ The AI feature is the centerpiece of this project. Today the AI backend (`apps/b
 ## Part G — Profile token UI (frontend)
 
 ### Task G1: MCP access card
+
 **Files:** `apps/frontend/src/routes/profile/index.tsx` alebo `components/profile/McpTokensCard.tsx`
 
 - [ ] Zoznam tokenov, "Generovať token" (zobraziť plaintext raz s copy tlačidlom), "Zrušiť".

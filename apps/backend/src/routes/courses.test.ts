@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
-import { courses, userCourses, users, userRoles, roles, auditLogs, tasks, assignments } from '../db/schema';
+import {
+  courses,
+  userCourses,
+  users,
+  userRoles,
+  roles,
+  auditLogs,
+  tasks,
+  assignments,
+} from '../db/schema';
 import { coursesRoutes } from './courses';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
@@ -14,9 +23,7 @@ process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub: authId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 export let userId: number;
@@ -35,22 +42,22 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ 
-      email: `courses-user-${RND}@example.com`, 
-      login: `courses-test-user-${RND}`, 
-      pwdHash: '', 
-      authId: USER_AUTH_ID 
+    .values({
+      email: `courses-user-${RND}@example.com`,
+      login: `courses-test-user-${RND}`,
+      pwdHash: '',
+      authId: USER_AUTH_ID,
     })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ 
-      email: `courses-teacher-${RND}@example.com`, 
-      login: `courses-test-teacher-${RND}`, 
-      pwdHash: '', 
-      authId: TEACHER_AUTH_ID 
+    .values({
+      email: `courses-teacher-${RND}@example.com`,
+      login: `courses-test-teacher-${RND}`,
+      pwdHash: '',
+      authId: TEACHER_AUTH_ID,
     })
     .returning();
   teacherId = teacher.id;
@@ -106,7 +113,12 @@ describe('GET /courses/enrolled', () => {
     const cleanTestAuthId = `clean-test-${cleanRnd}`;
     const [testUser] = await db
       .insert(users)
-      .values({ email: `courses-clean-${cleanRnd}@example.com`, login: `courses-clean-${cleanRnd}`, pwdHash: '', authId: cleanTestAuthId })
+      .values({
+        email: `courses-clean-${cleanRnd}@example.com`,
+        login: `courses-clean-${cleanRnd}`,
+        pwdHash: '',
+        authId: cleanTestAuthId,
+      })
       .returning();
     const testUserAuth = `Bearer ${await makeToken(cleanTestAuthId)}`;
 
@@ -227,7 +239,12 @@ describe('PATCH /courses/:id', () => {
     const otherTeacherAuthId = `other-teacher-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-${otherRnd}@example.com`, login: `other-teacher-${otherRnd}`, pwdHash: '', authId: otherTeacherAuthId })
+      .values({
+        email: `other-teacher-${otherRnd}@example.com`,
+        login: `other-teacher-${otherRnd}`,
+        pwdHash: '',
+        authId: otherTeacherAuthId,
+      })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -281,7 +298,12 @@ describe('DELETE /courses/:id', () => {
     const otherTeacherAuthId = `other-teacher-del-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-del-${otherRnd}@example.com`, login: `other-teacher-del-${otherRnd}`, pwdHash: '', authId: otherTeacherAuthId })
+      .values({
+        email: `other-teacher-del-${otherRnd}@example.com`,
+        login: `other-teacher-del-${otherRnd}`,
+        pwdHash: '',
+        authId: otherTeacherAuthId,
+      })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -403,7 +425,9 @@ describe('GET /courses/:id/progress', () => {
   });
 
   it('returns correct progress counts', async () => {
-    const res = await testApp.handle(req(`http://localhost/courses/${courseId}/progress`, userAuth));
+    const res = await testApp.handle(
+      req(`http://localhost/courses/${courseId}/progress`, userAuth)
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.total).toBe(3);
@@ -492,7 +516,12 @@ describe('GET /courses/:id/assignments', () => {
     const OTHER_TEACHER_AUTH_ID = `other-teacher-uuid-asgn-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-asgn-${otherRnd}@example.com`, login: `other-teacher-asgn-${otherRnd}`, pwdHash: '', authId: OTHER_TEACHER_AUTH_ID })
+      .values({
+        email: `other-teacher-asgn-${otherRnd}@example.com`,
+        login: `other-teacher-asgn-${otherRnd}`,
+        pwdHash: '',
+        authId: OTHER_TEACHER_AUTH_ID,
+      })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -541,7 +570,12 @@ describe('GET /courses/:id/students', () => {
     const OTHER_AUTH_ID = `other-teacher-uuid-stu-${otherRnd}`;
     const [otherTeacher] = await db
       .insert(users)
-      .values({ email: `other-teacher-stu-${otherRnd}@example.com`, login: `other-teacher-stu-${otherRnd}`, pwdHash: '', authId: OTHER_AUTH_ID })
+      .values({
+        email: `other-teacher-stu-${otherRnd}@example.com`,
+        login: `other-teacher-stu-${otherRnd}`,
+        pwdHash: '',
+        authId: OTHER_AUTH_ID,
+      })
       .returning();
     const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     await db.insert(userRoles).values({ userId: otherTeacher.id, roleId: teacherRole.id });
@@ -578,7 +612,11 @@ describe('POST /courses/:id/students (teacher enroll)', () => {
     const enrollRnd = crypto.randomUUID();
     const [course] = await db
       .insert(courses)
-      .values({ code: `ENROLL-TEST-${enrollRnd.substring(0, 8)}`, semester: 'S2026', lectureTeacherId: teacherId })
+      .values({
+        code: `ENROLL-TEST-${enrollRnd.substring(0, 8)}`,
+        semester: 'S2026',
+        lectureTeacherId: teacherId,
+      })
       .returning();
     enrollCourseId = course.id;
   });

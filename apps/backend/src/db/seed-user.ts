@@ -41,9 +41,7 @@ if (existingCourses.length === 0) {
 
   const createdCourses = await db.insert(courses).values(courseData).returning({ id: courses.id });
 
-  await db.insert(userCourses).values(
-    createdCourses.map((c) => ({ userId, courseId: c.id }))
-  );
+  await db.insert(userCourses).values(createdCourses.map((c) => ({ userId, courseId: c.id })));
   console.log('Courses seeded:', createdCourses.length);
 }
 
@@ -59,22 +57,95 @@ if (existingTasks.length === 0) {
   };
 
   await db.insert(tasks).values([
-    { userId, title: 'Dokončiť prezentáciu PB138', dueDate: d(0), status: 'IN PROGRESS', priority: 'HIGH', tags: ['pb138', 'prezentácia'] },
-    { userId, title: 'Odovzdať zadanie č. 3', dueDate: d(1), status: 'TODO', priority: 'HIGH', tags: ['pb138'] },
-    { userId, title: 'Prečítať kapitolu 5 — IB101', dueDate: d(2), status: 'TODO', priority: 'MEDIUM', tags: ['ib101'] },
-    { userId, title: 'Seriózne sa pozrieť na derivácie', dueDate: d(3), status: 'TODO', priority: 'MEDIUM', tags: ['ma001'] },
-    { userId, title: 'Pripraviť otázky na konzultáciu', dueDate: d(4), status: 'TODO', priority: 'LOW', tags: [] },
-    { userId, title: 'Opraviť bugy v projekte', dueDate: d(1), status: 'TODO', priority: 'HIGH', tags: ['pb138', 'bug'] },
-    { userId, title: 'Zopísať týždenný report', dueDate: d(5), status: 'TODO', priority: 'LOW', tags: [] },
-    { userId, title: 'Naštudovať React hooks', dueDate: d(-1), status: 'DONE', priority: 'MEDIUM', tags: ['pb138'] },
-    { userId, title: 'Inštalácia prostredia', dueDate: d(-3), status: 'DONE', priority: null, tags: [] },
-    { userId, title: 'Prečítať CLAUDE.md', dueDate: d(-2), status: 'DONE', priority: null, tags: [] },
+    {
+      userId,
+      title: 'Dokončiť prezentáciu PB138',
+      dueDate: d(0),
+      status: 'IN PROGRESS',
+      priority: 'HIGH',
+      tags: ['pb138', 'prezentácia'],
+    },
+    {
+      userId,
+      title: 'Odovzdať zadanie č. 3',
+      dueDate: d(1),
+      status: 'TODO',
+      priority: 'HIGH',
+      tags: ['pb138'],
+    },
+    {
+      userId,
+      title: 'Prečítať kapitolu 5 — IB101',
+      dueDate: d(2),
+      status: 'TODO',
+      priority: 'MEDIUM',
+      tags: ['ib101'],
+    },
+    {
+      userId,
+      title: 'Seriózne sa pozrieť na derivácie',
+      dueDate: d(3),
+      status: 'TODO',
+      priority: 'MEDIUM',
+      tags: ['ma001'],
+    },
+    {
+      userId,
+      title: 'Pripraviť otázky na konzultáciu',
+      dueDate: d(4),
+      status: 'TODO',
+      priority: 'LOW',
+      tags: [],
+    },
+    {
+      userId,
+      title: 'Opraviť bugy v projekte',
+      dueDate: d(1),
+      status: 'TODO',
+      priority: 'HIGH',
+      tags: ['pb138', 'bug'],
+    },
+    {
+      userId,
+      title: 'Zopísať týždenný report',
+      dueDate: d(5),
+      status: 'TODO',
+      priority: 'LOW',
+      tags: [],
+    },
+    {
+      userId,
+      title: 'Naštudovať React hooks',
+      dueDate: d(-1),
+      status: 'DONE',
+      priority: 'MEDIUM',
+      tags: ['pb138'],
+    },
+    {
+      userId,
+      title: 'Inštalácia prostredia',
+      dueDate: d(-3),
+      status: 'DONE',
+      priority: null,
+      tags: [],
+    },
+    {
+      userId,
+      title: 'Prečítať CLAUDE.md',
+      dueDate: d(-2),
+      status: 'DONE',
+      priority: null,
+      tags: [],
+    },
   ]);
   console.log('Tasks seeded: 10');
 }
 
 // Seed events
-const existingEvents = await db.select({ id: events.id }).from(events).where(eq(events.userId, userId));
+const existingEvents = await db
+  .select({ id: events.id })
+  .from(events)
+  .where(eq(events.userId, userId));
 
 if (existingEvents.length === 0) {
   const now = new Date();
@@ -87,7 +158,13 @@ if (existingEvents.length === 0) {
   await db.insert(events).values([
     { userId, title: 'Prednáška PB138', startDate: d(1), endDate: d(1), place: 'B411' },
     { userId, title: 'Seminár IB101', startDate: d(2), endDate: d(2), place: 'A320' },
-    { userId, title: 'Deadline: Odovzdanie projektu', startDate: d(1), endDate: d(1), type: 'DEADLINE' },
+    {
+      userId,
+      title: 'Deadline: Odovzdanie projektu',
+      startDate: d(1),
+      endDate: d(1),
+      type: 'DEADLINE',
+    },
     { userId, title: 'Konzultácia s vedúcim', startDate: d(3), endDate: d(3), place: 'Online' },
     { userId, title: 'Cvičenie MA001', startDate: d(4), endDate: d(4), place: 'M1' },
   ]);

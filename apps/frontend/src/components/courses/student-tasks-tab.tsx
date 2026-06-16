@@ -132,7 +132,6 @@ export default function StudentTasksTab({
 
   return (
     <div className="px-4 mt-6 mb-6">
-
       {tasks.length === 0 ? (
         <p className="text-sm text-gray-400 py-4 text-center">
           {t('courses.noTasks', 'No tasks for this course')}

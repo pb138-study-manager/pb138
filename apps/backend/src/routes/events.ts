@@ -6,34 +6,38 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { zodBody } from '../lib/validation';
 
-const CreateEventSchema = z.object({
-  title: z.string().min(1),
-  startDate: z.string(),
-  endDate: z.string(),
-  description: z.string().optional(),
-  place: z.string().optional(),
-  type: z.enum(['EVENT', 'DEADLINE']).optional(),
-}).refine(
-  (data) => new Date(data.startDate) <= new Date(data.endDate),
-  { message: 'startDate must not be after endDate', path: ['startDate'] }
-);
+const CreateEventSchema = z
+  .object({
+    title: z.string().min(1),
+    startDate: z.string(),
+    endDate: z.string(),
+    description: z.string().optional(),
+    place: z.string().optional(),
+    type: z.enum(['EVENT', 'DEADLINE']).optional(),
+  })
+  .refine((data) => new Date(data.startDate) <= new Date(data.endDate), {
+    message: 'startDate must not be after endDate',
+    path: ['startDate'],
+  });
 
-const UpdateEventSchema = z.object({
-  title: z.string().min(1).optional(),
-  description: z.string().nullable().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  place: z.string().optional(),
-  type: z.enum(['EVENT', 'DEADLINE']).optional(),
-}).refine(
-  (data) => {
-    if (data.startDate && data.endDate) {
-      return new Date(data.startDate) <= new Date(data.endDate);
-    }
-    return true;
-  },
-  { message: 'startDate must not be after endDate', path: ['startDate'] }
-);
+const UpdateEventSchema = z
+  .object({
+    title: z.string().min(1).optional(),
+    description: z.string().nullable().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    place: z.string().optional(),
+    type: z.enum(['EVENT', 'DEADLINE']).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.startDate) <= new Date(data.endDate);
+      }
+      return true;
+    },
+    { message: 'startDate must not be after endDate', path: ['startDate'] }
+  );
 import { eq, and, isNull, lt, gt, gte } from 'drizzle-orm';
 
 export const eventsRoutes = new Elysia({ prefix: '/events' })
@@ -64,7 +68,10 @@ export const eventsRoutes = new Elysia({ prefix: '/events' })
       conditions.push(gte(events.startDate, new Date()));
     }
 
-    return db.select().from(events).where(and(...conditions));
+    return db
+      .select()
+      .from(events)
+      .where(and(...conditions));
   })
   .post(
     '/',

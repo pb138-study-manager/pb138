@@ -2,12 +2,10 @@ import { describe, it, expect } from 'bun:test';
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 
-const app = new Elysia()
-  .use(cors())
-  .get('/health', () => ({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  }));
+const app = new Elysia().use(cors()).get('/health', () => ({
+  status: 'ok',
+  timestamp: new Date().toISOString(),
+}));
 
 describe('Backend', () => {
   it('GET /health returns ok status', async () => {

@@ -2,8 +2,14 @@ import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
 import {
-  users, userRoles, userProfiles, userSettings,
-  userCourses, courses, userIntegrations, auditLogs,
+  users,
+  userRoles,
+  userProfiles,
+  userSettings,
+  userCourses,
+  courses,
+  userIntegrations,
+  auditLogs,
 } from '../db/schema';
 import { usersRoutes } from './users';
 import { eq, and } from 'drizzle-orm';
@@ -16,9 +22,7 @@ process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub: authId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 let userId: number;
@@ -31,12 +35,15 @@ function req(url: string, init: RequestInit = {}): Request {
   if (!headers.Authorization && !headers.authorization) {
     headers.Authorization = userAuth;
   }
-  
+
   return new Request(url, { ...init, headers });
 }
 
 beforeAll(async () => {
-  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.authId, USER_AUTH_ID));
+  const [existing] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.authId, USER_AUTH_ID));
   if (existing) {
     await db.delete(auditLogs).where(eq(auditLogs.actorId, existing.id));
     await db.delete(userIntegrations).where(eq(userIntegrations.userId, existing.id));
@@ -96,31 +103,40 @@ describe('GET /users/me', () => {
     const teacherRnd = crypto.randomUUID();
     const [teacher] = await db
       .insert(users)
-      .values({ 
-        email: `teacher-me-${teacherRnd}@example.com`, 
-        login: `teacher-me-${teacherRnd}`, 
-        pwdHash: '', 
-        authId: `teacher-me-uuid-${teacherRnd}` 
+      .values({
+        email: `teacher-me-${teacherRnd}@example.com`,
+        login: `teacher-me-${teacherRnd}`,
+        pwdHash: '',
+        authId: `teacher-me-uuid-${teacherRnd}`,
       })
       .returning();
     const [course] = await db
       .insert(courses)
-      .values({ code: `ME-TEST-${teacherRnd.substring(0,8)}`, semester: 'Spring 2026', lectureTeacherId: teacher.id, seminarTeacherId: teacher.id })
+      .values({
+        code: `ME-TEST-${teacherRnd.substring(0, 8)}`,
+        semester: 'Spring 2026',
+        lectureTeacherId: teacher.id,
+        seminarTeacherId: teacher.id,
+      })
       .returning();
     await db.insert(userCourses).values({ userId, courseId: course.id });
 
     try {
       const res = await testApp.handle(req('http://localhost/users/me'));
       const body = await res.json().catch(() => ({}));
-      const enrolled = body.enrolledCourses?.find((c: { courseId: number }) => c.courseId === course.id);
+      const enrolled = body.enrolledCourses?.find(
+        (c: { courseId: number }) => c.courseId === course.id
+      );
       expect(enrolled).toBeDefined();
-      expect(enrolled?.code).toBe(`ME-TEST-${teacherRnd.substring(0,8)}`);
+      expect(enrolled?.code).toBe(`ME-TEST-${teacherRnd.substring(0, 8)}`);
       expect(enrolled?.lectureTeacher).not.toBeNull();
       expect(enrolled?.lectureTeacher?.id).toBe(teacher.id);
       expect(enrolled?.seminarTeacher).not.toBeNull();
     } finally {
       // cleanup guaranteed to run
-      await db.delete(userCourses).where(and(eq(userCourses.userId, userId), eq(userCourses.courseId, course.id)));
+      await db
+        .delete(userCourses)
+        .where(and(eq(userCourses.userId, userId), eq(userCourses.courseId, course.id)));
       await db.delete(courses).where(eq(courses.id, course.id));
       await db.delete(users).where(eq(users.id, teacher.id));
     }
@@ -162,10 +178,15 @@ describe('GET /users/me/settings', () => {
     const freshAuthId = `fresh-settings-${freshRnd}`;
     const [freshUser] = await db
       .insert(users)
-      .values({ email: `fresh-${freshRnd}@example.com`, login: `fresh-${freshRnd}`, pwdHash: '', authId: freshAuthId })
+      .values({
+        email: `fresh-${freshRnd}@example.com`,
+        login: `fresh-${freshRnd}`,
+        pwdHash: '',
+        authId: freshAuthId,
+      })
       .returning();
     const freshAuth = `Bearer ${await makeToken(freshAuthId)}`;
-    
+
     try {
       const res = await testApp.handle(
         req('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
@@ -228,7 +249,9 @@ describe('POST /users/me/integrations/:service', () => {
 
     const meRes = await testApp.handle(req('http://localhost/users/me'));
     const me = await meRes.json().catch(() => ({ integrations: [] }));
-    expect(me.integrations.some((i: { service: string }) => i.service === 'google_calendar')).toBe(true);
+    expect(me.integrations.some((i: { service: string }) => i.service === 'google_calendar')).toBe(
+      true
+    );
   });
 });
 

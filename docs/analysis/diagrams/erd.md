@@ -1,4 +1,4 @@
-<!-- 
+<!--
 For preview in VSCode:
 1. get extension "Markdown Preview Mermaid Support"
 2. right click -> "Open Preview" or Ctrl + Shift + V

@@ -1,9 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar, ClipboardCheck, Users, ListTodo, Check, CheckCircle, Circle, Plus, X, Star } from 'lucide-react';
+import {
+  Calendar,
+  ClipboardCheck,
+  Users,
+  ListTodo,
+  Check,
+  CheckCircle,
+  Circle,
+  Plus,
+  X,
+  Star,
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
@@ -35,7 +51,12 @@ interface Props {
   initialDueDate: string;
   initialEvalType: 'none' | 'pass_fail' | 'graded';
   onClose: () => void;
-  onEval: (taskId: number, evalScore: number | null, evalFeedback: string | null, evalType: 'pass_fail' | 'graded') => void;
+  onEval: (
+    taskId: number,
+    evalScore: number | null,
+    evalFeedback: string | null,
+    evalType: 'pass_fail' | 'graded'
+  ) => void;
 }
 
 const EVAL_LABELS: Record<string, string> = {
@@ -67,7 +88,9 @@ export default function EditAssignmentDialog({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setTimeout(() => { initializedRef.current = true; }, 100);
+    setTimeout(() => {
+      initializedRef.current = true;
+    }, 100);
   }, []);
 
   useEffect(() => {
@@ -82,9 +105,13 @@ export default function EditAssignmentDialog({
         });
         queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      } catch { /* silently ignore */ }
+      } catch {
+        /* silently ignore */
+      }
     }, 600);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [title, selectedDate, evalType, assignmentId, courseId, queryClient]);
 
   const { data: students = [] } = useQuery({
@@ -114,15 +141,20 @@ export default function EditAssignmentDialog({
       });
       setNewSubtaskTitle('');
       refetchSubtasks();
-    } catch { /* silently ignore */ }
-    finally { setAddingSubtask(false); }
+    } catch {
+      /* silently ignore */
+    } finally {
+      setAddingSubtask(false);
+    }
   }
 
   async function handleDeleteSubtask(subtaskId: number) {
     try {
       await api.delete(`/courses/${courseId}/assignments/${assignmentId}/subtasks/${subtaskId}`);
       refetchSubtasks();
-    } catch { /* silently ignore */ }
+    } catch {
+      /* silently ignore */
+    }
   }
 
   const totalStudents = students.length;
@@ -209,7 +241,9 @@ export default function EditAssignmentDialog({
                 }`}
               >
                 <ListTodo className="w-3.5 h-3.5" />
-                {subtasks.length > 0 ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks'}
+                {subtasks.length > 0
+                  ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}`
+                  : 'Subtasks'}
               </button>
 
               {/* Students pill */}
@@ -232,8 +266,13 @@ export default function EditAssignmentDialog({
                 <div className="border-t my-3" />
                 <div className="space-y-1.5">
                   {subtasks.map((s) => (
-                    <div key={s.id} className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm">
-                      <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{s.title}</span>
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
+                    >
+                      <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">
+                        {s.title}
+                      </span>
                       <button
                         onClick={() => handleDeleteSubtask(s.id)}
                         className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
@@ -247,7 +286,9 @@ export default function EditAssignmentDialog({
                       placeholder="Add a subtask..."
                       value={newSubtaskTitle}
                       onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') handleAddSubtask(); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAddSubtask();
+                      }}
                       className="text-sm h-8 flex-1"
                     />
                     <Button
@@ -285,10 +326,16 @@ export default function EditAssignmentDialog({
                           className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
                         >
                           {s.avatar ? (
-                            <img src={s.avatar} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                            <img
+                              src={s.avatar}
+                              alt=""
+                              className="w-6 h-6 rounded-full object-cover shrink-0"
+                            />
                           ) : (
                             <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                              <span className="text-[10px] font-bold text-indigo-600">{initials}</span>
+                              <span className="text-[10px] font-bold text-indigo-600">
+                                {initials}
+                              </span>
                             </div>
                           )}
                           <span className="flex-1 truncate text-gray-700 dark:text-gray-300">
@@ -308,19 +355,32 @@ export default function EditAssignmentDialog({
                             >
                               Eval
                             </span>
-                          ) : (s.status === 'DONE' || deadlinePassed) ? (
+                          ) : s.status === 'DONE' || deadlinePassed ? (
                             <button
-                              onClick={() => onEval(s.taskId, s.evalScore, s.evalFeedback, evalType as 'pass_fail' | 'graded')}
+                              onClick={() =>
+                                onEval(
+                                  s.taskId,
+                                  s.evalScore,
+                                  s.evalFeedback,
+                                  evalType as 'pass_fail' | 'graded'
+                                )
+                              }
                               className="shrink-0 flex items-center gap-1"
                             >
                               {evalType === 'pass_fail' && s.evalScore !== null ? (
                                 s.evalScore === 1 ? (
-                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">✓ Pass</span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                    ✓ Pass
+                                  </span>
                                 ) : (
-                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">✗ Fail</span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                    ✗ Fail
+                                  </span>
                                 )
                               ) : evalType === 'graded' && s.evalScore !== null ? (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">{s.evalScore} b.</span>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                  {s.evalScore} b.
+                                </span>
                               ) : (
                                 <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
                                   <Star className="w-3 h-3" />

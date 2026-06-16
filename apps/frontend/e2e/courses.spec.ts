@@ -1,30 +1,30 @@
-import { test, expect, Page } from '@playwright/test'
-import { mockAuthentication } from './helpers'
+import { test, expect, Page } from '@playwright/test';
+import { mockAuthentication } from './helpers';
 
 type Course = {
-  id: number
-  code: string
-  name: string | null
-  semester: string
-  color: string | null
-  lectureSchedule: string | null
-  seminarSchedule: string | null
-  enrolled: boolean
-}
+  id: number;
+  code: string;
+  name: string | null;
+  semester: string;
+  color: string | null;
+  lectureSchedule: string | null;
+  seminarSchedule: string | null;
+  enrolled: boolean;
+};
 
 type Task = {
-  id: number
-  title: string
-  status: string
-  dueDate: string
-  priority: string
-  courseId: number
-}
+  id: number;
+  title: string;
+  status: string;
+  dueDate: string;
+  priority: string;
+  courseId: number;
+};
 
 async function mockRoleMode(page: Page, mode: 'student' | 'teacher') {
   await page.addInitScript((currentMode) => {
-    window.localStorage.setItem('roleMode', currentMode)
-  }, mode)
+    window.localStorage.setItem('roleMode', currentMode);
+  }, mode);
 }
 
 async function mockCourses(page: Page) {
@@ -49,25 +49,24 @@ async function mockCourses(page: Page) {
       seminarSchedule: 'Thu 16:00',
       enrolled: false,
     },
-  ]
-  let nextCourseId = 3
+  ];
+  let nextCourseId = 3;
 
   await page.route(/^http:\/\/localhost:3001\/courses/, async (route) => {
-
-    const request = route.request()
-    const url = new URL(request.url())
+    const request = route.request();
+    const url = new URL(request.url());
 
     if (request.method() === 'GET' && url.pathname === '/courses') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(courses),
-      })
-      return
+      });
+      return;
     }
 
     if (request.method() === 'POST' && url.pathname === '/courses') {
-      const payload = request.postDataJSON() as { code: string; name?: string; semester: string }
+      const payload = request.postDataJSON() as { code: string; name?: string; semester: string };
       const newCourse: Course = {
         id: nextCourseId++,
         code: payload.code,
@@ -77,53 +76,53 @@ async function mockCourses(page: Page) {
         lectureSchedule: null,
         seminarSchedule: null,
         enrolled: true,
-      }
-      courses.push(newCourse)
+      };
+      courses.push(newCourse);
       await route.fulfill({
         status: 201,
         contentType: 'application/json',
         body: JSON.stringify(newCourse),
-      })
-      return
+      });
+      return;
     }
 
-    const progressMatch = url.pathname.match(/^\/courses\/(\d+)\/progress$/)
+    const progressMatch = url.pathname.match(/^\/courses\/(\d+)\/progress$/);
     if (request.method() === 'GET' && progressMatch) {
-      const courseId = Number(progressMatch[1])
+      const courseId = Number(progressMatch[1]);
       const progress = {
         done: courseId === 1 ? 3 : 0,
         total: courseId === 1 ? 5 : 0,
         percent: courseId === 1 ? 60 : 0,
-      }
+      };
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(progress),
-      })
-      return
+      });
+      return;
     }
 
     if (request.method() === 'GET' && /^\/courses\/\d+$/.test(url.pathname)) {
-      const courseId = Number(url.pathname.split('/')[2])
-      const course = courses.find((item) => item.id === courseId)
+      const courseId = Number(url.pathname.split('/')[2]);
+      const course = courses.find((item) => item.id === courseId);
       if (course) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify(course),
-        })
-        return
+        });
+        return;
       }
       await route.fulfill({
         status: 404,
         contentType: 'application/json',
         body: JSON.stringify({ error: 'NOT_FOUND' }),
-      })
-      return
+      });
+      return;
     }
 
-    await route.continue()
-  })
+    await route.continue();
+  });
 }
 
 async function mockCourseTasks(page: Page) {
@@ -136,72 +135,72 @@ async function mockCourseTasks(page: Page) {
       priority: 'LOW',
       courseId: 1,
     },
-  ]
+  ];
 
   await page.route('**/tasks*', async (route) => {
-    const type = route.request().resourceType()
-    if (type !== 'fetch' && type !== 'xhr') return route.continue()
-    const request = route.request()
+    const type = route.request().resourceType();
+    if (type !== 'fetch' && type !== 'xhr') return route.continue();
+    const request = route.request();
     if (request.method() === 'GET') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(tasks),
-      })
-      return
+      });
+      return;
     }
-    await route.continue()
-  })
+    await route.continue();
+  });
 }
 
 test.describe('Courses page', () => {
   test.beforeEach(async ({ page }) => {
-    await mockAuthentication(page)
-    await mockCourses(page)
-    await mockCourseTasks(page)
-  })
+    await mockAuthentication(page);
+    await mockCourses(page);
+    await mockCourseTasks(page);
+  });
 
   test('student view should list only enrolled courses without create button', async ({ page }) => {
-    await mockRoleMode(page, 'student')
-    await page.goto('/courses')
+    await mockRoleMode(page, 'student');
+    await page.goto('/courses');
 
-    await expect(page.getByRole('heading', { name: /Courses|Kurzy/i })).toBeVisible()
-    await expect(page.getByText('PB138')).toBeVisible()
-    await expect(page.getByText('PB175')).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: /Courses|Kurzy/i })).toBeVisible();
+    await expect(page.getByText('PB138')).toBeVisible();
+    await expect(page.getByText('PB175')).not.toBeVisible();
     // In student mode the header create button is not rendered
-    await expect(page.locator('main .border-b button')).not.toBeVisible()
-  })
+    await expect(page.locator('main .border-b button')).not.toBeVisible();
+  });
 
   test('teacher view should show all courses and new course button', async ({ page }) => {
-    await mockRoleMode(page, 'teacher')
-    await page.goto('/courses')
+    await mockRoleMode(page, 'teacher');
+    await page.goto('/courses');
 
-    await expect(page.getByText('PB138')).toBeVisible()
-    await expect(page.getByText('PB175')).toBeVisible()
-    await expect(page.locator('button:has(svg)').first()).toBeVisible()
-  })
+    await expect(page.getByText('PB138')).toBeVisible();
+    await expect(page.getByText('PB175')).toBeVisible();
+    await expect(page.locator('button:has(svg)').first()).toBeVisible();
+  });
 
   test('clicking a course card navigates to course detail', async ({ page }) => {
-    await mockRoleMode(page, 'student')
-    await page.goto('/courses')
+    await mockRoleMode(page, 'student');
+    await page.goto('/courses');
 
-    await page.locator('.cursor-pointer').filter({ hasText: 'PB138' }).click()
-    await expect(page).toHaveURL(/\/courses\/1$/)
-    await expect(page.getByRole('heading', { name: 'PB138' })).toBeVisible()
-    await expect(page.getByText('Prepare lecture notes')).toBeVisible()
-  })
+    await page.locator('.cursor-pointer').filter({ hasText: 'PB138' }).click();
+    await expect(page).toHaveURL(/\/courses\/1$/);
+    await expect(page.getByRole('heading', { name: 'PB138' })).toBeVisible();
+    await expect(page.getByText('Prepare lecture notes')).toBeVisible();
+  });
 
   test('teacher can create a new course and see it in the list', async ({ page }) => {
-    await mockRoleMode(page, 'teacher')
-    await page.goto('/courses/new')
+    await mockRoleMode(page, 'teacher');
+    await page.goto('/courses/new');
 
-    await page.getByPlaceholder('e.g. PB138').fill('PB180')
-    await page.getByPlaceholder('Full name of the course').fill('Advanced Testing')
-    await page.getByPlaceholder('e.g. Spring 2026').fill('Summer 2026')
+    await page.getByPlaceholder('e.g. PB138').fill('PB180');
+    await page.getByPlaceholder('Full name of the course').fill('Advanced Testing');
+    await page.getByPlaceholder('e.g. Spring 2026').fill('Summer 2026');
 
-    await page.getByRole('button', { name: 'Create Course' }).click()
-    await expect(page).toHaveURL(/\/courses$/)
-    await expect(page.getByText('PB180')).toBeVisible()
-    await expect(page.getByText('Advanced Testing')).toBeVisible()
-  })
-})
+    await page.getByRole('button', { name: 'Create Course' }).click();
+    await expect(page).toHaveURL(/\/courses$/);
+    await expect(page.getByText('PB180')).toBeVisible();
+    await expect(page.getByText('Advanced Testing')).toBeVisible();
+  });
+});

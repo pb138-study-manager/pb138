@@ -9,8 +9,8 @@ export function AdminDatabasePanel() {
         <CardHeader>
           <CardTitle>Database status</CardTitle>
           <CardDescription>
-            Operational controls belong on the server. These actions are placeholders for future admin
-            endpoints.
+            Operational controls belong on the server. These actions are placeholders for future
+            admin endpoints.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -22,7 +22,9 @@ export function AdminDatabasePanel() {
       <Card>
         <CardHeader>
           <CardTitle>Tools</CardTitle>
-          <CardDescription>Do not run destructive operations from the browser in production.</CardDescription>
+          <CardDescription>
+            Do not run destructive operations from the browser in production.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Button type="button" variant="outline">

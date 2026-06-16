@@ -47,7 +47,9 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? '');
   const [status] = useState<TaskStatus>(task.status);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(task.dueDate ? new Date(task.dueDate) : null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    task.dueDate ? new Date(task.dueDate) : null
+  );
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [subtasksExpanded, setSubtasksExpanded] = useState(false);
   const [priority, setPriority] = useState<Priority>((task.priority as Priority) ?? null);
@@ -65,7 +67,9 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
   const onSaveRef = useRef<AnyFn>(onSave);
-  useEffect(() => { onSaveRef.current = onSave; });
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  });
 
   const { data: courses = [] } = useQuery({
     queryKey: ['courses', 'enrolled'],
@@ -87,7 +91,10 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
 
   useEffect(() => {
     if (fetchedTaskData && isOpen && task.parentId === null) {
-      const subs = (fetchedTaskData.subtasks ?? []).map((sub) => ({ id: sub.id, title: sub.title }));
+      const subs = (fetchedTaskData.subtasks ?? []).map((sub) => ({
+        id: sub.id,
+        title: sub.title,
+      }));
       setExistingSubs(subs);
       setOriginalSubIds(subs.map((sub) => sub.id));
     }
@@ -213,7 +220,18 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     });
 
     setNewSubTitles([]);
-  }, [description, deletedSubIds, newSubTitles, onSave, priority, selectedCourse, selectedDate, status, tags, title]);
+  }, [
+    description,
+    deletedSubIds,
+    newSubTitles,
+    onSave,
+    priority,
+    selectedCourse,
+    selectedDate,
+    status,
+    tags,
+    title,
+  ]);
 
   return {
     title,

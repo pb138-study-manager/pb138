@@ -19,24 +19,26 @@ Student OS is the single app a student opens every morning and a teacher opens b
 ## What it can do
 
 ### As a Student
+
 - **Today view** — personalized daily screen: week strip, tasks for today, upcoming deadlines, AI summary of your week
 - **Tasks** — personal tasks + subtasks, filter by status/due date, AI priority scoring; teacher-assigned tasks appear here automatically tagged with the course
 - **Courses** — enrolled courses with progress tracking; each course opens a tabbed detail view:
-  - *Overview* — schedule, teacher info, next class, upcoming deadlines
-  - *Tasks* — all tasks linked to this course
-  - *Materials* — study materials uploaded by the teacher (links + descriptions)
-  - *My Grades* — all evaluations for this course with score + feedback
+  - _Overview_ — schedule, teacher info, next class, upcoming deadlines
+  - _Tasks_ — all tasks linked to this course
+  - _Materials_ — study materials uploaded by the teacher (links + descriptions)
+  - _My Grades_ — all evaluations for this course with score + feedback
 - **Notes** — personal notes organized in folders, linkable to courses, AI can summarize them on demand
 - **Timeline** — calendar view of events and deadlines, AI-suggested study blocks pushed directly from the plan generator
 - **AI Copilot** — persistent right-side panel with three modes:
-  - *Proactive feed* — polished cards that warn you about overload, nudge high-priority tasks, celebrate progress
-  - *Chat* — ask anything ("What should I study today?", "Summarize my PB138 notes")
-  - *Weekly plan generator* — AI reads your tasks and calendar, generates a day-by-day study schedule, one click pushes it to Timeline
+  - _Proactive feed_ — polished cards that warn you about overload, nudge high-priority tasks, celebrate progress
+  - _Chat_ — ask anything ("What should I study today?", "Summarize my PB138 notes")
+  - _Weekly plan generator_ — AI reads your tasks and calendar, generates a day-by-day study schedule, one click pushes it to Timeline
 - **Notifications** — bell icon in the header (unread badge) for hard notifications: new assignment, new material, evaluation received; clicking navigates directly to the relevant resource; AI panel handles contextual nudges separately
 - **Global search** — CMD+K command palette searches across tasks, notes, courses, and study materials at once; results grouped by type
 - **More** — catch-all drawer: Profile/Settings, Groups, Pomodoro timer, About/Help
 
 ### As a Teacher
+
 - **My Classes** — all courses you teach, class roster, today's sessions, count of pending evaluations
 - **Assignments** — create assignments for a course, set due date and description (AI can draft it), publish to all enrolled students at once; students cannot self-enroll — teachers control the roster entirely
 - **Evaluations** — grade submitted student work with score + feedback, view per-student progress across a course
@@ -45,6 +47,7 @@ Student OS is the single app a student opens every morning and a teacher opens b
 - **AI Insights** — class performance overview, which students are falling behind, aggregate submission stats
 
 ### Role toggle
+
 A user can hold both Student and Teacher roles (e.g. PhD students). A small pill in the sidebar switches the entire navigation context without logging out. On mobile, the same 5-slot bottom nav shifts meaning on role toggle (Today→Classes, Tasks→Assign, Courses→Grades, Notes→Students, More→More).
 
 New users are always **Student** by default. The **Teacher** role is granted exclusively by an Admin via the admin panel — no self-declaration.
@@ -97,18 +100,18 @@ E-infra AI API (university AI infrastructure)
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + TypeScript + Vite + TanStack Router |
-| Styling | Tailwind CSS (dark mode via `class`) |
-| Validation | Zod |
-| Backend | Bun + ElysiaJS + TypeScript |
-| Database | PostgreSQL via Supabase |
-| ORM | Drizzle ORM |
-| Auth | JWT (`@elysiajs/jwt`) |
-| AI | E-infra API (university AI infrastructure) |
-| Testing | Vitest + Playwright |
-| CI/CD | GitHub Actions |
+| Layer      | Technology                                     |
+| ---------- | ---------------------------------------------- |
+| Frontend   | React 18 + TypeScript + Vite + TanStack Router |
+| Styling    | Tailwind CSS (dark mode via `class`)           |
+| Validation | Zod                                            |
+| Backend    | Bun + ElysiaJS + TypeScript                    |
+| Database   | PostgreSQL via Supabase                        |
+| ORM        | Drizzle ORM                                    |
+| Auth       | JWT (`@elysiajs/jwt`)                          |
+| AI         | E-infra API (university AI infrastructure)     |
+| Testing    | Vitest + Playwright                            |
+| CI/CD      | GitHub Actions                                 |
 
 ---
 
@@ -182,12 +185,12 @@ fix: description      # bug fix
 
 ## Team
 
-| Name | UCO |
-|---|---|
-| Peter Perveka | 564577 |
+| Name               | UCO    |
+| ------------------ | ------ |
+| Peter Perveka      | 564577 |
 | Valéria Kvaššayová | 550435 |
-| Jaroslav Svajčík | 564578 |
-| Martin Boucník | 564157 |
+| Jaroslav Svajčík   | 564578 |
+| Martin Boucník     | 564157 |
 
 ---
 

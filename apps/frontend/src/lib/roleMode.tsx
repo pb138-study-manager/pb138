@@ -22,11 +22,7 @@ export function RoleModeProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  return (
-    <RoleModeContext.Provider value={{ mode, toggle }}>
-      {children}
-    </RoleModeContext.Provider>
-  );
+  return <RoleModeContext.Provider value={{ mode, toggle }}>{children}</RoleModeContext.Provider>;
 }
 
 export function useRoleMode() {

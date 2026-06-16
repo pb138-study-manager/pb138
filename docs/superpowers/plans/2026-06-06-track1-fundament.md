@@ -12,14 +12,14 @@
 
 ## Súbory
 
-| Akcia | Súbor |
-|---|---|
-| Modifikovať | `apps/frontend/src/routes/courses/index.tsx` |
-| Modifikovať | `apps/frontend/src/routes/courses/$courseId.tsx` |
-| Zmazať | `apps/frontend/src/components/courses/course-mock-data.ts` |
-| Vytvoriť | `apps/frontend/src/lib/courseColors.ts` |
-| Vytvoriť | `apps/frontend/src/lib/courseColors.test.ts` |
-| Vytvoriť | `apps/frontend/e2e/auth.spec.ts` |
+| Akcia       | Súbor                                                      |
+| ----------- | ---------------------------------------------------------- |
+| Modifikovať | `apps/frontend/src/routes/courses/index.tsx`               |
+| Modifikovať | `apps/frontend/src/routes/courses/$courseId.tsx`           |
+| Zmazať      | `apps/frontend/src/components/courses/course-mock-data.ts` |
+| Vytvoriť    | `apps/frontend/src/lib/courseColors.ts`                    |
+| Vytvoriť    | `apps/frontend/src/lib/courseColors.test.ts`               |
+| Vytvoriť    | `apps/frontend/e2e/auth.spec.ts`                           |
 
 ---
 
@@ -28,6 +28,7 @@
 `__root.tsx` už obsahuje redirect logiku. Len pridáme E2E test aby sa to nerozobilo.
 
 **Files:**
+
 - Create: `apps/frontend/e2e/auth.spec.ts`
 
 - [ ] **Step 1: Napíš E2E test**
@@ -54,7 +55,7 @@ test('po prihlásení zostane na /today', async ({ page }) => {
 cd apps/frontend && pnpm test:e2e --grep "auth"
 ```
 
-Očakávané: PASS (redirect funguje lebo __root.tsx to robí správne)
+Očakávané: PASS (redirect funguje lebo \_\_root.tsx to robí správne)
 
 - [ ] **Step 3: Commit**
 
@@ -68,6 +69,7 @@ git commit -m "test: add auth redirect e2e test"
 ## Task 2: Deterministické farby kurzov
 
 **Files:**
+
 - Create: `apps/frontend/src/lib/courseColors.ts`
 - Create: `apps/frontend/src/lib/courseColors.test.ts`
 
@@ -111,16 +113,51 @@ cd apps/frontend && pnpm test src/lib/courseColors.test.ts
 ```typescript
 // apps/frontend/src/lib/courseColors.ts
 const PALETTE = [
-  { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-700 dark:text-indigo-300', border: 'border-indigo-200 dark:border-indigo-800', accent: 'bg-indigo-500' },
-  { bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-800', accent: 'bg-violet-500' },
-  { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800', accent: 'bg-emerald-500' },
-  { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800', accent: 'bg-amber-500' },
-  { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-800', accent: 'bg-rose-500' },
-  { bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-200 dark:border-cyan-800', accent: 'bg-cyan-500' },
-  { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800', accent: 'bg-orange-500' },
+  {
+    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
+    text: 'text-indigo-700 dark:text-indigo-300',
+    border: 'border-indigo-200 dark:border-indigo-800',
+    accent: 'bg-indigo-500',
+  },
+  {
+    bg: 'bg-violet-100 dark:bg-violet-900/30',
+    text: 'text-violet-700 dark:text-violet-300',
+    border: 'border-violet-200 dark:border-violet-800',
+    accent: 'bg-violet-500',
+  },
+  {
+    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    text: 'text-emerald-700 dark:text-emerald-300',
+    border: 'border-emerald-200 dark:border-emerald-800',
+    accent: 'bg-emerald-500',
+  },
+  {
+    bg: 'bg-amber-100 dark:bg-amber-900/30',
+    text: 'text-amber-700 dark:text-amber-300',
+    border: 'border-amber-200 dark:border-amber-800',
+    accent: 'bg-amber-500',
+  },
+  {
+    bg: 'bg-rose-100 dark:bg-rose-900/30',
+    text: 'text-rose-700 dark:text-rose-300',
+    border: 'border-rose-200 dark:border-rose-800',
+    accent: 'bg-rose-500',
+  },
+  {
+    bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    text: 'text-cyan-700 dark:text-cyan-300',
+    border: 'border-cyan-200 dark:border-cyan-800',
+    accent: 'bg-cyan-500',
+  },
+  {
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-700 dark:text-orange-300',
+    border: 'border-orange-200 dark:border-orange-800',
+    accent: 'bg-orange-500',
+  },
 ] as const;
 
-export type CourseColor = typeof PALETTE[number];
+export type CourseColor = (typeof PALETTE)[number];
 
 export function getCourseColor(id: number): CourseColor {
   return PALETTE[id % PALETTE.length];
@@ -145,6 +182,7 @@ git commit -m "feat: add deterministic course color palette"
 ## Task 3: Courses/index — farebné karty + dark mode fix
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/index.tsx`
 
 - [ ] **Step 1: Uprav karty v courses/index.tsx**
@@ -166,7 +204,9 @@ return (
     <div className={`w-3 h-3 rounded-full ${color.accent}`} />
     <div>
       <h3 className={`font-bold ${color.text}`}>{course.code}</h3>
-      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{course.name ?? course.code}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+        {course.name ?? course.code}
+      </p>
     </div>
     <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white/50 dark:bg-black/20 text-gray-600 dark:text-gray-300">
       {course.semester}
@@ -197,6 +237,7 @@ git commit -m "feat: colored course cards with deterministic palette"
 ## Task 4: Courses progress bar
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/index.tsx`
 
 - [ ] **Step 1: Pridaj progress query do courses/index.tsx**
@@ -208,7 +249,10 @@ Pridaj pred `return` vo vnútri `.map()`:
 function CourseProgressBar({ courseId, colorAccent }: { courseId: number; colorAccent: string }) {
   const { data } = useQuery({
     queryKey: ['course-progress', courseId],
-    queryFn: () => api.get<{ completed: number; total: number }>(`/courses/${courseId}/progress`).catch(() => ({ completed: 0, total: 0 })),
+    queryFn: () =>
+      api
+        .get<{ completed: number; total: number }>(`/courses/${courseId}/progress`)
+        .catch(() => ({ completed: 0, total: 0 })),
   });
 
   if (!data || data.total === 0) return null;
@@ -217,11 +261,16 @@ function CourseProgressBar({ courseId, colorAccent }: { courseId: number; colorA
   return (
     <div className="mt-2">
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-        <span>{data.completed}/{data.total} úloh</span>
+        <span>
+          {data.completed}/{data.total} úloh
+        </span>
         <span>{pct}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-white/50 dark:bg-black/20 overflow-hidden">
-        <div className={`h-full rounded-full ${colorAccent} transition-all`} style={{ width: `${pct}%` }} />
+        <div
+          className={`h-full rounded-full ${colorAccent} transition-all`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   );
@@ -229,6 +278,7 @@ function CourseProgressBar({ courseId, colorAccent }: { courseId: number; colorA
 ```
 
 Potom vo vnútri course karty pridaj pred záverečný `</div>`:
+
 ```tsx
 <CourseProgressBar courseId={course.id} colorAccent={color.accent} />
 ```
@@ -247,6 +297,7 @@ git commit -m "feat: add task progress bar to course cards"
 ## Task 5: Zmaž course-mock-data.ts
 
 **Files:**
+
 - Delete: `apps/frontend/src/components/courses/course-mock-data.ts`
 
 - [ ] **Step 1: Over že súbor nie je importovaný**

@@ -12,34 +12,38 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|---|---|---|
-| Create | `apps/backend/src/services/audit.ts` | `logAction` helper — inserts into `audit_logs` |
-| Create | `apps/backend/src/middleware/auth.ts` | Verifies Supabase JWT, looks up local user, attaches `{ user }` to context |
-| Create | `apps/backend/src/routes/tasks.ts` | 5 task endpoints (all behind authMiddleware) |
-| Create | `apps/backend/src/routes/tasks.test.ts` | Integration tests for all task endpoints |
-| Modify | `apps/backend/src/index.ts` | Register `tasksRoutes` |
-| Create | `apps/backend/.env.example` | Document required env vars including `SUPABASE_JWT_SECRET` |
+| Action | Path                                    | Responsibility                                                             |
+| ------ | --------------------------------------- | -------------------------------------------------------------------------- |
+| Create | `apps/backend/src/services/audit.ts`    | `logAction` helper — inserts into `audit_logs`                             |
+| Create | `apps/backend/src/middleware/auth.ts`   | Verifies Supabase JWT, looks up local user, attaches `{ user }` to context |
+| Create | `apps/backend/src/routes/tasks.ts`      | 5 task endpoints (all behind authMiddleware)                               |
+| Create | `apps/backend/src/routes/tasks.test.ts` | Integration tests for all task endpoints                                   |
+| Modify | `apps/backend/src/index.ts`             | Register `tasksRoutes`                                                     |
+| Create | `apps/backend/.env.example`             | Document required env vars including `SUPABASE_JWT_SECRET`                 |
 
 ---
 
 ## Task 1: Install dependency + create `.env.example`
 
 **Files:**
+
 - Modify: `apps/backend/package.json` (via bun add)
 - Create: `apps/backend/.env.example`
 
 - [ ] **Step 1: Install `@elysiajs/jwt`**
 
 Run from `apps/backend/`:
+
 ```bash
 bun add @elysiajs/jwt
 ```
+
 Expected: `@elysiajs/jwt` appears in `package.json` dependencies.
 
 - [ ] **Step 2: Create `.env.example`**
 
 Create `apps/backend/.env.example`:
+
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pb138
 PORT=3001
@@ -60,11 +64,13 @@ git commit -m "feat: add @elysiajs/jwt dependency and env example"
 ## Task 2: Audit service
 
 **Files:**
+
 - Create: `apps/backend/src/services/audit.ts`
 
 - [ ] **Step 1: Write the failing test**
 
 Create `apps/backend/src/services/audit.test.ts`:
+
 ```typescript
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { db } from '../db';
@@ -75,11 +81,14 @@ import { eq } from 'drizzle-orm';
 let testUserId: number;
 
 beforeAll(async () => {
-  const [user] = await db.insert(users).values({
-    email: 'audit-test@example.com',
-    login: 'audit-test-user',
-    pwdHash: 'hash',
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: 'audit-test@example.com',
+      login: 'audit-test-user',
+      pwdHash: 'hash',
+    })
+    .returning();
   testUserId = user.id;
 });
 
@@ -104,11 +113,13 @@ describe('logAction', () => {
 ```bash
 cd apps/backend && bun test src/services/audit.test.ts
 ```
+
 Expected: FAIL — `logAction` not found.
 
 - [ ] **Step 3: Implement `audit.ts`**
 
 Create `apps/backend/src/services/audit.ts`:
+
 ```typescript
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { auditLogs } from '../db/schema';
@@ -127,6 +138,7 @@ export async function logAction(
 ```bash
 cd apps/backend && bun test src/services/audit.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -141,6 +153,7 @@ git commit -m "feat: add audit logAction service"
 ## Task 3: Auth middleware
 
 **Files:**
+
 - Create: `apps/backend/src/middleware/auth.ts`
 
 The middleware verifies the Supabase JWT, extracts the `sub` claim (Supabase user UUID = `authId`), looks up the local user, and attaches `{ user: { id, roles } }` to Elysia context.
@@ -148,6 +161,7 @@ The middleware verifies the Supabase JWT, extracts the `sub` claim (Supabase use
 - [ ] **Step 1: Write the failing tests**
 
 Create `apps/backend/src/middleware/auth.test.ts`:
+
 ```typescript
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
@@ -167,9 +181,7 @@ async function signToken(sub: string): Promise<string> {
   // Use jose directly (available as transitive dep of @elysiajs/jwt)
   const { SignJWT } = await import('jose');
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 const testAuthId = 'test-supabase-uuid-auth-mw';
@@ -180,12 +192,15 @@ const testApp = new Elysia()
   .get('/protected', ({ user }) => ({ id: user.id, roles: user.roles }));
 
 beforeAll(async () => {
-  const [user] = await db.insert(users).values({
-    email: 'auth-mw-test@example.com',
-    login: 'auth-mw-test-user',
-    pwdHash: '',
-    authId: testAuthId,
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: 'auth-mw-test@example.com',
+      login: 'auth-mw-test-user',
+      pwdHash: '',
+      authId: testAuthId,
+    })
+    .returning();
   testUserId = user.id;
 });
 
@@ -228,11 +243,13 @@ describe('authMiddleware', () => {
 ```bash
 cd apps/backend && bun test src/middleware/auth.test.ts
 ```
+
 Expected: FAIL — `authMiddleware` not found.
 
 - [ ] **Step 3: Implement `auth.ts`**
 
 Create `apps/backend/src/middleware/auth.ts`:
+
 ```typescript
 import { Elysia } from 'elysia';
 import { jwt } from '@elysiajs/jwt';
@@ -262,7 +279,9 @@ export const authMiddleware = new Elysia({ name: 'auth-middleware' })
 
     if (!localUser) {
       set.status = 404;
-      throw new Error(JSON.stringify({ error: 'USER_NOT_FOUND', message: 'No local user for this account' }));
+      throw new Error(
+        JSON.stringify({ error: 'USER_NOT_FOUND', message: 'No local user for this account' })
+      );
     }
 
     const userRoleRows = await db
@@ -285,6 +304,7 @@ export const authMiddleware = new Elysia({ name: 'auth-middleware' })
 ```bash
 cd apps/backend && bun test src/middleware/auth.test.ts
 ```
+
 Expected: PASS (all 3 tests)
 
 - [ ] **Step 5: Commit**
@@ -299,12 +319,14 @@ git commit -m "feat: add Supabase JWT auth middleware"
 ## Task 4: Tasks routes — GET /tasks + POST /tasks
 
 **Files:**
+
 - Create: `apps/backend/src/routes/tasks.ts`
 - Create: `apps/backend/src/routes/tasks.test.ts`
 
 - [ ] **Step 1: Write failing tests for GET + POST**
 
 Create `apps/backend/src/routes/tasks.test.ts`:
+
 ```typescript
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
@@ -322,12 +344,15 @@ let testUserId: number;
 let testApp: Elysia;
 
 beforeAll(async () => {
-  const [user] = await db.insert(users).values({
-    email: 'tasks-test@example.com',
-    login: 'tasks-test-user',
-    pwdHash: '',
-    authId: 'tasks-test-supabase-uuid',
-  }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: 'tasks-test@example.com',
+      login: 'tasks-test-user',
+      pwdHash: '',
+      authId: 'tasks-test-supabase-uuid',
+    })
+    .returning();
   testUserId = user.id;
 
   testApp = new Elysia()
@@ -396,11 +421,13 @@ describe('POST /tasks', () => {
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: FAIL — `tasksRoutes` not found.
 
 - [ ] **Step 3: Implement GET /tasks + POST /tasks**
 
 Create `apps/backend/src/routes/tasks.ts`:
+
 ```typescript
 import { Elysia, t } from 'elysia';
 import { db } from '../db';
@@ -412,28 +439,36 @@ import { eq, and, isNull } from 'drizzle-orm';
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
   .use(authMiddleware)
   .get('/', async ({ user }) => {
-    return db.select().from(tasks).where(
-      and(eq(tasks.userId, user.id), isNull(tasks.deletedAt))
-    );
+    return db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.userId, user.id), isNull(tasks.deletedAt)));
   })
-  .post('/', async ({ body, user }) => {
-    const [task] = await db.insert(tasks).values({
-      userId: user.id,
-      title: body.title,
-      dueDate: new Date(body.dueDate),
-      description: body.description,
-      assignmentId: body.assignmentId,
-    }).returning();
-    await logAction(db, user.id, `Created task ${task.id}: ${task.title}`);
-    return task;
-  }, {
-    body: t.Object({
-      title: t.String({ minLength: 1 }),
-      dueDate: t.String(),
-      description: t.Optional(t.String()),
-      assignmentId: t.Optional(t.Number()),
-    }),
-  });
+  .post(
+    '/',
+    async ({ body, user }) => {
+      const [task] = await db
+        .insert(tasks)
+        .values({
+          userId: user.id,
+          title: body.title,
+          dueDate: new Date(body.dueDate),
+          description: body.description,
+          assignmentId: body.assignmentId,
+        })
+        .returning();
+      await logAction(db, user.id, `Created task ${task.id}: ${task.title}`);
+      return task;
+    },
+    {
+      body: t.Object({
+        title: t.String({ minLength: 1 }),
+        dueDate: t.String(),
+        description: t.Optional(t.String()),
+        assignmentId: t.Optional(t.Number()),
+      }),
+    }
+  );
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -441,6 +476,7 @@ export const tasksRoutes = new Elysia({ prefix: '/tasks' })
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: PASS (all GET + POST tests)
 
 - [ ] **Step 5: Commit**
@@ -455,22 +491,27 @@ git commit -m "feat: add GET /tasks and POST /tasks routes"
 ## Task 5: Tasks routes — PATCH /tasks/:id + DELETE /tasks/:id
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 - Modify: `apps/backend/src/routes/tasks.test.ts`
 
 - [ ] **Step 1: Add failing tests for PATCH + DELETE**
 
 Add to `apps/backend/src/routes/tasks.test.ts` (after existing describe blocks):
+
 ```typescript
 describe('PATCH /tasks/:id', () => {
   let taskId: number;
 
   beforeAll(async () => {
-    const [task] = await db.insert(tasks).values({
-      userId: testUserId,
-      title: 'Task to update',
-      dueDate: new Date('2026-12-31'),
-    }).returning();
+    const [task] = await db
+      .insert(tasks)
+      .values({
+        userId: testUserId,
+        title: 'Task to update',
+        dueDate: new Date('2026-12-31'),
+      })
+      .returning();
     taskId = task.id;
   });
 
@@ -503,11 +544,14 @@ describe('DELETE /tasks/:id', () => {
   let taskId: number;
 
   beforeAll(async () => {
-    const [task] = await db.insert(tasks).values({
-      userId: testUserId,
-      title: 'Task to delete',
-      dueDate: new Date('2026-12-31'),
-    }).returning();
+    const [task] = await db
+      .insert(tasks)
+      .values({
+        userId: testUserId,
+        title: 'Task to delete',
+        dueDate: new Date('2026-12-31'),
+      })
+      .returning();
     taskId = task.id;
   });
 
@@ -539,11 +583,13 @@ describe('DELETE /tasks/:id', () => {
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: PATCH and DELETE tests FAIL.
 
 - [ ] **Step 3: Add PATCH + DELETE to `tasks.ts`**
 
 Add after the `.post()` block in `apps/backend/src/routes/tasks.ts`:
+
 ```typescript
   .patch('/:id', async ({ params, body, user, set }) => {
     const [existing] = await db.select().from(tasks).where(
@@ -597,6 +643,7 @@ Add after the `.post()` block in `apps/backend/src/routes/tasks.ts`:
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: PASS (all tests including PATCH + DELETE)
 
 - [ ] **Step 5: Commit**
@@ -611,23 +658,28 @@ git commit -m "feat: add PATCH /tasks/:id and DELETE /tasks/:id routes"
 ## Task 6: Tasks routes — PATCH /tasks/:id/toggle-done
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 - Modify: `apps/backend/src/routes/tasks.test.ts`
 
 - [ ] **Step 1: Add failing tests for toggle-done**
 
 Add to `apps/backend/src/routes/tasks.test.ts`:
+
 ```typescript
 describe('PATCH /tasks/:id/toggle-done', () => {
   let taskId: number;
 
   beforeAll(async () => {
-    const [task] = await db.insert(tasks).values({
-      userId: testUserId,
-      title: 'Task to toggle',
-      dueDate: new Date('2026-12-31'),
-      status: 'TODO',
-    }).returning();
+    const [task] = await db
+      .insert(tasks)
+      .values({
+        userId: testUserId,
+        title: 'Task to toggle',
+        dueDate: new Date('2026-12-31'),
+        status: 'TODO',
+      })
+      .returning();
     taskId = task.id;
   });
 
@@ -663,11 +715,13 @@ describe('PATCH /tasks/:id/toggle-done', () => {
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: toggle-done tests FAIL.
 
 - [ ] **Step 3: Add toggle-done route to `tasks.ts`**
 
 Add before the closing semicolon of the Elysia chain in `apps/backend/src/routes/tasks.ts`. Insert after the `.delete()` block:
+
 ```typescript
   .patch('/:id/toggle-done', async ({ params, user, set }) => {
     const [existing] = await db.select().from(tasks).where(
@@ -692,6 +746,7 @@ Add before the closing semicolon of the Elysia chain in `apps/backend/src/routes
 ```bash
 cd apps/backend && bun test src/routes/tasks.test.ts
 ```
+
 Expected: PASS (all tests)
 
 - [ ] **Step 5: Commit**
@@ -706,11 +761,13 @@ git commit -m "feat: add PATCH /tasks/:id/toggle-done route"
 ## Task 7: Wire routes into index.ts + run full test suite
 
 **Files:**
+
 - Modify: `apps/backend/src/index.ts`
 
 - [ ] **Step 1: Register tasksRoutes in `index.ts`**
 
 Replace the contents of `apps/backend/src/index.ts`:
+
 ```typescript
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
@@ -737,6 +794,7 @@ export type App = typeof app;
 ```bash
 cd apps/backend && bun test
 ```
+
 Expected: ALL tests pass — health endpoint + audit + auth middleware + all tasks routes.
 
 - [ ] **Step 3: Verify backend starts**
@@ -744,10 +802,13 @@ Expected: ALL tests pass — health endpoint + audit + auth middleware + all tas
 ```bash
 cd apps/backend && bun run dev
 ```
+
 Expected: `Backend running at http://localhost:3001` with no errors. Test manually:
+
 ```bash
 curl http://localhost:3001/health
 ```
+
 Expected: `{"status":"ok","timestamp":"..."}`
 
 - [ ] **Step 4: Commit**

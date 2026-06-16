@@ -14,25 +14,26 @@
 
 ## Súbory
 
-| Akcia | Súbor |
-|---|---|
-| Vytvoriť | `apps/frontend/src/context/AIPanelContext.tsx` |
-| Vytvoriť | `apps/frontend/src/components/ai/AICopilotPanel.tsx` |
-| Vytvoriť | `apps/frontend/src/components/ai/BriefTab.tsx` |
-| Vytvoriť | `apps/frontend/src/components/ai/ChatTab.tsx` |
-| Vytvoriť | `apps/frontend/src/components/notes/QuizModal.tsx` |
-| Vytvoriť | `apps/frontend/src/components/notes/QuizModal.test.tsx` |
-| Vytvoriť | `apps/frontend/src/components/notes/NoteAIChat.tsx` |
-| Modifikovať | `apps/frontend/src/routes/__root.tsx` |
+| Akcia       | Súbor                                                     |
+| ----------- | --------------------------------------------------------- |
+| Vytvoriť    | `apps/frontend/src/context/AIPanelContext.tsx`            |
+| Vytvoriť    | `apps/frontend/src/components/ai/AICopilotPanel.tsx`      |
+| Vytvoriť    | `apps/frontend/src/components/ai/BriefTab.tsx`            |
+| Vytvoriť    | `apps/frontend/src/components/ai/ChatTab.tsx`             |
+| Vytvoriť    | `apps/frontend/src/components/notes/QuizModal.tsx`        |
+| Vytvoriť    | `apps/frontend/src/components/notes/QuizModal.test.tsx`   |
+| Vytvoriť    | `apps/frontend/src/components/notes/NoteAIChat.tsx`       |
+| Modifikovať | `apps/frontend/src/routes/__root.tsx`                     |
 | Modifikovať | `apps/frontend/src/components/notes/note-detail-view.tsx` |
-| Vytvoriť | `apps/frontend/e2e/ai-copilot.spec.ts` |
-| Vytvoriť | `apps/frontend/e2e/notes-quiz.spec.ts` |
+| Vytvoriť    | `apps/frontend/e2e/ai-copilot.spec.ts`                    |
+| Vytvoriť    | `apps/frontend/e2e/notes-quiz.spec.ts`                    |
 
 ---
 
 ## Task 1: AIPanelContext
 
 **Files:**
+
 - Create: `apps/frontend/src/context/AIPanelContext.tsx`
 
 - [ ] **Step 1: Implementuj context**
@@ -54,12 +55,14 @@ export function AIPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <AIPanelContext.Provider value={{
-      isOpen,
-      open: () => setIsOpen(true),
-      close: () => setIsOpen(false),
-      toggle: () => setIsOpen((v) => !v),
-    }}>
+    <AIPanelContext.Provider
+      value={{
+        isOpen,
+        open: () => setIsOpen(true),
+        close: () => setIsOpen(false),
+        toggle: () => setIsOpen((v) => !v),
+      }}
+    >
       {children}
     </AIPanelContext.Provider>
   );
@@ -77,18 +80,18 @@ export function useAIPanel() {
 V `RootLayout` komponent v `apps/frontend/src/routes/__root.tsx`:
 
 Pridaj import:
+
 ```tsx
 import { AIPanelProvider } from '@/context/AIPanelContext';
 ```
 
 Obal `<QueryClientProvider>` blok:
+
 ```tsx
 return (
   <QueryClientProvider client={queryClient}>
     <AIPanelProvider>
-      <RoleModeProvider>
-        {/* ... existujúci obsah ... */}
-      </RoleModeProvider>
+      <RoleModeProvider>{/* ... existujúci obsah ... */}</RoleModeProvider>
     </AIPanelProvider>
   </QueryClientProvider>
 );
@@ -106,6 +109,7 @@ git commit -m "feat: add AIPanelContext for AI copilot panel state"
 ## Task 2: BriefTab komponent
 
 **Files:**
+
 - Create: `apps/frontend/src/components/ai/BriefTab.tsx`
 
 - [ ] **Step 1: Implementuj BriefTab**
@@ -164,7 +168,9 @@ export default function BriefTab() {
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
         <div className="mt-4 space-y-2">
-          {[1,2,3].map(i => <div key={i} className="h-8 bg-gray-100 dark:bg-gray-800 rounded-lg" />)}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-8 bg-gray-100 dark:bg-gray-800 rounded-lg" />
+          ))}
         </div>
       </div>
     );
@@ -206,9 +212,14 @@ export default function BriefTab() {
                     className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
                   >
                     <div className={`w-2 h-2 rounded-full flex-shrink-0 ${DOT[p.urgency]}`} />
-                    <span className="text-sm text-gray-800 dark:text-gray-200 flex-1 truncate">{p.title}</span>
+                    <span className="text-sm text-gray-800 dark:text-gray-200 flex-1 truncate">
+                      {p.title}
+                    </span>
                     <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
-                      {new Date(p.dueDate).toLocaleDateString('sk-SK', { day: 'numeric', month: 'short' })}
+                      {new Date(p.dueDate).toLocaleDateString('sk-SK', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
                     </span>
                   </div>
                 ))}
@@ -242,6 +253,7 @@ git commit -m "feat: implement AI BriefTab component"
 ## Task 3: ChatTab komponent
 
 **Files:**
+
 - Create: `apps/frontend/src/components/ai/ChatTab.tsx`
 
 - [ ] **Step 1: Implementuj ChatTab**
@@ -279,7 +291,10 @@ export default function ChatTab() {
       const { reply } = await api.post<{ reply: string }>('/ai/chat', { messages: newMessages });
       setMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: 'Prepáč, nastala chyba. Skús znova.' }]);
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: 'Prepáč, nastala chyba. Skús znova.' },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -302,15 +317,14 @@ export default function ChatTab() {
           </p>
         )}
         {messages.map((m, i) => (
-          <div
-            key={i}
-            className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-              m.role === 'user'
-                ? 'bg-indigo-600 text-white rounded-br-sm'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-sm'
-            }`}>
+          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div
+              className={`max-w-[85%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
+                m.role === 'user'
+                  ? 'bg-indigo-600 text-white rounded-br-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-sm'
+              }`}
+            >
               {m.content}
             </div>
           </div>
@@ -319,9 +333,18 @@ export default function ChatTab() {
           <div className="flex justify-start">
             <div className="bg-gray-100 dark:bg-gray-800 rounded-xl rounded-bl-sm px-3 py-2">
               <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: '0ms' }}
+                />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: '150ms' }}
+                />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: '300ms' }}
+                />
               </div>
             </div>
           </div>
@@ -364,6 +387,7 @@ git commit -m "feat: implement AI ChatTab component"
 ## Task 4: AICopilotPanel + toggle button v layoute
 
 **Files:**
+
 - Create: `apps/frontend/src/components/ai/AICopilotPanel.tsx`
 - Modify: `apps/frontend/src/routes/__root.tsx`
 
@@ -428,15 +452,17 @@ export default function AICopilotPanel() {
 }
 ```
 
-- [ ] **Step 2: Pridaj panel a toggle button do __root.tsx**
+- [ ] **Step 2: Pridaj panel a toggle button do \_\_root.tsx**
 
 Pridaj importy:
+
 ```tsx
 import AICopilotPanel from '@/components/ai/AICopilotPanel';
 import { useAIPanel } from '@/context/AIPanelContext';
 ```
 
 V `RootLayout` za `const { isAuthenticated, isLoading } = useAuth();` pridaj:
+
 ```tsx
 const { toggle, isOpen } = useAIPanel();
 ```
@@ -444,6 +470,7 @@ const { toggle, isOpen } = useAIPanel();
 Uprav hlavný layout div aby bol flex row (panel na pravej strane):
 
 Nahraď:
+
 ```tsx
 <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full">
   <Outlet />
@@ -451,6 +478,7 @@ Nahraď:
 ```
 
 Za:
+
 ```tsx
 <div className="flex-1 min-w-0 flex h-full overflow-hidden">
   <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0 h-full overflow-auto relative">
@@ -492,6 +520,7 @@ git commit -m "feat: add AI Copilot panel with Brief and Chat tabs to app layout
 ## Task 5: QuizModal + unit test
 
 **Files:**
+
 - Create: `apps/frontend/src/components/notes/QuizModal.tsx`
 - Create: `apps/frontend/src/components/notes/QuizModal.test.tsx`
 
@@ -514,9 +543,9 @@ function computeScore(questions: Question[], answers: number[]): number {
 
 describe('quiz score', () => {
   const questions: Question[] = [
-    { question: 'Q1', options: ['A','B','C','D'], correct: 0 },
-    { question: 'Q2', options: ['A','B','C','D'], correct: 2 },
-    { question: 'Q3', options: ['A','B','C','D'], correct: 1 },
+    { question: 'Q1', options: ['A', 'B', 'C', 'D'], correct: 0 },
+    { question: 'Q2', options: ['A', 'B', 'C', 'D'], correct: 2 },
+    { question: 'Q3', options: ['A', 'B', 'C', 'D'], correct: 1 },
   ];
 
   it('vráti 0 ak sú všetky odpovede nesprávne', () => {
@@ -568,7 +597,8 @@ export default function QuizModal({ noteId, noteTitle, onClose }: QuizModalProps
   const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
-    api.post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, {})
+    api
+      .post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, {})
       .then((r) => setQuestions(r.questions))
       .catch(() => setError('Nepodarilo sa vygenerovať otázky.'))
       .finally(() => setLoading(false));
@@ -606,7 +636,12 @@ export default function QuizModal({ noteId, noteTitle, onClose }: QuizModalProps
             <h3 className="font-semibold text-gray-900 dark:text-white">🧠 Quiz</h3>
             <p className="text-xs text-gray-400 mt-0.5">{noteTitle}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">✕</button>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="p-5">
@@ -621,10 +656,19 @@ export default function QuizModal({ noteId, noteTitle, onClose }: QuizModalProps
 
           {isFinished && (
             <div className="text-center py-6">
-              <p className="text-4xl mb-3">{score === questions.length ? '🎉' : score >= questions.length / 2 ? '👍' : '📚'}</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">{score}/{questions.length} správnych</p>
+              <p className="text-4xl mb-3">
+                {score === questions.length ? '🎉' : score >= questions.length / 2 ? '👍' : '📚'}
+              </p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {score}/{questions.length} správnych
+              </p>
               <button
-                onClick={() => { setCurrent(0); setAnswers([]); setSelected(null); setRevealed(false); }}
+                onClick={() => {
+                  setCurrent(0);
+                  setAnswers([]);
+                  setSelected(null);
+                  setRevealed(false);
+                }}
                 className="mt-4 text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
               >
                 Skúsiť znova
@@ -634,16 +678,26 @@ export default function QuizModal({ noteId, noteTitle, onClose }: QuizModalProps
 
           {!loading && !error && !isFinished && q && (
             <>
-              <p className="text-xs text-gray-400 mb-3">Otázka {current + 1} z {questions.length}</p>
-              <p className="font-medium text-gray-900 dark:text-white mb-4 leading-snug">{q.question}</p>
+              <p className="text-xs text-gray-400 mb-3">
+                Otázka {current + 1} z {questions.length}
+              </p>
+              <p className="font-medium text-gray-900 dark:text-white mb-4 leading-snug">
+                {q.question}
+              </p>
               <div className="space-y-2 mb-6">
                 {q.options.map((opt, i) => {
-                  let cls = 'border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800';
+                  let cls =
+                    'border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800';
                   if (revealed) {
-                    if (i === q.correct) cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300';
-                    else if (i === selected) cls = 'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400';
+                    if (i === q.correct)
+                      cls =
+                        'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-300';
+                    else if (i === selected)
+                      cls =
+                        'border-red-400 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400';
                   } else if (i === selected) {
-                    cls = 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300';
+                    cls =
+                      'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300';
                   }
                   return (
                     <button
@@ -651,7 +705,8 @@ export default function QuizModal({ noteId, noteTitle, onClose }: QuizModalProps
                       onClick={() => handleSelect(i)}
                       className={`w-full text-left px-4 py-2.5 rounded-xl border text-sm transition ${cls}`}
                     >
-                      <span className="font-medium mr-2">{['A','B','C','D'][i]}.</span>{opt}
+                      <span className="font-medium mr-2">{['A', 'B', 'C', 'D'][i]}.</span>
+                      {opt}
                     </button>
                   );
                 })}
@@ -686,6 +741,7 @@ git commit -m "feat: implement QuizModal with state machine and unit tests"
 ## Task 6: NoteAIChat komponent
 
 **Files:**
+
 - Create: `apps/frontend/src/components/notes/NoteAIChat.tsx`
 
 - [ ] **Step 1: Implementuj NoteAIChat**
@@ -724,7 +780,9 @@ export default function NoteAIChat({ noteId, noteTitle, onClose }: NoteAIChatPro
     setInput('');
     setIsLoading(true);
     try {
-      const { reply } = await api.post<{ reply: string }>(`/ai/notes/${noteId}/chat`, { messages: newMessages });
+      const { reply } = await api.post<{ reply: string }>(`/ai/notes/${noteId}/chat`, {
+        messages: newMessages,
+      });
       setMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch {
       setMessages([...newMessages, { role: 'assistant', content: 'Prepáč, nastala chyba.' }]);
@@ -734,7 +792,10 @@ export default function NoteAIChat({ noteId, noteTitle, onClose }: NoteAIChatPro
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   }
 
   return (
@@ -744,11 +805,18 @@ export default function NoteAIChat({ noteId, noteTitle, onClose }: NoteAIChatPro
         <div>
           <div className="flex items-center gap-1.5 mb-0.5">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Kontext: {noteTitle}</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              Kontext: {noteTitle}
+            </span>
           </div>
           <p className="text-sm font-semibold text-gray-900 dark:text-white">✦ Ask AI</p>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none">✕</button>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none"
+        >
+          ✕
+        </button>
       </div>
 
       {/* Messages */}
@@ -760,11 +828,13 @@ export default function NoteAIChat({ noteId, noteTitle, onClose }: NoteAIChatPro
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[90%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-              m.role === 'user'
-                ? 'bg-indigo-600 text-white rounded-br-sm'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-sm'
-            }`}>
+            <div
+              className={`max-w-[90%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
+                m.role === 'user'
+                  ? 'bg-indigo-600 text-white rounded-br-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-sm'
+              }`}
+            >
               {m.content}
             </div>
           </div>
@@ -772,8 +842,12 @@ export default function NoteAIChat({ noteId, noteTitle, onClose }: NoteAIChatPro
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 dark:bg-gray-800 rounded-xl rounded-bl-sm px-3 py-2 flex gap-1">
-              {[0,150,300].map((d) => (
-                <div key={d} className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+              {[0, 150, 300].map((d) => (
+                <div
+                  key={d}
+                  className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: `${d}ms` }}
+                />
               ))}
             </div>
           </div>
@@ -816,6 +890,7 @@ git commit -m "feat: implement NoteAIChat drawer component"
 ## Task 7: Pripojiť QuizModal + NoteAIChat do NoteDetailView
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/notes/note-detail-view.tsx`
 
 - [ ] **Step 1: Pridaj importy a state do note-detail-view.tsx**
@@ -834,6 +909,7 @@ const [chatOpen, setChatOpen] = useState(false);
 - [ ] **Step 2: Uprav onClick handlery na AI tlačidlách (pridané v Track 3)**
 
 Nájdi oba buttony z Track 3 a nahraď no-op `onClick`:
+
 ```tsx
 // Quiz me button:
 onClick={() => setQuizOpen(true)}
@@ -845,13 +921,18 @@ onClick={() => setChatOpen(true)}
 - [ ] **Step 3: Pridaj modaly na koniec return bloku**
 
 Pred záverečný `</div>` pridaj:
+
 ```tsx
-{quizOpen && (
-  <QuizModal noteId={note.id} noteTitle={note.title} onClose={() => setQuizOpen(false)} />
-)}
-{chatOpen && (
-  <NoteAIChat noteId={note.id} noteTitle={note.title} onClose={() => setChatOpen(false)} />
-)}
+{
+  quizOpen && (
+    <QuizModal noteId={note.id} noteTitle={note.title} onClose={() => setQuizOpen(false)} />
+  );
+}
+{
+  chatOpen && (
+    <NoteAIChat noteId={note.id} noteTitle={note.title} onClose={() => setChatOpen(false)} />
+  );
+}
 ```
 
 - [ ] **Step 4: Over end-to-end** — otvor poznámku → klik Quiz me → modal sa otvorí → generuje otázky
@@ -872,6 +953,7 @@ git commit -m "feat: wire up QuizModal and NoteAIChat into NoteDetailView"
 ## Task 8: E2E testy pre AI features
 
 **Files:**
+
 - Create: `apps/frontend/e2e/ai-copilot.spec.ts`
 - Create: `apps/frontend/e2e/notes-quiz.spec.ts`
 
@@ -958,6 +1040,7 @@ git commit -m "test: add e2e tests for AI copilot and quiz features"
 ## Task 9: Demo seed data
 
 **Files:**
+
 - Modify: `apps/backend/src/db/seed-user.ts`
 
 - [ ] **Step 1: Prečítaj existujúci seed-user.ts**
@@ -982,7 +1065,10 @@ const courseNames = [
 ];
 const createdCourses = await Promise.all(
   courseNames.map((c, i) =>
-    db.insert(courses).values({ ...c, color: courseColors[i] }).returning()
+    db
+      .insert(courses)
+      .values({ ...c, color: courseColors[i] })
+      .returning()
   )
 );
 
@@ -1002,7 +1088,12 @@ const d = (daysOffset: number) => {
 };
 
 await db.insert(tasks).values([
-  { userId: demoUser.id, title: 'Dokončiť prezentáciu PB138', dueDate: d(0), status: 'IN PROGRESS' },
+  {
+    userId: demoUser.id,
+    title: 'Dokončiť prezentáciu PB138',
+    dueDate: d(0),
+    status: 'IN PROGRESS',
+  },
   { userId: demoUser.id, title: 'Odovzdať zadanie č. 3', dueDate: d(1), status: 'TODO' },
   { userId: demoUser.id, title: 'Prečítať kapitolu 5 — IB101', dueDate: d(2), status: 'TODO' },
   { userId: demoUser.id, title: 'Seriózne sa pozrieť na derivácie', dueDate: d(3), status: 'TODO' },
@@ -1019,7 +1110,13 @@ await db.insert(events).values([
   { userId: demoUser.id, title: 'Prednáška PB138', startDate: d(1), endDate: d(1), place: 'B411' },
   { userId: demoUser.id, title: 'Seminár IB101', startDate: d(2), endDate: d(2), place: 'A320' },
   { userId: demoUser.id, title: 'Deadline: Odovzdanie projektu', startDate: d(1), endDate: d(1) },
-  { userId: demoUser.id, title: 'Konzultácia s vedúcim', startDate: d(3), endDate: d(3), place: 'Online' },
+  {
+    userId: demoUser.id,
+    title: 'Konzultácia s vedúcim',
+    startDate: d(3),
+    endDate: d(3),
+    place: 'Online',
+  },
   { userId: demoUser.id, title: 'Cvičenie MA001', startDate: d(4), endDate: d(4), place: 'M1' },
 ]);
 

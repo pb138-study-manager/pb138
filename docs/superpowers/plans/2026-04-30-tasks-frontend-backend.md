@@ -12,23 +12,25 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/routes/tasks/index.tsx` | Replace hardcoded data with `useEffect` fetch; add create + toggle handlers |
-| `apps/frontend/src/components/tasks/tasks-section.tsx` | Accept and forward `onTaskCreated` callback to `NewTaskDialog` |
-| `apps/frontend/src/components/tasks/new-tasks-dialog.tsx` | Accept `onSubmit` prop; wire submit button to call API |
-| `apps/frontend/src/components/tasks/tasks-card.tsx` | Accept `onToggle` prop; wire checkbox to call it |
+| File                                                      | Change                                                                      |
+| --------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `apps/frontend/src/routes/tasks/index.tsx`                | Replace hardcoded data with `useEffect` fetch; add create + toggle handlers |
+| `apps/frontend/src/components/tasks/tasks-section.tsx`    | Accept and forward `onTaskCreated` callback to `NewTaskDialog`              |
+| `apps/frontend/src/components/tasks/new-tasks-dialog.tsx` | Accept `onSubmit` prop; wire submit button to call API                      |
+| `apps/frontend/src/components/tasks/tasks-card.tsx`       | Accept `onToggle` prop; wire checkbox to call it                            |
 
 ---
 
 ## Task 1: Fetch tasks from backend
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/tasks/index.tsx`
 
 The page currently has hardcoded `TASKS_DATA` and `FEATURED_TASKS`. We replace them with a real fetch.
 
 **Splitting logic:**
+
 - `done` — `status === 'DONE'`
 - `today` — `status !== 'DONE'` and `dueDate` is today or earlier
 - `backlog` — `status !== 'DONE'` and `dueDate` is tomorrow or later
@@ -87,7 +89,8 @@ export function TasksPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<Task[]>('/tasks')
+    api
+      .get<Task[]>('/tasks')
       .then(setTasks)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -122,24 +125,9 @@ export function TasksPage() {
         </div>
 
         <div>
-          <TaskSection
-            title="Today"
-            count={counts.today}
-            tasks={today}
-            variant="default"
-          />
-          <TaskSection
-            title="Backlog"
-            count={counts.backlog}
-            tasks={backlog}
-            variant="backlog"
-          />
-          <TaskSection
-            title="Done"
-            count={counts.done}
-            tasks={done}
-            variant="done"
-          />
+          <TaskSection title="Today" count={counts.today} tasks={today} variant="default" />
+          <TaskSection title="Backlog" count={counts.backlog} tasks={backlog} variant="backlog" />
+          <TaskSection title="Done" count={counts.done} tasks={done} variant="done" />
         </div>
       </div>
 
@@ -171,6 +159,7 @@ git commit -m "feat: fetch tasks from backend in tasks page"
 ## Task 2: Wire up task creation
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/new-tasks-dialog.tsx`
 - Modify: `apps/frontend/src/components/tasks/tasks-section.tsx`
 - Modify: `apps/frontend/src/routes/tasks/index.tsx`
@@ -377,15 +366,15 @@ Add `import { Task, TaskStatus } from '@/types';` at the top (if not already the
 Inside `TasksPage`, add these two handlers after the `useEffect`:
 
 ```tsx
-  async function handleCreate(title: string, dueDate: string) {
-    const newTask = await api.post<Task>('/tasks', { title, dueDate });
-    setTasks(prev => [...prev, newTask]);
-  }
+async function handleCreate(title: string, dueDate: string) {
+  const newTask = await api.post<Task>('/tasks', { title, dueDate });
+  setTasks((prev) => [...prev, newTask]);
+}
 
-  async function handleToggle(id: number) {
-    const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
-    setTasks(prev => prev.map(t => t.id === id ? updated : t));
-  }
+async function handleToggle(id: number) {
+  const updated = await api.patch<Task>(`/tasks/${id}/toggle-done`, {});
+  setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+}
 ```
 
 Then update the three `<TaskSection>` calls to pass the new props:
@@ -435,6 +424,7 @@ git commit -m "feat: wire up task creation to backend"
 ## Task 3: Wire up toggle done
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/tasks-card.tsx`
 
 The checkbox currently only flips local state. We need it to call `onToggle` (which was already wired up in Task 2).
@@ -471,11 +461,11 @@ export default function TaskCard({
   async function handleToggle() {
     if (toggling) return;
     setToggling(true);
-    setIsChecked(prev => !prev); // optimistic
+    setIsChecked((prev) => !prev); // optimistic
     try {
       await onToggle(task.id);
     } catch {
-      setIsChecked(prev => !prev); // revert on error
+      setIsChecked((prev) => !prev); // revert on error
     } finally {
       setToggling(false);
     }
@@ -539,6 +529,7 @@ git commit -m "feat: wire up toggle-done to backend"
 ## Done
 
 After all 3 tasks:
+
 - Tasks load from the backend on page open
 - New tasks can be created via the dialog
 - The checkbox persists done/undone state to the backend

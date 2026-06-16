@@ -29,7 +29,11 @@ export async function uploadFile(bucket: string, path: string, file: File): Prom
   }
 }
 
-export async function getSignedUrl(bucket: string, path: string, expiresIn = 3600): Promise<string> {
+export async function getSignedUrl(
+  bucket: string,
+  path: string,
+  expiresIn = 3600
+): Promise<string> {
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${encodePath(path)}`, {
     method: 'POST',
     headers: {

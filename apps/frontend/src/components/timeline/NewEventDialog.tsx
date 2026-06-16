@@ -1,42 +1,48 @@
-import { useState, useEffect } from 'react'
-import { Calendar, AlignLeft, ArrowUp } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import DatePickerDialog from '@/components/tasks/date-picker-dialog'
-import { EventType } from '@/types'
+import { useState, useEffect } from 'react';
+import { Calendar, AlignLeft, ArrowUp } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import DatePickerDialog from '@/components/tasks/date-picker-dialog';
+import { EventType } from '@/types';
 
 export default function NewEventDialog({
   isOpen,
   onOpenChange,
   onSave,
 }: {
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (data: { title: string; startDate: string; endDate: string; description?: string; type: EventType }) => Promise<void>
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: {
+    title: string;
+    startDate: string;
+    endDate: string;
+    description?: string;
+    type: EventType;
+  }) => Promise<void>;
 }) {
-  const [title, setTitle] = useState('')
-  const [startDate, setStartDate] = useState<Date | null>(() => new Date())
-  const [endDate, setEndDate] = useState<Date | null>(null)
-  const [description, setDescription] = useState('')
-  const [type, setType] = useState<EventType>('EVENT')
-  const [isDateOpen, setIsDateOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [title, setTitle] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(() => new Date());
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState<EventType>('EVENT');
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (isOpen) return
-    setTitle('')
-    setStartDate(new Date())
-    setEndDate(null)
-    setDescription('')
-    setType('EVENT')
-  }, [isOpen])
+    if (isOpen) return;
+    setTitle('');
+    setStartDate(new Date());
+    setEndDate(null);
+    setDescription('');
+    setType('EVENT');
+  }, [isOpen]);
 
-  const computedEndDate = type === 'DEADLINE' ? startDate : endDate
+  const computedEndDate = type === 'DEADLINE' ? startDate : endDate;
 
   async function handleSubmit() {
-    if (!title.trim() || !startDate || !computedEndDate) return
-    setSaving(true)
+    if (!title.trim() || !startDate || !computedEndDate) return;
+    setSaving(true);
     try {
       await onSave({
         title: title.trim(),
@@ -44,10 +50,10 @@ export default function NewEventDialog({
         endDate: computedEndDate.toISOString(),
         description: description.trim() || undefined,
         type,
-      })
-      onOpenChange(false)
+      });
+      onOpenChange(false);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -90,14 +96,25 @@ export default function NewEventDialog({
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  startDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  startDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {startDate ? startDate.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Date'}
+                {startDate
+                  ? startDate.toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Date'}
               </button>
 
-              <label className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors cursor-pointer ${description ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
+              <label
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors cursor-pointer ${description ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+              >
                 <AlignLeft className="w-3.5 h-3.5 shrink-0" />
                 <input
                   type="text"
@@ -132,5 +149,5 @@ export default function NewEventDialog({
         showDuration={type !== 'DEADLINE'}
       />
     </>
-  )
+  );
 }

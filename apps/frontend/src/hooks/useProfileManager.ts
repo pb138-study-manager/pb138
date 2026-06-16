@@ -85,7 +85,11 @@ export function useProfileManager() {
     }
   };
 
-  const updateProfile = async (data: { name: string | null; title: string | null; bio: string | null }) => {
+  const updateProfile = async (data: {
+    name: string | null;
+    title: string | null;
+    bio: string | null;
+  }) => {
     await api.patch('/users/me/profile', data);
     queryClient.setQueryData<UserProfileResponse | null>(['userMe'], (prev) => {
       if (!prev) return prev;

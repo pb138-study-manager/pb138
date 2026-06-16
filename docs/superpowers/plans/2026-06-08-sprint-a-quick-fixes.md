@@ -12,25 +12,26 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `src/lib/task-utils.ts` | Add `noDateLabel` param to `getCountdown` |
-| `src/lib/task-utils.test.ts` | Update tests for new `getCountdown` signature |
-| `src/locales/en.json` | Add `today.*` and `tasks.noDate` keys |
-| `src/locales/cs.json` | Same keys in Czech |
-| `src/routes/today/index.tsx` | Replace hardcoded Slovak with `t()` calls |
-| `src/hooks/useTodayManager.ts` | `handleCreate` accepts `dueDate: string \| null` |
-| `src/hooks/useTasksManager.ts` | `handleCreate` accepts `dueDate: string \| null` |
-| `src/components/tasks/tasks-section.tsx` | Update `onTaskCreated` prop type |
-| `src/components/tasks/new-tasks-dialog.tsx` | Default date = today, allow no-date submit |
-| `src/components/tasks/tasks-card.tsx` | Show "No date" badge; pass `t('tasks.noDate')` |
-| `src/components/timeline/NewEventDialog.tsx` | Default `startDate` = today |
+| File                                         | Change                                           |
+| -------------------------------------------- | ------------------------------------------------ |
+| `src/lib/task-utils.ts`                      | Add `noDateLabel` param to `getCountdown`        |
+| `src/lib/task-utils.test.ts`                 | Update tests for new `getCountdown` signature    |
+| `src/locales/en.json`                        | Add `today.*` and `tasks.noDate` keys            |
+| `src/locales/cs.json`                        | Same keys in Czech                               |
+| `src/routes/today/index.tsx`                 | Replace hardcoded Slovak with `t()` calls        |
+| `src/hooks/useTodayManager.ts`               | `handleCreate` accepts `dueDate: string \| null` |
+| `src/hooks/useTasksManager.ts`               | `handleCreate` accepts `dueDate: string \| null` |
+| `src/components/tasks/tasks-section.tsx`     | Update `onTaskCreated` prop type                 |
+| `src/components/tasks/new-tasks-dialog.tsx`  | Default date = today, allow no-date submit       |
+| `src/components/tasks/tasks-card.tsx`        | Show "No date" badge; pass `t('tasks.noDate')`   |
+| `src/components/timeline/NewEventDialog.tsx` | Default `startDate` = today                      |
 
 ---
 
 ## Task 1: Update `getCountdown` to support a "no date" label
 
 **Files:**
+
 - Modify: `src/lib/task-utils.ts`
 - Modify: `src/lib/task-utils.test.ts`
 
@@ -92,6 +93,7 @@ git commit -m "feat: getCountdown accepts optional noDateLabel param"
 ## Task 2: Add i18n keys for Today page and "No date"
 
 **Files:**
+
 - Modify: `src/locales/en.json`
 - Modify: `src/locales/cs.json`
 
@@ -151,6 +153,7 @@ git commit -m "feat: add today greeting and noDate i18n keys"
 ## Task 3: Fix Today page hardcoded Slovak strings
 
 **Files:**
+
 - Modify: `src/routes/today/index.tsx`
 
 - [ ] **Step 1: Replace `getGreeting()` and progress string**
@@ -202,6 +205,7 @@ git commit -m "fix: replace hardcoded Slovak greeting and progress text on Today
 ## Task 4: Allow task creation without a date + default to today
 
 **Files:**
+
 - Modify: `src/hooks/useTodayManager.ts`
 - Modify: `src/hooks/useTasksManager.ts`
 - Modify: `src/components/tasks/tasks-section.tsx`
@@ -212,7 +216,13 @@ git commit -m "fix: replace hardcoded Slovak greeting and progress text on Today
 Change the signature from `dueDate: string` to `dueDate: string | null`:
 
 ```typescript
-async function handleCreate(title: string, dueDate: string | null, subtaskTitles: string[] = [], description?: string, courseId?: number) {
+async function handleCreate(
+  title: string,
+  dueDate: string | null,
+  subtaskTitles: string[] = [],
+  description?: string,
+  courseId?: number
+) {
   const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
   await Promise.all(
     subtaskTitles.map((subTitle) =>
@@ -228,7 +238,13 @@ async function handleCreate(title: string, dueDate: string | null, subtaskTitles
 Same change — `dueDate: string` → `dueDate: string | null`:
 
 ```typescript
-async function handleCreate(title: string, dueDate: string | null, subtaskTitles: string[] = [], description?: string, courseId?: number) {
+async function handleCreate(
+  title: string,
+  dueDate: string | null,
+  subtaskTitles: string[] = [],
+  description?: string,
+  courseId?: number
+) {
   const newTask = await api.post<Task>('/tasks', { title, dueDate, description, courseId });
   await Promise.all(
     subtaskTitles.map((subTitle) =>
@@ -244,12 +260,19 @@ async function handleCreate(title: string, dueDate: string | null, subtaskTitles
 Find line 26 and change:
 
 ```typescript
-onTaskCreated: (title: string, dueDate: string | null, subtasks: string[], description?: string, courseId?: number) => Promise<void>;
+onTaskCreated: (
+  title: string,
+  dueDate: string | null,
+  subtasks: string[],
+  description?: string,
+  courseId?: number
+) => Promise<void>;
 ```
 
 - [ ] **Step 4: Update `new-tasks-dialog.tsx`**
 
 Four changes:
+
 1. Default `selectedDate` to today
 2. Update `onSubmit` prop type
 3. Remove `!selectedDate` from submit guard and disabled check
@@ -302,6 +325,7 @@ git commit -m "feat: default task date to today, allow task creation without a d
 ## Task 5: Show "No date" badge on tasks without a due date
 
 **Files:**
+
 - Modify: `src/components/tasks/tasks-card.tsx`
 
 - [ ] **Step 1: Update `getCountdown` call to pass the i18n label**
@@ -317,15 +341,19 @@ const countdown = getCountdown(task.dueDate, t('tasks.noDate'));
 Currently the badge only renders when `urgency` is non-null (line 165). Change to:
 
 ```tsx
-{task.status !== 'DONE' && countdown && (
-  <span
-    className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-      urgency ? urgencyColors[urgency] : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
-    }`}
-  >
-    {countdown}
-  </span>
-)}
+{
+  task.status !== 'DONE' && countdown && (
+    <span
+      className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+        urgency
+          ? urgencyColors[urgency]
+          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+      }`}
+    >
+      {countdown}
+    </span>
+  );
+}
 ```
 
 - [ ] **Step 3: Run build**
@@ -348,6 +376,7 @@ git commit -m "feat: show No date badge on tasks without a due date"
 ## Task 6: Default timeline event date to today
 
 **Files:**
+
 - Modify: `src/components/timeline/NewEventDialog.tsx`
 
 - [ ] **Step 1: Default `startDate` to today**
@@ -355,26 +384,26 @@ git commit -m "feat: show No date badge on tasks without a due date"
 Change line 19 from:
 
 ```typescript
-const [startDate, setStartDate] = useState<Date | null>(null)
+const [startDate, setStartDate] = useState<Date | null>(null);
 ```
 
 to:
 
 ```typescript
-const [startDate, setStartDate] = useState<Date | null>(() => new Date())
+const [startDate, setStartDate] = useState<Date | null>(() => new Date());
 ```
 
 Note: the `useEffect` reset on close (line 27-33) already resets `startDate` to `null` when `isOpen` becomes false. Change that reset to use today instead:
 
 ```typescript
 useEffect(() => {
-  if (isOpen) return
-  setTitle('')
-  setStartDate(new Date())
-  setEndDate(null)
-  setDescription('')
-  setType('EVENT')
-}, [isOpen])
+  if (isOpen) return;
+  setTitle('');
+  setStartDate(new Date());
+  setEndDate(null);
+  setDescription('');
+  setType('EVENT');
+}, [isOpen]);
 ```
 
 - [ ] **Step 2: Run build**
@@ -405,13 +434,13 @@ git push
 
 ## Self-Check
 
-| Spec requirement | Task |
-|---|---|
-| Today greeting translates | Task 3 |
-| Today progress text translates | Task 3 |
-| New task defaults to today | Task 4 |
-| Task can be created without a date | Task 4 |
-| "No date" badge on dateless tasks | Task 5 |
-| New event defaults to today | Task 6 |
-| i18n keys added to both locales | Task 2 |
+| Spec requirement                       | Task   |
+| -------------------------------------- | ------ |
+| Today greeting translates              | Task 3 |
+| Today progress text translates         | Task 3 |
+| New task defaults to today             | Task 4 |
+| Task can be created without a date     | Task 4 |
+| "No date" badge on dateless tasks      | Task 5 |
+| New event defaults to today            | Task 6 |
+| i18n keys added to both locales        | Task 2 |
 | `getCountdown` updated + tests updated | Task 1 |

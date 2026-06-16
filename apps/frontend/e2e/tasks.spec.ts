@@ -121,10 +121,10 @@ test.describe('Tasks Page', () => {
     await page.route('**/tasks*', async (route) => {
       const type = route.request().resourceType();
       if (type !== 'fetch' && type !== 'xhr') return route.continue();
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
-    
+
     // Clear react-query cache by evaluating or just reload
     await page.goto('/tasks');
     await page.reload();
@@ -134,9 +134,13 @@ test.describe('Tasks Page', () => {
   test('renders task sections and tasks correctly', async ({ page }) => {
     // We can check either English or Slovak versions depending on default locale.
     // Usually Playwright defaults to English 'en-US'.
-    await expect(page.locator('h3').filter({ hasText: /(Overdue|Po termíne|Po termínu)/ })).toBeVisible();
+    await expect(
+      page.locator('h3').filter({ hasText: /(Overdue|Po termíne|Po termínu)/ })
+    ).toBeVisible();
     await expect(page.locator('h3').filter({ hasText: /(Today|Dnes)/ })).toBeVisible();
-    await expect(page.locator('h3').filter({ hasText: /(This Week|Tento týždeň|Tento týden)/ })).toBeVisible();
+    await expect(
+      page.locator('h3').filter({ hasText: /(This Week|Tento týždeň|Tento týden)/ })
+    ).toBeVisible();
     await expect(page.locator('h3').filter({ hasText: /(Later|Neskôr|Později)/ })).toBeVisible();
     await expect(page.locator('h3').filter({ hasText: /(Done|Hotovo)/ })).toBeVisible();
 
@@ -147,7 +151,10 @@ test.describe('Tasks Page', () => {
     await expect(page.locator('text=Later task')).toBeVisible();
 
     // 'Done' section is collapsed by default, let's open it
-    const doneHeader = page.locator('h3').filter({ hasText: /(Done|Hotovo)/ }).first();
+    const doneHeader = page
+      .locator('h3')
+      .filter({ hasText: /(Done|Hotovo)/ })
+      .first();
     await doneHeader.click();
     await expect(page.locator('text=Done task')).toBeVisible();
   });
@@ -157,12 +164,12 @@ test.describe('Tasks Page', () => {
     const filterBtn = page.locator('button', { hasText: 'HIGH' }).first();
     if (await filterBtn.isVisible()) {
       await filterBtn.click();
-      
+
       // 'Overdue task' is HIGH, should be visible
       await expect(page.locator('text=Overdue task')).toBeVisible();
       // 'Today task' is MEDIUM, should not be visible
       await expect(page.locator('text=Today task')).not.toBeVisible();
-      
+
       // Clear filter
       await filterBtn.click();
       await expect(page.locator('text=Today task')).toBeVisible();
@@ -172,7 +179,7 @@ test.describe('Tasks Page', () => {
     const tagBtn = page.locator('button', { hasText: 'React' }).first();
     if (await tagBtn.isVisible()) {
       await tagBtn.click();
-      
+
       await expect(page.locator('text=Today task')).toBeVisible();
       await expect(page.locator('text=Overdue task')).not.toBeVisible();
     }
@@ -183,11 +190,11 @@ test.describe('Tasks Page', () => {
     const addBtn = page.locator('.lucide-plus').first();
     if (await addBtn.isVisible()) {
       await addBtn.click();
-      
+
       const titleInput = page.getByPlaceholder('Task name...');
       await expect(titleInput).toBeVisible();
       await titleInput.fill('New task created via UI');
-      
+
       const submitBtn = page.locator('.lucide-arrow-up').first().locator('..');
       await submitBtn.click();
     }
@@ -195,8 +202,10 @@ test.describe('Tasks Page', () => {
 
   test('marks a task as done', async ({ page }) => {
     const taskContainer = page.locator('div').filter({ hasText: 'Today task' }).last();
-    const checkbox = taskContainer.locator('button[role="checkbox"], input[type="checkbox"]').first();
-    
+    const checkbox = taskContainer
+      .locator('button[role="checkbox"], input[type="checkbox"]')
+      .first();
+
     if (await checkbox.isVisible()) {
       await checkbox.click();
     }

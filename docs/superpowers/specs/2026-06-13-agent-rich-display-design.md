@@ -7,6 +7,7 @@ Improve the AI Copilot panel so that when the agent returns data (tasks, events,
 ## Scope
 
 Two changes bundled into one spec:
+
 1. **AICopilotPanel** — remove Chat tab
 2. **Agent tab** — markdown rendering + structured display cards from backend
 
@@ -72,6 +73,7 @@ if (LIST_DISPLAY_TOOLS[toolName]) {
 ```
 
 When the loop ends with a reply:
+
 ```ts
 return { reply: msg.content ?? '', display: lastDisplay };
 ```
@@ -102,17 +104,22 @@ type Message = {
 ### Receiving response
 
 When `res.display` is present, store it on the assistant message:
+
 ```ts
-setMessages(prev => [...prev, {
-  role: 'assistant',
-  content: res.reply!,
-  display: res.display,
-}]);
+setMessages((prev) => [
+  ...prev,
+  {
+    role: 'assistant',
+    content: res.reply!,
+    display: res.display,
+  },
+]);
 ```
 
 ### Rendering assistant messages
 
 Replace the current `whitespace-pre-wrap` div with:
+
 1. `<ReactMarkdown>` for the text content (same import pattern as `NoteAIChat.tsx`)
 2. If `m.display` is present, render a `<DisplayCards>` component below the text
 
@@ -121,27 +128,32 @@ Replace the current `whitespace-pre-wrap` div with:
 Renders items based on `display.type`:
 
 **tasks** — for each task item:
+
 ```
 [● status dot] Title                    [priority badge]
-               Due: Jun 20              
+               Due: Jun 20
 ```
+
 - Status dot: green = DONE, yellow = IN PROGRESS, gray = TODO
 - Priority badge: `HIGH` = red bg, `MEDIUM` = yellow bg, `LOW` = gray bg (same colors as TaskCard)
 - Due date: formatted as "Jun 20" or "Overdue" in red if past
 
 **events** — for each event item:
+
 ```
 [calendar icon] Title
                 Jun 20, 10:00 – 11:00
 ```
 
 **notes** — for each note item:
+
 ```
 [file icon] Title
             folder name (if folderId)
 ```
 
 **courses** — for each course item:
+
 ```
 [book icon] PB138 — Student OS
 ```
@@ -154,11 +166,11 @@ Cards are stacked (full width of panel), not grid layout.
 
 ## Files changed
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/components/ai/AICopilotPanel.tsx` | Remove Chat tab |
-| `apps/backend/src/routes/ai.ts` | Add `lastDisplay` tracking + include in reply |
-| `apps/frontend/src/components/ai/AgentTab.tsx` | Markdown rendering + display cards |
+| File                                                 | Change                                        |
+| ---------------------------------------------------- | --------------------------------------------- |
+| `apps/frontend/src/components/ai/AICopilotPanel.tsx` | Remove Chat tab                               |
+| `apps/backend/src/routes/ai.ts`                      | Add `lastDisplay` tracking + include in reply |
+| `apps/frontend/src/components/ai/AgentTab.tsx`       | Markdown rendering + display cards            |
 
 Optional (if display cards grow large):
 | `apps/frontend/src/components/ai/AgentDisplayCards.tsx` | Extracted display card components |

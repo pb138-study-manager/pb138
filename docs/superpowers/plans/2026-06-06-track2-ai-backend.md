@@ -12,11 +12,11 @@
 
 ## Súbory
 
-| Akcia | Súbor |
-|---|---|
-| Vytvoriť | `apps/backend/src/routes/ai.ts` |
-| Vytvoriť | `apps/backend/src/routes/ai.test.ts` |
-| Modifikovať | `apps/backend/src/index.ts` |
+| Akcia       | Súbor                                         |
+| ----------- | --------------------------------------------- |
+| Vytvoriť    | `apps/backend/src/routes/ai.ts`               |
+| Vytvoriť    | `apps/backend/src/routes/ai.test.ts`          |
+| Modifikovať | `apps/backend/src/index.ts`                   |
 | Modifikovať | `apps/backend/.env` (pridať E-infra premenné) |
 
 ---
@@ -24,6 +24,7 @@
 ## Task 1: Nainštaluj openai package + nastav env
 
 **Files:**
+
 - Modify: `apps/backend/.env`
 
 - [ ] **Step 1: Nainštaluj openai package**
@@ -74,6 +75,7 @@ git commit -m "chore: add E-infra LLM env vars to .env.example"
 ## Task 2: Kostra ai.ts + rate limiter + unit test setup
 
 **Files:**
+
 - Create: `apps/backend/src/routes/ai.ts`
 - Create: `apps/backend/src/routes/ai.test.ts`
 
@@ -171,6 +173,7 @@ git commit -m "feat: add AI routes skeleton with rate limiter"
 ## Task 3: POST /ai/brief
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/ai.ts`
 - Modify: `apps/backend/src/routes/ai.test.ts`
 
@@ -182,22 +185,23 @@ Pridaj do `ai.test.ts`:
 describe('POST /ai/brief', () => {
   beforeEach(() => {
     mockCreate.mockResolvedValueOnce({
-      choices: [{
-        message: {
-          content: JSON.stringify({
-            brief: 'Dnes máš 2 deadline úlohy. Začni s PB138.',
-            priorities: [
-              { title: 'PB138 projekt', dueDate: '2026-06-07', urgency: 'high' },
-            ],
-          }),
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              brief: 'Dnes máš 2 deadline úlohy. Začni s PB138.',
+              priorities: [{ title: 'PB138 projekt', dueDate: '2026-06-07', urgency: 'high' }],
+            }),
+          },
         },
-      }],
+      ],
     });
   });
 
   it('parsuje brief a priorities zo LLM odpovede', async () => {
     // Simulujeme čo endpoint robí s odpoveďou:
-    const raw = '{"brief":"Dnes máš 2 deadline úlohy.","priorities":[{"title":"X","dueDate":"2026-06-07","urgency":"high"}]}';
+    const raw =
+      '{"brief":"Dnes máš 2 deadline úlohy.","priorities":[{"title":"X","dueDate":"2026-06-07","urgency":"high"}]}';
     const parsed = JSON.parse(raw);
     expect(parsed).toHaveProperty('brief');
     expect(parsed.priorities[0]).toHaveProperty('urgency');
@@ -283,6 +287,7 @@ git commit -m "feat: implement POST /ai/brief endpoint"
 ## Task 4: POST /ai/chat
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/ai.ts`
 
 - [ ] **Step 1: Definuj Zod schému a pridaj endpoint**
@@ -335,6 +340,7 @@ git commit -m "feat: implement POST /ai/chat endpoint"
 ## Task 5: POST /ai/notes/:id/quiz
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/ai.ts`
 - Modify: `apps/backend/src/routes/ai.test.ts`
 
@@ -346,9 +352,7 @@ Pridaj do `ai.test.ts`:
 describe('quiz JSON parsing', () => {
   it('správne parsuje LLM odpoveď s otázkami', () => {
     const raw = JSON.stringify({
-      questions: [
-        { question: 'Čo je TCP?', options: ['A', 'B', 'C', 'D'], correct: 0 },
-      ],
+      questions: [{ question: 'Čo je TCP?', options: ['A', 'B', 'C', 'D'], correct: 0 }],
     });
     const parsed = JSON.parse(raw);
     expect(parsed.questions).toHaveLength(1);
@@ -440,6 +444,7 @@ git commit -m "feat: implement POST /ai/notes/:id/quiz endpoint"
 ## Task 6: POST /ai/notes/:id/chat
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/ai.ts`
 
 - [ ] **Step 1: Implementuj endpoint**
@@ -496,6 +501,7 @@ git commit -m "feat: implement POST /ai/notes/:id/chat endpoint"
 ## Task 7: Registrovať aiRoutes v index.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/index.ts`
 
 - [ ] **Step 1: Pridaj import a registráciu**

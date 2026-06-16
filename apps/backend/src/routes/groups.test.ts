@@ -2,7 +2,14 @@ import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
 import {
-  users, userRoles, roles, groups, groupMembers, assignments, tasks, auditLogs,
+  users,
+  userRoles,
+  roles,
+  groups,
+  groupMembers,
+  assignments,
+  tasks,
+  auditLogs,
 } from '../db/schema';
 import { groupsRoutes } from './groups';
 import { eq, or } from 'drizzle-orm';
@@ -16,9 +23,7 @@ process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
 
 async function makeToken(authId: string): Promise<string> {
   const secret = new TextEncoder().encode(TEST_SECRET);
-  return new SignJWT({ sub: authId })
-    .setProtectedHeader({ alg: 'HS256' })
-    .sign(secret);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
 }
 
 let userId: number;
@@ -39,22 +44,22 @@ function req(url: string, auth: string, init: RequestInit = {}): Request {
 beforeAll(async () => {
   const [user] = await db
     .insert(users)
-    .values({ 
-      email: `groups-user-${RND}@example.com`, 
-      login: `groups-test-user-${RND}`, 
-      pwdHash: '', 
-      authId: USER_AUTH_ID 
+    .values({
+      email: `groups-user-${RND}@example.com`,
+      login: `groups-test-user-${RND}`,
+      pwdHash: '',
+      authId: USER_AUTH_ID,
     })
     .returning();
   userId = user.id;
 
   const [teacher] = await db
     .insert(users)
-    .values({ 
-      email: `groups-teacher-${RND}@example.com`, 
-      login: `groups-test-teacher-${RND}`, 
-      pwdHash: '', 
-      authId: TEACHER_AUTH_ID 
+    .values({
+      email: `groups-teacher-${RND}@example.com`,
+      login: `groups-test-teacher-${RND}`,
+      pwdHash: '',
+      authId: TEACHER_AUTH_ID,
     })
     .returning();
   teacherId = teacher.id;
@@ -70,10 +75,16 @@ beforeAll(async () => {
 afterAll(async () => {
   await db.delete(auditLogs).where(eq(auditLogs.actorId, userId));
   await db.delete(auditLogs).where(eq(auditLogs.actorId, teacherId));
-  
-  const mentorGroups = await db.select({ id: groups.id }).from(groups).where(or(eq(groups.mentorId, teacherId), eq(groups.mentorId, userId)));
+
+  const mentorGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(or(eq(groups.mentorId, teacherId), eq(groups.mentorId, userId)));
   for (const g of mentorGroups) {
-    const assignmentRows = await db.select({ id: assignments.id }).from(assignments).where(eq(assignments.groupId, g.id));
+    const assignmentRows = await db
+      .select({ id: assignments.id })
+      .from(assignments)
+      .where(eq(assignments.groupId, g.id));
     for (const a of assignmentRows) {
       await db.delete(tasks).where(eq(tasks.assignmentId, a.id));
     }
@@ -224,7 +235,9 @@ describe('POST /groups/:id/members', () => {
     expect((await res.json()).success).toBe(true);
 
     // Member now appears in group detail
-    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const detail = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}`, teacherAuth)
+    );
     const body = await detail.json();
     expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(true);
   });
@@ -249,20 +262,26 @@ describe('DELETE /groups/:id/members/:userId', () => {
 
   it('returns 404 when user is not a member', async () => {
     const res = await testApp.handle(
-      req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, { method: 'DELETE' })
+      req(`http://localhost/groups/${userGroupId}/members/${teacherId}`, userAuth, {
+        method: 'DELETE',
+      })
     );
     expect(res.status).toBe(404);
   });
 
   it('mentor can remove a member', async () => {
     const res = await testApp.handle(
-      req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, { method: 'DELETE' })
+      req(`http://localhost/groups/${teacherGroupId}/members/${userId}`, teacherAuth, {
+        method: 'DELETE',
+      })
     );
     expect(res.status).toBe(200);
     expect((await res.json()).success).toBe(true);
 
     // Confirm removed
-    const detail = await testApp.handle(req(`http://localhost/groups/${teacherGroupId}`, teacherAuth));
+    const detail = await testApp.handle(
+      req(`http://localhost/groups/${teacherGroupId}`, teacherAuth)
+    );
     const body = await detail.json();
     expect(body.members.some((m: { id: number }) => m.id === userId)).toBe(false);
   });
@@ -300,7 +319,11 @@ describe('POST /groups/:id/assignments', () => {
       req(`http://localhost/groups/${teacherGroupId}/assignments`, teacherAuth, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Lab 1', dueDate: '2026-05-01T23:59:00.000Z', description: 'First lab' }),
+        body: JSON.stringify({
+          title: 'Lab 1',
+          dueDate: '2026-05-01T23:59:00.000Z',
+          description: 'First lab',
+        }),
       })
     );
     expect(res.status).toBe(200);

@@ -13,12 +13,14 @@ export function AIPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <AIPanelContext.Provider value={{
-      isOpen,
-      toggle: () => setIsOpen((v) => !v),
-      open: () => setIsOpen(true),
-      close: () => setIsOpen(false),
-    }}>
+    <AIPanelContext.Provider
+      value={{
+        isOpen,
+        toggle: () => setIsOpen((v) => !v),
+        open: () => setIsOpen(true),
+        close: () => setIsOpen(false),
+      }}
+    >
       {children}
     </AIPanelContext.Provider>
   );

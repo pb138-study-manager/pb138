@@ -61,10 +61,7 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
         <div className="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-800 animate-pulse" />
         <div className="mt-4 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-10 rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse"
-            />
+            <div key={i} className="h-10 rounded-xl bg-gray-200 dark:bg-gray-800 animate-pulse" />
           ))}
         </div>
       </div>
@@ -111,12 +108,8 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
               <strong className="font-semibold text-gray-900 dark:text-white">{children}</strong>
             ),
             em: ({ children }) => <em className="italic">{children}</em>,
-            ul: ({ children }) => (
-              <ul className="list-disc pl-5 space-y-1 mb-2">{children}</ul>
-            ),
-            ol: ({ children }) => (
-              <ol className="list-decimal pl-5 space-y-1 mb-2">{children}</ol>
-            ),
+            ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 mb-2">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 mb-2">{children}</ol>,
             li: ({ children }) => <li>{children}</li>,
             code: ({ children }) => (
               <code className="bg-gray-100 dark:bg-gray-700 rounded px-1 text-xs font-mono">

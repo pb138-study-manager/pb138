@@ -8,6 +8,7 @@
 ## Goal
 
 Extend the existing AI agent (`POST /ai/agent`) so that:
+
 1. A teacher can assign tasks to groups or individual students via the AI panel.
 2. Both students and teachers can browse study materials via the agent (read-only).
 3. The system uses a single endpoint — role is detected server-side from the JWT.
@@ -18,6 +19,7 @@ Extend the existing AI agent (`POST /ai/agent`) so that:
 ## Architecture
 
 Single endpoint `POST /ai/agent` auto-detects the caller's role from `authUser.roles`. Based on role it selects:
+
 - a different **system prompt**
 - a different **tool set** (teacher sees all student tools + teacher-only tools)
 
@@ -29,22 +31,22 @@ No frontend changes required — `AgentTab.tsx` stays unchanged.
 
 ### New tools added
 
-| Tool | Type | Endpoint called |
-|---|---|---|
-| `list_course_materials` | read | `GET /courses/:courseId/materials` |
-| `list_groups` | read | `GET /groups` |
-| `list_group_members` | read | `GET /groups/:groupId` |
-| `list_students` | read | `GET /users/search?q=` |
-| `create_assignment` | write (confirm) | `POST /groups/:groupId/assignments` |
-| `assign_task_to_student` | write (confirm) | `POST /tasks/assign` |
+| Tool                     | Type            | Endpoint called                     |
+| ------------------------ | --------------- | ----------------------------------- |
+| `list_course_materials`  | read            | `GET /courses/:courseId/materials`  |
+| `list_groups`            | read            | `GET /groups`                       |
+| `list_group_members`     | read            | `GET /groups/:groupId`              |
+| `list_students`          | read            | `GET /users/search?q=`              |
+| `create_assignment`      | write (confirm) | `POST /groups/:groupId/assignments` |
+| `assign_task_to_student` | write (confirm) | `POST /tasks/assign`                |
 
 ### Exports
 
 ```typescript
-export const STUDENT_TOOLS: ChatCompletionTool[]   // existing tools + list_course_materials
-export const TEACHER_TOOLS: ChatCompletionTool[]   // STUDENT_TOOLS + 5 teacher tools above
-export function getToolsForRole(roles: string[]): ChatCompletionTool[]
-export const TOOL_MUTATES: Record<string, boolean>  // extended with new tools
+export const STUDENT_TOOLS: ChatCompletionTool[]; // existing tools + list_course_materials
+export const TEACHER_TOOLS: ChatCompletionTool[]; // STUDENT_TOOLS + 5 teacher tools above
+export function getToolsForRole(roles: string[]): ChatCompletionTool[];
+export const TOOL_MUTATES: Record<string, boolean>; // extended with new tools
 ```
 
 `list_course_materials`, `list_groups`, `list_group_members`, `list_students` → `false` (read).  
@@ -61,6 +63,7 @@ Teacher-only endpoint to create a task directly for a student.
 **Auth:** TEACHER role required (403 otherwise).
 
 **Body (Zod):**
+
 ```typescript
 z.object({
   studentId: z.number(),
@@ -68,10 +71,11 @@ z.object({
   dueDate: z.string().optional(),
   description: z.string().optional(),
   courseId: z.number().optional(),
-})
+});
 ```
 
 **Logic:**
+
 1. Check `TEACHER` role → 403 if missing.
 2. Look up student by `studentId` → 404 if not found.
 3. `db.insert(tasks).values({ userId: studentId, title, dueDate, description, courseId, ... })`.
@@ -110,15 +114,17 @@ const isTeacher = authUser.roles.includes('TEACHER');
 ### Tool selection
 
 ```typescript
-tools: getToolsForRole(authUser.roles)
+tools: getToolsForRole(authUser.roles);
 ```
 
 ### System prompts
 
 **Student prompt:**
+
 > "You are an AI assistant for a student. Today is {today}. Help with tasks, notes, events, and courses. You can browse study materials for courses. Be concise. Never expose raw JSON. Respond in {langLabel}."
 
 **Teacher prompt:**
+
 > "You are an AI assistant for a university teacher. Today is {today}. You can: assign tasks to groups or individual students, view groups and their members, search students by name, browse study materials. Never share one student's data with another. Be concise. Respond in {langLabel}."
 
 Confirmation flow (confirm card), rate-limit, 6-iteration cap — unchanged.

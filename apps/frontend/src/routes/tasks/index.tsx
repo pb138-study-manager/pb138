@@ -64,12 +64,39 @@ export function TasksPage() {
 
   const tabItems: TabItem[] = [
     ...(overdue.length > 0
-      ? [{ key: 'overdue', icon: <AlertCircle size={14} className="text-red-500" />, label: t('tasks.overdue'), count: filteredOverdue.length }]
+      ? [
+          {
+            key: 'overdue',
+            icon: <AlertCircle size={14} className="text-red-500" />,
+            label: t('tasks.overdue'),
+            count: filteredOverdue.length,
+          },
+        ]
       : []),
-    { key: 'today', icon: <CalendarDays size={14} />, label: t('tasks.today'), count: filteredToday.length },
-    { key: 'thisWeek', icon: <CalendarRange size={14} />, label: t('tasks.thisWeek'), count: filteredThisWeek.length },
-    { key: 'later', icon: <Clock size={14} />, label: t('tasks.later'), count: filteredLater.length },
-    { key: 'done', icon: <CheckCircle2 size={14} />, label: t('tasks.done'), count: filteredDone.length },
+    {
+      key: 'today',
+      icon: <CalendarDays size={14} />,
+      label: t('tasks.today'),
+      count: filteredToday.length,
+    },
+    {
+      key: 'thisWeek',
+      icon: <CalendarRange size={14} />,
+      label: t('tasks.thisWeek'),
+      count: filteredThisWeek.length,
+    },
+    {
+      key: 'later',
+      icon: <Clock size={14} />,
+      label: t('tasks.later'),
+      count: filteredLater.length,
+    },
+    {
+      key: 'done',
+      icon: <CheckCircle2 size={14} />,
+      label: t('tasks.done'),
+      count: filteredDone.length,
+    },
   ];
 
   const filterGroups: FilterGroup[] = [
@@ -113,8 +140,7 @@ export function TasksPage() {
     done: 'done',
   };
 
-  const resolvedTab: Tab =
-    activeTab === 'overdue' && overdue.length === 0 ? 'today' : activeTab;
+  const resolvedTab: Tab = activeTab === 'overdue' && overdue.length === 0 ? 'today' : activeTab;
 
   if (isPending) {
     return (
@@ -171,11 +197,7 @@ export function TasksPage() {
         />
       </div>
 
-      <NewTaskDialog
-        isOpen={newTaskOpen}
-        onOpenChange={setNewTaskOpen}
-        onSubmit={handleCreate}
-      />
+      <NewTaskDialog isOpen={newTaskOpen} onOpenChange={setNewTaskOpen} onSubmit={handleCreate} />
     </div>
   );
 }

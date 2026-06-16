@@ -64,17 +64,23 @@ export function useTaskCard({ task, onToggle, onEditFull, onDelete, indent }: Us
     setIsChecked(task.status === 'DONE');
   }, [task.status]);
 
-  const effectiveDueDate = useMemo(() => task.dueDate ?? task.assignmentDeadline ?? null, [task.dueDate, task.assignmentDeadline]);
+  const effectiveDueDate = useMemo(
+    () => task.dueDate ?? task.assignmentDeadline ?? null,
+    [task.dueDate, task.assignmentDeadline]
+  );
   const hasUsers = useMemo(() => task.assignmentId !== null, [task.assignmentId]);
   const displayTags = useMemo(() => task.tags ?? [], [task.tags]);
   const visibleTags = useMemo(() => displayTags.slice(0, 3), [displayTags]);
   const extraTagCount = useMemo(() => Math.max(0, displayTags.length - 3), [displayTags]);
   const effectiveDone = useMemo(
-    () => (subtasksLoaded ? subtasks.filter((s) => s.status === 'DONE').length : task.doneSubtaskCount ?? 0),
+    () =>
+      subtasksLoaded
+        ? subtasks.filter((s) => s.status === 'DONE').length
+        : (task.doneSubtaskCount ?? 0),
     [subtasks, subtasksLoaded, task.doneSubtaskCount]
   );
   const effectiveTotal = useMemo(
-    () => (subtasksLoaded ? subtasks.length : task.subtaskCount ?? 0),
+    () => (subtasksLoaded ? subtasks.length : (task.subtaskCount ?? 0)),
     [subtasks, subtasksLoaded, task.subtaskCount]
   );
   const progressPercent = useMemo(
@@ -82,7 +88,8 @@ export function useTaskCard({ task, onToggle, onEditFull, onDelete, indent }: Us
     [effectiveDone, effectiveTotal]
   );
   const subtaskButtonLabel = useMemo(
-    () => (subtasksLoaded ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks'),
+    () =>
+      subtasksLoaded ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}` : 'Subtasks',
     [subtasks.length, subtasksLoaded]
   );
 

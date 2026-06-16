@@ -42,7 +42,6 @@ beforeAll(async () => {
     })
     .returning();
   testUserId = user.id;
-
 });
 
 afterAll(async () => {

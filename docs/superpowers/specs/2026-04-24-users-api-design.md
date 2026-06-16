@@ -16,35 +16,36 @@ Implement a 8-endpoint Users API covering profile management, settings, password
 
 Requires a new migration before implementation.
 
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| service | text | NOT NULL (e.g. `'google_calendar'`) |
-| connected | boolean | NOT NULL, DEFAULT false |
-| connected_at | timestamp | nullable |
-| UNIQUE | (user_id, service) | composite unique |
+| Column       | Type               | Constraints                         |
+| ------------ | ------------------ | ----------------------------------- |
+| id           | serial             | PK                                  |
+| user_id      | integer            | NOT NULL, FK → users.id             |
+| service      | text               | NOT NULL (e.g. `'google_calendar'`) |
+| connected    | boolean            | NOT NULL, DEFAULT false             |
+| connected_at | timestamp          | nullable                            |
+| UNIQUE       | (user_id, service) | composite unique                    |
 
 ---
 
 ## Endpoints
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/users/me` | Yes | Own profile + settings + roles + enrolled courses with teachers + integrations |
-| PATCH | `/users/me/profile` | Yes | Update name, title, organization, bio (upsert) |
-| PATCH | `/users/me/password` | Yes | Change password via Supabase Admin REST API |
-| GET | `/users/me/settings` | Yes | Get UserSettings (returns defaults if row missing) |
-| PATCH | `/users/me/settings` | Yes | Upsert UserSettings |
-| GET | `/users/search` | Yes (any) | Search users by login/email/name. Query: `?q=` (min 2 chars) |
-| POST | `/users/me/integrations/:service` | Yes | Mark a service as connected |
-| DELETE | `/users/me/integrations/:service` | Yes | Mark a service as disconnected |
+| Method | Path                              | Auth      | Description                                                                    |
+| ------ | --------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| GET    | `/users/me`                       | Yes       | Own profile + settings + roles + enrolled courses with teachers + integrations |
+| PATCH  | `/users/me/profile`               | Yes       | Update name, title, organization, bio (upsert)                                 |
+| PATCH  | `/users/me/password`              | Yes       | Change password via Supabase Admin REST API                                    |
+| GET    | `/users/me/settings`              | Yes       | Get UserSettings (returns defaults if row missing)                             |
+| PATCH  | `/users/me/settings`              | Yes       | Upsert UserSettings                                                            |
+| GET    | `/users/search`                   | Yes (any) | Search users by login/email/name. Query: `?q=` (min 2 chars)                   |
+| POST   | `/users/me/integrations/:service` | Yes       | Mark a service as connected                                                    |
+| DELETE | `/users/me/integrations/:service` | Yes       | Mark a service as disconnected                                                 |
 
 ---
 
 ## GET /users/me — Response Shape
 
 Built from multiple separate queries (all on primary keys — fast):
+
 1. `users` — base record
 2. `user_roles` JOIN `roles` — role names
 3. `user_profiles` — nullable, return null fields if missing
@@ -89,6 +90,7 @@ Built from multiple separate queries (all on primary keys — fast):
 ## PATCH /users/me/profile
 
 Body (all optional):
+
 ```typescript
 { name?: string, title?: string, organization?: string, bio?: string }
 ```
@@ -103,8 +105,11 @@ Body (all optional):
 ## PATCH /users/me/password
 
 Body:
+
 ```typescript
-{ newPassword: string }  // minLength: 8
+{
+  newPassword: string;
+} // minLength: 8
 ```
 
 - No `currentPassword` required — user is already authenticated via JWT
@@ -134,6 +139,7 @@ Body:
 ## PATCH /users/me/settings
 
 Body (all optional):
+
 ```typescript
 { notificationsEnabled?: boolean, lightTheme?: boolean }
 ```
@@ -177,13 +183,13 @@ Query: `?q=<string>` (minimum 2 characters — return 400 if shorter)
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `apps/backend/src/db/schema.ts` | Add `userIntegrations` table |
-| `apps/backend/drizzle/` | New migration (generated) |
-| `apps/backend/src/routes/users.ts` | Create — 8 endpoints |
-| `apps/backend/src/routes/users.test.ts` | Create — ~12 tests |
-| `apps/backend/src/index.ts` | Register `usersRoutes` |
+| File                                    | Action                       |
+| --------------------------------------- | ---------------------------- |
+| `apps/backend/src/db/schema.ts`         | Add `userIntegrations` table |
+| `apps/backend/drizzle/`                 | New migration (generated)    |
+| `apps/backend/src/routes/users.ts`      | Create — 8 endpoints         |
+| `apps/backend/src/routes/users.test.ts` | Create — ~12 tests           |
+| `apps/backend/src/index.ts`             | Register `usersRoutes`       |
 
 ---
 

@@ -12,32 +12,33 @@
 
 ### `courses` table
 
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| code | text | NOT NULL, UNIQUE (e.g. `'PB138'`) |
-| name | text | nullable |
-| semester | text | NOT NULL (e.g. `'Spring 2026'`) |
-| color | text | nullable (hex) |
-| lecture_schedule | text | nullable (e.g. `'Mon 10:00-12:00'`) |
-| seminar_schedule | text | nullable (e.g. `'Thu 14:00-16:00'`) |
-| lecture_teacher_id | integer | nullable, FK → users.id |
-| seminar_teacher_id | integer | nullable, FK → users.id |
-| deleted_at | timestamp | nullable |
+| Column             | Type      | Constraints                         |
+| ------------------ | --------- | ----------------------------------- |
+| id                 | serial    | PK                                  |
+| code               | text      | NOT NULL, UNIQUE (e.g. `'PB138'`)   |
+| name               | text      | nullable                            |
+| semester           | text      | NOT NULL (e.g. `'Spring 2026'`)     |
+| color              | text      | nullable (hex)                      |
+| lecture_schedule   | text      | nullable (e.g. `'Mon 10:00-12:00'`) |
+| seminar_schedule   | text      | nullable (e.g. `'Thu 14:00-16:00'`) |
+| lecture_teacher_id | integer   | nullable, FK → users.id             |
+| seminar_teacher_id | integer   | nullable, FK → users.id             |
+| deleted_at         | timestamp | nullable                            |
 
 ### `user_courses` table (enrollment junction)
 
-| Column | Type | Constraints |
-|---|---|---|
-| user_id | integer | FK → users.id |
-| course_id | integer | FK → courses.id |
-| PK | (user_id, course_id) | composite |
+| Column    | Type                 | Constraints     |
+| --------- | -------------------- | --------------- |
+| user_id   | integer              | FK → users.id   |
+| course_id | integer              | FK → courses.id |
+| PK        | (user_id, course_id) | composite       |
 
 ---
 
 ## Endpoints (`/courses`)
 
 ### GET /courses
+
 Returns all non-deleted courses, each with an `enrolled` boolean indicating whether the current user is enrolled.
 
 - Auth: required
@@ -45,6 +46,7 @@ Returns all non-deleted courses, each with an `enrolled` boolean indicating whet
 - Implementation: LEFT JOIN `user_courses` on `courseId = id AND userId = current user`, map to add `enrolled` flag
 
 ### GET /courses/enrolled
+
 Returns only courses the current user is enrolled in (non-deleted). Used for dashboard/sidebar.
 
 - Auth: required
@@ -52,6 +54,7 @@ Returns only courses the current user is enrolled in (non-deleted). Used for das
 - Implementation: INNER JOIN `user_courses` on `courseId = id AND userId = current user`, filter `isNull(courses.deletedAt)`
 
 ### POST /courses
+
 Creates a new course. Requires TEACHER role.
 
 - Auth: required, TEACHER role
@@ -61,6 +64,7 @@ Creates a new course. Requires TEACHER role.
 - Side effect: `logAction` — `"Created course {id}: {code}"`
 
 ### GET /courses/:id
+
 Returns a single course by ID with enrolled student count.
 
 - Auth: required
@@ -69,6 +73,7 @@ Returns a single course by ID with enrolled student count.
 - Implementation: fetch course, count rows in `user_courses` where `courseId = id`
 
 ### PATCH /courses/:id
+
 Partially updates a course. Requires TEACHER role and must be the lecture teacher of this course.
 
 - Auth: required, TEACHER role
@@ -79,6 +84,7 @@ Partially updates a course. Requires TEACHER role and must be the lecture teache
 - Side effect: `logAction` — `"Updated course {id}"`
 
 ### DELETE /courses/:id
+
 Soft-deletes a course. Requires TEACHER role and must be the lecture teacher.
 
 - Auth: required, TEACHER role
@@ -88,6 +94,7 @@ Soft-deletes a course. Requires TEACHER role and must be the lecture teacher.
 - Side effect: `logAction` — `"Deleted course {id}"`
 
 ### POST /courses/:id/enroll
+
 Enrolls the current user in a course. Idempotent — if already enrolled, returns `{ success: true }` silently.
 
 - Auth: required
@@ -96,6 +103,7 @@ Enrolls the current user in a course. Idempotent — if already enrolled, return
 - Response: `{ success: true }`
 
 ### DELETE /courses/:id/enroll
+
 Unenrolls the current user from a course.
 
 - Auth: required
@@ -105,6 +113,7 @@ Unenrolls the current user from a course.
 - Response: `{ success: true }`
 
 ### GET /courses/:id/progress
+
 Returns task completion stats for the current user in this course.
 
 - Auth: required
@@ -116,78 +125,87 @@ Returns task completion stats for the current user in this course.
 
 ## Role & Ownership Rules
 
-| Endpoint | Role required | Ownership required |
-|---|---|---|
-| GET /courses | any | — |
-| GET /courses/enrolled | any | — |
-| POST /courses | TEACHER | — |
-| GET /courses/:id | any | — |
-| PATCH /courses/:id | TEACHER | `lectureTeacherId === user.id` |
-| DELETE /courses/:id | TEACHER | `lectureTeacherId === user.id` |
-| POST /courses/:id/enroll | any | — |
-| DELETE /courses/:id/enroll | any | own enrollment only |
-| GET /courses/:id/progress | any | own tasks only |
+| Endpoint                   | Role required | Ownership required             |
+| -------------------------- | ------------- | ------------------------------ |
+| GET /courses               | any           | —                              |
+| GET /courses/enrolled      | any           | —                              |
+| POST /courses              | TEACHER       | —                              |
+| GET /courses/:id           | any           | —                              |
+| PATCH /courses/:id         | TEACHER       | `lectureTeacherId === user.id` |
+| DELETE /courses/:id        | TEACHER       | `lectureTeacherId === user.id` |
+| POST /courses/:id/enroll   | any           | —                              |
+| DELETE /courses/:id/enroll | any           | own enrollment only            |
+| GET /courses/:id/progress  | any           | own tasks only                 |
 
 ---
 
 ## Error Responses
 
-| Status | Code | When |
-|---|---|---|
-| 401 | `UNAUTHORIZED` | Missing or invalid JWT |
-| 403 | `FORBIDDEN` | Authenticated TEACHER but not the lecture teacher of this course |
-| 404 | `NOT_FOUND` | Course not found, deleted, or user not enrolled |
-| 422 | (Elysia default) | Body validation failure |
+| Status | Code             | When                                                             |
+| ------ | ---------------- | ---------------------------------------------------------------- |
+| 401    | `UNAUTHORIZED`   | Missing or invalid JWT                                           |
+| 403    | `FORBIDDEN`      | Authenticated TEACHER but not the lecture teacher of this course |
+| 404    | `NOT_FOUND`      | Course not found, deleted, or user not enrolled                  |
+| 422    | (Elysia default) | Body validation failure                                          |
 
 ---
 
 ## Files
 
-| File | Action |
-|---|---|
-| `apps/backend/src/routes/courses.ts` | Create — 9 endpoints |
-| `apps/backend/src/routes/courses.test.ts` | Create — ~18 tests |
-| `apps/backend/src/index.ts` | Modify — import + `.use(coursesRoutes)` |
+| File                                      | Action                                  |
+| ----------------------------------------- | --------------------------------------- |
+| `apps/backend/src/routes/courses.ts`      | Create — 9 endpoints                    |
+| `apps/backend/src/routes/courses.test.ts` | Create — ~18 tests                      |
+| `apps/backend/src/index.ts`               | Modify — import + `.use(coursesRoutes)` |
 
 ---
 
 ## Test Plan (~18 tests)
 
 ### GET /courses
+
 - Returns all courses with `enrolled: false` for a new user
 - Returns `enrolled: true` after enrolling
 
 ### GET /courses/enrolled
+
 - Returns empty array when not enrolled in any course
 - Returns enrolled courses after enrolling
 
 ### POST /courses
+
 - Creates course (TEACHER user), `lectureTeacherId` defaults to current user
 - Returns 403 when called by non-TEACHER user
 
 ### GET /courses/:id
+
 - Returns course with `enrolledCount`
 - Returns 404 for unknown id
 
 ### PATCH /courses/:id
+
 - Updates fields (lecture teacher)
 - Returns 403 when called by a different TEACHER
 - Returns 404 for unknown course
 
 ### DELETE /courses/:id
+
 - Soft-deletes course (lecture teacher)
 - Returns 403 for different TEACHER
 - Course disappears from GET /courses after delete
 
 ### POST /courses/:id/enroll
+
 - Enrolls user, appears in GET /courses/enrolled
 - Idempotent — second enroll returns 200
 
 ### DELETE /courses/:id/enroll
+
 - Unenrolls user, disappears from GET /courses/enrolled
 - Returns 404 when not enrolled
 
 ### GET /courses/:id/progress
+
 - Returns `{ total: 0, done: 0, percent: 0 }` with no tasks
 - Returns correct counts with tasks linked to course
 

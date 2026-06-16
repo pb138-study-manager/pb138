@@ -8,17 +8,20 @@ const PRIORITY_PILLS: { value: Priority; labelKey: string; activeClass: string }
   {
     value: 'LOW',
     labelKey: 'tasks.priorityLow',
-    activeClass: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-800',
+    activeClass:
+      'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-800',
   },
   {
     value: 'MEDIUM',
     labelKey: 'tasks.priorityMedium',
-    activeClass: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800',
+    activeClass:
+      'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800',
   },
   {
     value: 'HIGH',
     labelKey: 'tasks.priorityHigh',
-    activeClass: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-800',
+    activeClass:
+      'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-800',
   },
 ];
 

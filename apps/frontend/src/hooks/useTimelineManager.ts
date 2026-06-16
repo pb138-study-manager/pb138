@@ -16,9 +16,9 @@ export function useTimelineManager() {
   const { data: events = [], isPending } = useQuery({
     queryKey: ['events', weekStart.toISOString()],
     queryFn: () =>
-      api.get<Event[]>(
-        `/events?from=${weekStart.toISOString()}&to=${weekEnd.toISOString()}`
-      ).catch(() => []),
+      api
+        .get<Event[]>(`/events?from=${weekStart.toISOString()}&to=${weekEnd.toISOString()}`)
+        .catch(() => []),
   });
 
   const { data: tasks = [] } = useQuery({
@@ -52,7 +52,14 @@ export function useTimelineManager() {
 
   async function editEvent(
     id: number,
-    data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type?: EventType }
+    data: {
+      title: string;
+      startDate: string;
+      endDate: string;
+      description?: string | null;
+      place?: string;
+      type?: EventType;
+    }
   ) {
     const updated = await api.patch<Event>(`/events/${id}`, data);
     queryClient.setQueryData<Event[]>(['events', weekStart.toISOString()], (prev = []) =>

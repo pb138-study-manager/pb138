@@ -8,7 +8,6 @@ import { AgentDisplay, DisplayCards } from '@/components/ai/cards';
 type Message = { role: 'user' | 'assistant'; content: string; display?: AgentDisplay };
 type PendingAction = { name: string; args: Record<string, unknown>; label: string };
 
-
 export function AgentTab() {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -70,9 +69,7 @@ export function AgentTab() {
       {/* Message list */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {messages.length === 0 && (
-          <p className="text-sm text-gray-400 text-center mt-8">
-            {t('ai.agentEmpty')}
-          </p>
+          <p className="text-sm text-gray-400 text-center mt-8">{t('ai.agentEmpty')}</p>
         )}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -86,8 +83,12 @@ export function AgentTab() {
                   components={{
                     p: ({ children }) => <p className="mb-1 leading-relaxed">{children}</p>,
                     strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                    ul: ({ children }) => <ul className="list-disc pl-4 space-y-0.5 mb-1">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal pl-4 space-y-0.5 mb-1">{children}</ol>,
+                    ul: ({ children }) => (
+                      <ul className="list-disc pl-4 space-y-0.5 mb-1">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal pl-4 space-y-0.5 mb-1">{children}</ol>
+                    ),
                     li: ({ children }) => <li>{children}</li>,
                   }}
                 >

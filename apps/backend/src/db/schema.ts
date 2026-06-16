@@ -33,7 +33,7 @@ export const users = pgTable('users', {
   authId: text('auth_id').unique(), // Supabase Auth UUID
   email: text('email').notNull().unique(),
   login: text('login').notNull().unique(),
-  pwdHash: text('pwd_hash').notNull().default(''),  // managed by Supabase Auth, kept for schema completeness
+  pwdHash: text('pwd_hash').notNull().default(''), // managed by Supabase Auth, kept for schema completeness
   activeSession: boolean('active_session').notNull().default(false),
   deletedAt: timestamp('deleted_at'),
 });
@@ -135,8 +135,7 @@ export const groupMembers = pgTable(
 
 export const assignments = pgTable('assignments', {
   id: serial('id').primaryKey(),
-  groupId: integer('group_id')
-    .references(() => groups.id),
+  groupId: integer('group_id').references(() => groups.id),
   title: text('title').notNull(),
   description: text('description'),
   courseId: integer('course_id').references(() => courses.id),
@@ -195,13 +194,18 @@ export const tasks = pgTable('tasks', {
   status: taskStatusEnum('status').notNull().default('TODO'),
   completedAt: timestamp('completed_at'),
   priority: taskPriorityEnum('priority'),
-  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
 export const assignmentSubtasks = pgTable('assignment_subtasks', {
   id: serial('id').primaryKey(),
-  assignmentId: integer('assignment_id').notNull().references(() => assignments.id),
+  assignmentId: integer('assignment_id')
+    .notNull()
+    .references(() => assignments.id),
   title: text('title').notNull(),
   sortOrder: integer('sort_order').notNull().default(0),
   deletedAt: timestamp('deleted_at'),
@@ -243,7 +247,10 @@ export const folders = pgTable('folders', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
-  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -256,7 +263,10 @@ export const notes = pgTable('notes', {
   description: text('description'),
   folderId: integer('folder_id').references(() => folders.id),
   courseId: integer('course_id').references(() => courses.id),
-  tags: text('tags').array().notNull().default(sql`ARRAY[]::text[]`),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -309,7 +319,10 @@ export const userIntegrations = pgTable(
     connectedAt: timestamp('connected_at'),
   },
   (table) => ({
-    userServiceUnique: unique('user_integrations_user_service_unique').on(table.userId, table.service),
+    userServiceUnique: unique('user_integrations_user_service_unique').on(
+      table.userId,
+      table.service
+    ),
   })
 );
 

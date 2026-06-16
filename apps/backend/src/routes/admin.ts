@@ -16,7 +16,20 @@ import {
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { eq, and, isNull, isNotNull, ilike, notIlike, inArray, desc, or, gte, lte, count } from 'drizzle-orm';
+import {
+  eq,
+  and,
+  isNull,
+  isNotNull,
+  ilike,
+  notIlike,
+  inArray,
+  desc,
+  or,
+  gte,
+  lte,
+  count,
+} from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
 
 const PatchRolesSchema = z.object({
@@ -150,7 +163,11 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       if (added.length) parts.push(`added ${added.join(', ')}`);
       if (removed.length) parts.push(`removed ${removed.join(', ')}`);
       const detail = parts.length ? `: ${parts.join('; ')}` : '';
-      await logAction(db, authUser.id, `Admin updated roles for user ${targetId} (${target.login})${detail}`);
+      await logAction(
+        db,
+        authUser.id,
+        `Admin updated roles for user ${targetId} (${target.login})${detail}`
+      );
 
       const updatedRoles = await db
         .select({ roleName: roles.name })
@@ -242,7 +259,11 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       }
 
       const suffix = body.restoreData ? ' with data restore' : '';
-      await logAction(db, authUser.id, `Admin reactivated user ${targetId} (${target.login})${suffix}`);
+      await logAction(
+        db,
+        authUser.id,
+        `Admin reactivated user ${targetId} (${target.login})${suffix}`
+      );
       return { success: true };
     },
     zodBody(ReactivateSchema)

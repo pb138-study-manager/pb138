@@ -35,9 +35,15 @@ beforeAll(async () => {
   authHeader = await makeAuthHeader();
 
   // Clean up any leftover state from a previously failed run.
-  const [stale] = await db.select({ id: users.id }).from(users).where(eq(users.authId, TEST_AUTH_ID));
+  const [stale] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.authId, TEST_AUTH_ID));
   if (stale) {
-    const staleTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, stale.id));
+    const staleTasks = await db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(eq(tasks.userId, stale.id));
     for (const t of staleTasks) {
       await db.delete(evals).where(eq(evals.taskId, t.id));
     }
@@ -60,7 +66,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await db.delete(auditLogs).where(eq(auditLogs.actorId, testUserId));
-  const userTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, testUserId));
+  const userTasks = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(eq(tasks.userId, testUserId));
   for (const t of userTasks) {
     await db.delete(evals).where(eq(evals.taskId, t.id));
   }
@@ -77,7 +86,9 @@ describe('GET /tasks', () => {
   });
 
   it('returns tasks belonging to the user', async () => {
-    await db.insert(tasks).values({ userId: testUserId, title: 'Test task', dueDate: new Date('2026-12-31') });
+    await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Test task', dueDate: new Date('2026-12-31') });
     const res = await testApp.handle(await req('http://localhost/tasks'));
     const body = await res.json();
     expect(body.some((t: { title: string }) => t.title === 'Test task')).toBe(true);
@@ -160,7 +171,11 @@ describe('GET /tasks top-level only', () => {
   it('does not return subtasks in the list', async () => {
     const [parent] = await db
       .insert(tasks)
-      .values({ userId: testUserId, title: 'Parent for list test', dueDate: new Date('2026-12-31') })
+      .values({
+        userId: testUserId,
+        title: 'Parent for list test',
+        dueDate: new Date('2026-12-31'),
+      })
       .returning();
     await db.insert(tasks).values({
       userId: testUserId,
@@ -224,7 +239,9 @@ describe('DELETE /tasks/:id', () => {
   });
 
   it('soft-deletes the task and removes it from list', async () => {
-    const res = await testApp.handle(await req(`http://localhost/tasks/${taskId}`, { method: 'DELETE' }));
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${taskId}`, { method: 'DELETE' })
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
@@ -235,7 +252,9 @@ describe('DELETE /tasks/:id', () => {
   });
 
   it('returns 404 when task does not belong to user', async () => {
-    const res = await testApp.handle(await req('http://localhost/tasks/999999', { method: 'DELETE' }));
+    const res = await testApp.handle(
+      await req('http://localhost/tasks/999999', { method: 'DELETE' })
+    );
     expect(res.status).toBe(404);
   });
 });
@@ -246,27 +265,38 @@ describe('PATCH /tasks/:id/toggle-done', () => {
   beforeAll(async () => {
     const [task] = await db
       .insert(tasks)
-      .values({ userId: testUserId, title: 'Task to toggle', dueDate: new Date('2026-12-31'), status: 'TODO' })
+      .values({
+        userId: testUserId,
+        title: 'Task to toggle',
+        dueDate: new Date('2026-12-31'),
+        status: 'TODO',
+      })
       .returning();
     taskId = task.id;
   });
 
   it('toggles TODO → DONE', async () => {
-    const res = await testApp.handle(await req(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' }));
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' })
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe('DONE');
   });
 
   it('toggles DONE → TODO', async () => {
-    const res = await testApp.handle(await req(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' }));
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${taskId}/toggle-done`, { method: 'PATCH' })
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe('TODO');
   });
 
   it('returns 404 when task does not belong to user', async () => {
-    const res = await testApp.handle(await req('http://localhost/tasks/999999/toggle-done', { method: 'PATCH' }));
+    const res = await testApp.handle(
+      await req('http://localhost/tasks/999999/toggle-done', { method: 'PATCH' })
+    );
     expect(res.status).toBe(404);
   });
 });
@@ -281,7 +311,10 @@ describe('POST /tasks/:id/eval', () => {
     // Clean up any leftover data from previous runs
     const [staleTeacher] = await db.select().from(users).where(eq(users.authId, TEACHER_AUTH));
     if (staleTeacher) {
-      const staleTasks = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, staleTeacher.id));
+      const staleTasks = await db
+        .select({ id: tasks.id })
+        .from(tasks)
+        .where(eq(tasks.userId, staleTeacher.id));
       for (const t of staleTasks) {
         await db.delete(evals).where(eq(evals.taskId, t.id));
       }
@@ -299,11 +332,11 @@ describe('POST /tasks/:id/eval', () => {
 
     const [teacher] = await db
       .insert(users)
-      .values({ 
-        email: `eval-teacher-${RND}@example.com`, 
-        login: `eval-teacher-login-${RND}`, 
-        pwdHash: '', 
-        authId: TEACHER_AUTH 
+      .values({
+        email: `eval-teacher-${RND}@example.com`,
+        login: `eval-teacher-login-${RND}`,
+        pwdHash: '',
+        authId: TEACHER_AUTH,
       })
       .returning();
     evalTeacherUserId = teacher.id;
@@ -321,8 +354,10 @@ describe('POST /tasks/:id/eval', () => {
   afterAll(async () => {
     if (evalTaskId) await db.delete(evals).where(eq(evals.taskId, evalTaskId));
     if (evalTaskId) await db.delete(tasks).where(eq(tasks.id, evalTaskId));
-    if (evalTeacherUserId) await db.delete(auditLogs).where(eq(auditLogs.actorId, evalTeacherUserId));
-    if (evalTeacherUserId) await db.delete(userRoles).where(eq(userRoles.userId, evalTeacherUserId));
+    if (evalTeacherUserId)
+      await db.delete(auditLogs).where(eq(auditLogs.actorId, evalTeacherUserId));
+    if (evalTeacherUserId)
+      await db.delete(userRoles).where(eq(userRoles.userId, evalTeacherUserId));
     if (evalTeacherUserId) await db.delete(users).where(eq(users.id, evalTeacherUserId));
   });
 
@@ -354,7 +389,12 @@ describe('POST /tasks/:id/eval', () => {
   it('returns 400 for non-DONE task', async () => {
     const [notDoneTask] = await db
       .insert(tasks)
-      .values({ userId: testUserId, title: 'Not done task for eval', dueDate: new Date(), status: 'TODO' })
+      .values({
+        userId: testUserId,
+        title: 'Not done task for eval',
+        dueDate: new Date(),
+        status: 'TODO',
+      })
       .returning();
     const res = await testApp.handle(
       new Request(`http://localhost/tasks/${notDoneTask.id}/eval`, {
@@ -378,7 +418,10 @@ describe('GET /tasks/:id/eval', () => {
     // Clean up any leftover data from previous runs
     const [staleTeacher2] = await db.select().from(users).where(eq(users.authId, TEACHER_AUTH2));
     if (staleTeacher2) {
-      const staleTasks2 = await db.select({ id: tasks.id }).from(tasks).where(eq(tasks.userId, staleTeacher2.id));
+      const staleTasks2 = await db
+        .select({ id: tasks.id })
+        .from(tasks)
+        .where(eq(tasks.userId, staleTeacher2.id));
       for (const t of staleTasks2) {
         await db.delete(evals).where(eq(evals.taskId, t.id));
       }
@@ -419,8 +462,10 @@ describe('GET /tasks/:id/eval', () => {
   afterAll(async () => {
     if (evalTaskId2) await db.delete(evals).where(eq(evals.taskId, evalTaskId2));
     if (evalTaskId2) await db.delete(tasks).where(eq(tasks.id, evalTaskId2));
-    if (evalTeacherUserId2) await db.delete(auditLogs).where(eq(auditLogs.actorId, evalTeacherUserId2));
-    if (evalTeacherUserId2) await db.delete(userRoles).where(eq(userRoles.userId, evalTeacherUserId2));
+    if (evalTeacherUserId2)
+      await db.delete(auditLogs).where(eq(auditLogs.actorId, evalTeacherUserId2));
+    if (evalTeacherUserId2)
+      await db.delete(userRoles).where(eq(userRoles.userId, evalTeacherUserId2));
     if (evalTeacherUserId2) await db.delete(users).where(eq(users.id, evalTeacherUserId2));
   });
 

@@ -232,10 +232,7 @@ describe('filterTasks', () => {
   });
 
   it('requires all selected tags to be present (AND)', () => {
-    const tasks = [
-      makeTask({ id: 1, tags: ['math', 'hw'] }),
-      makeTask({ id: 2, tags: ['math'] }),
-    ];
+    const tasks = [makeTask({ id: 1, tags: ['math', 'hw'] }), makeTask({ id: 2, tags: ['math'] })];
     const result = filterTasks(tasks, new Set(), new Set(['math', 'hw']));
     expect(result.map((t) => t.id)).toEqual([1]);
   });
@@ -251,19 +248,13 @@ describe('filterTasks', () => {
   });
 
   it('excludes tasks with no priority when priority filter is active', () => {
-    const tasks = [
-      makeTask({ id: 1, priority: null }),
-      makeTask({ id: 2, priority: undefined }),
-    ];
+    const tasks = [makeTask({ id: 1, priority: null }), makeTask({ id: 2, priority: undefined })];
     const result = filterTasks(tasks, new Set(['HIGH']), new Set());
     expect(result).toHaveLength(0);
   });
 
   it('excludes tasks with no tags when tag filter is active', () => {
-    const tasks = [
-      makeTask({ id: 1, tags: [] }),
-      makeTask({ id: 2, tags: undefined }),
-    ];
+    const tasks = [makeTask({ id: 1, tags: [] }), makeTask({ id: 2, tags: undefined })];
     const result = filterTasks(tasks, new Set(), new Set(['math']));
     expect(result).toHaveLength(0);
   });

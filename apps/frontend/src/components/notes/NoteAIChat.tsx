@@ -44,7 +44,9 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
     setIsLoading(true);
 
     try {
-      const result = await api.post<{ reply: string }>(`/ai/notes/${noteId}/chat`, { messages: newMessages });
+      const result = await api.post<{ reply: string }>(`/ai/notes/${noteId}/chat`, {
+        messages: newMessages,
+      });
       setMessages([...newMessages, { role: 'assistant', content: result.reply }]);
     } catch {
       setMessages([...newMessages, { role: 'assistant', content: t('ai.error') }]);
@@ -71,7 +73,9 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500" />
             <span className="text-xs text-gray-500 dark:text-gray-400">{t('ai.context')}:</span>
-            <span className="text-xs font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{noteTitle}</span>
+            <span className="text-xs font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">
+              {noteTitle}
+            </span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={18} />
@@ -88,21 +92,37 @@ export function NoteAIChat({ noteId, noteTitle, isOpen, onClose }: NoteAIChatPro
           )}
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
-                m.role === 'user'
-                  ? 'bg-indigo-500 text-white rounded-br-sm'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm'
-              }`}>
-                {m.role === 'user' ? m.content : (
+              <div
+                className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
+                  m.role === 'user'
+                    ? 'bg-indigo-500 text-white rounded-br-sm'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-bl-sm'
+                }`}
+              >
+                {m.role === 'user' ? (
+                  m.content
+                ) : (
                   <ReactMarkdown
                     components={{
-                      p: ({ children }) => <p className="mb-1 last:mb-0 leading-relaxed">{children}</p>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      p: ({ children }) => (
+                        <p className="mb-1 last:mb-0 leading-relaxed">{children}</p>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="font-semibold">{children}</strong>
+                      ),
                       em: ({ children }) => <em className="italic">{children}</em>,
-                      ul: ({ children }) => <ul className="list-disc pl-4 space-y-0.5 mb-1">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-4 space-y-0.5 mb-1">{children}</ol>,
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-4 space-y-0.5 mb-1">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-4 space-y-0.5 mb-1">{children}</ol>
+                      ),
                       li: ({ children }) => <li>{children}</li>,
-                      code: ({ children }) => <code className="bg-black/10 dark:bg-white/10 rounded px-1 text-xs font-mono">{children}</code>,
+                      code: ({ children }) => (
+                        <code className="bg-black/10 dark:bg-white/10 rounded px-1 text-xs font-mono">
+                          {children}
+                        </code>
+                      ),
                     }}
                   >
                     {m.content}

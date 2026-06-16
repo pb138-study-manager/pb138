@@ -34,10 +34,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
         authId,
       };
 
-      const [newUser] = await db
-        .insert(users)
-        .values(newUserData)
-        .returning();
+      const [newUser] = await db.insert(users).values(newUserData).returning();
 
       await db.insert(userProfiles).values({
         userId: newUser.id,
@@ -59,6 +56,6 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
       .update(users)
       .set({ activeSession: false })
       .where(eq(users.id, (user as AuthUser).id));
-      
+
     return { success: true, message: 'Logged out successfully' };
   });

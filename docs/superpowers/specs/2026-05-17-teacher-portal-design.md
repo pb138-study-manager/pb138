@@ -20,10 +20,12 @@ The separate `/teachers/assignments`, `/teachers/materials`, `/teachers/students
 ## Course Detail — Role-Aware Tabs
 
 ### Student mode (unchanged)
+
 Tabs: **Tasks | Notes | Materials**
 Behaviour: exactly as currently implemented.
 
 ### Teacher mode (new)
+
 Tabs: **Assignments | Materials | Students**
 
 ---
@@ -31,6 +33,7 @@ Tabs: **Assignments | Materials | Students**
 ## Teacher Tab: Assignments
 
 **UI:**
+
 - Header row: "Assignments" label + count + `+` ghost button
 - List of assignment cards (same `rounded-2xl shadow-md` style):
   - Icon (📝, colored background per course color)
@@ -41,6 +44,7 @@ Tabs: **Assignments | Materials | Students**
 - `+` opens a bottom-sheet modal: title, description (optional), due date → calls `POST /courses/:id/assignments`
 
 **Backend needed:**
+
 - `GET /courses/:id/assignments` — list assignments for a course with done/total counts
   - Join `assignments` → `tasks` → count done per assignment
 
@@ -49,6 +53,7 @@ Tabs: **Assignments | Materials | Students**
 ## Teacher Tab: Materials
 
 **UI:**
+
 - Header row: "Study Materials" label + count + `+` ghost button
 - List of material cards:
   - Icon: 📄 (PDF), 🔗 (link), 📊 (slides) — based on `type` field or URL extension
@@ -63,6 +68,7 @@ Tabs: **Assignments | Materials | Students**
 ## Teacher Tab: Students
 
 **UI:**
+
 - Filter pills: course filter not needed (already in one course context)
 - List of student cards:
   - Initials avatar (colored)
@@ -73,6 +79,7 @@ Tabs: **Assignments | Materials | Students**
 - No add button (enroll happens from student side)
 
 **Backend needed:**
+
 - `GET /courses/:id/students` — list enrolled students with per-student task completion
   - Join `user_courses` → `users` → `user_profiles` → `tasks` (filtered by courseId + assignmentId not null)
 
@@ -82,11 +89,11 @@ Tabs: **Assignments | Materials | Students**
 
 Apply to **`/courses/index.tsx`** and **`/courses/$courseId.tsx`**:
 
-| Element | Current | New |
-|---|---|---|
-| Card shadow | `shadow-sm` | `shadow-md` (or equivalent: `0 4px 14px rgba(0,0,0,0.10)`) |
-| Active tab | `border-indigo-500 text-indigo-600` | `border-gray-800 text-gray-900` |
-| Active filter pill | `bg-indigo-600 text-white` | `bg-gray-800 text-white` |
+| Element            | Current                             | New                                                        |
+| ------------------ | ----------------------------------- | ---------------------------------------------------------- |
+| Card shadow        | `shadow-sm`                         | `shadow-md` (or equivalent: `0 4px 14px rgba(0,0,0,0.10)`) |
+| Active tab         | `border-indigo-500 text-indigo-600` | `border-gray-800 text-gray-900`                            |
+| Active filter pill | `bg-indigo-600 text-white`          | `bg-gray-800 text-white`                                   |
 
 These changes apply to both student and teacher views of courses. All other pages stay unchanged.
 
@@ -111,16 +118,19 @@ Assignments, Materials, Students are not top-level nav items — they are tabs i
 ## What Changes
 
 ### Modified files
+
 - `apps/frontend/src/routes/courses/$courseId.tsx` — role-aware tabs + teacher tab content
 - `apps/frontend/src/routes/courses/index.tsx` — bigger card shadows
 - `apps/frontend/src/components/ui/sidebar.tsx` — teacher nav reduced to My Classes + Profile
 - `apps/frontend/src/components/ui/bottom-nav.tsx` — teacher bottom nav same reduction
 
 ### New backend routes (add to `courses.ts`)
+
 - `GET /courses/:id/assignments` — assignments list with done/total counts
 - `GET /courses/:id/students` — enrolled students with per-student task completion
 
 ### Deleted
+
 - `apps/frontend/src/routes/teachers/assignments.tsx`
 - `apps/frontend/src/routes/teachers/materials.tsx`
 - `apps/frontend/src/routes/teachers/students.tsx`
@@ -128,6 +138,7 @@ Assignments, Materials, Students are not top-level nav items — they are tabs i
 ---
 
 ## What Does NOT Change
+
 - `/teachers/` (My Classes) — stays, links to `/courses/:id`
 - Student course view (Tasks / Notes / Materials tabs) — untouched
 - All other pages (Today, Tasks, Notes, Timeline, Profile) — untouched

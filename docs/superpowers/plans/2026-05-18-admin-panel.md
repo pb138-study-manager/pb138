@@ -12,22 +12,23 @@
 
 ## File Map
 
-| Action | File |
-|--------|------|
-| Create | `apps/backend/src/routes/admin.ts` |
-| Modify | `apps/backend/src/index.ts` |
-| Modify | `apps/frontend/src/types/index.ts` |
-| Create | `apps/frontend/src/hooks/useAdminManager.ts` |
+| Action | File                                                         |
+| ------ | ------------------------------------------------------------ |
+| Create | `apps/backend/src/routes/admin.ts`                           |
+| Modify | `apps/backend/src/index.ts`                                  |
+| Modify | `apps/frontend/src/types/index.ts`                           |
+| Create | `apps/frontend/src/hooks/useAdminManager.ts`                 |
 | Modify | `apps/frontend/src/components/admin/admin-users-manager.tsx` |
-| Modify | `apps/frontend/src/components/admin/admin-logs-view.tsx` |
+| Modify | `apps/frontend/src/components/admin/admin-logs-view.tsx`     |
 | Modify | `apps/frontend/src/components/admin/admin-roles-manager.tsx` |
-| Modify | `apps/frontend/src/routes/admin/index.tsx` |
+| Modify | `apps/frontend/src/routes/admin/index.tsx`                   |
 
 ---
 
 ### Task 1: Backend — admin routes
 
 **Files:**
+
 - Create: `apps/backend/src/routes/admin.ts`
 
 - [ ] **Step 1: Create `apps/backend/src/routes/admin.ts` with the full content below**
@@ -85,9 +86,10 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       .from(users)
       .leftJoin(userProfiles, eq(users.id, userProfiles.userId));
 
-    const allUsers = await (q
-      ? baseQuery.where(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)))
-      : baseQuery
+    const allUsers = await (
+      q
+        ? baseQuery.where(or(ilike(users.login, `%${q}%`), ilike(users.email, `%${q}%`)))
+        : baseQuery
     )
       .limit(limit)
       .offset(offset);
@@ -181,10 +183,7 @@ export const adminRoutes = new Elysia({ prefix: '/admin' })
       .leftJoin(users, eq(auditLogs.actorId, users.id))
       .orderBy(desc(auditLogs.happenedAt));
 
-    const rows = await (q
-      ? baseQuery.where(ilike(auditLogs.description, `%${q}%`))
-      : baseQuery
-    )
+    const rows = await (q ? baseQuery.where(ilike(auditLogs.description, `%${q}%`)) : baseQuery)
       .limit(limit)
       .offset(offset);
 
@@ -224,6 +223,7 @@ head -5 apps/backend/src/routes/admin.ts
 ```
 
 Expected output:
+
 ```
 import { Elysia } from 'elysia';
 import { z } from 'zod';
@@ -235,17 +235,20 @@ import { db } from '../db';
 ### Task 2: Register admin routes in backend + add frontend types
 
 **Files:**
+
 - Modify: `apps/backend/src/index.ts`
 - Modify: `apps/frontend/src/types/index.ts`
 
 - [ ] **Step 1: Add adminRoutes import and `.use()` call to `apps/backend/src/index.ts`**
 
 Add this import after the existing imports (line 12, after `materialsRoutes`):
+
 ```typescript
 import { adminRoutes } from './routes/admin';
 ```
 
 Add `.use(adminRoutes)` after `.use(materialsRoutes)` (line 31):
+
 ```typescript
   .use(materialsRoutes)
   .use(adminRoutes)
@@ -302,6 +305,7 @@ git commit -m "feat: add admin backend routes and frontend types"
 ### Task 3: Frontend — useAdminManager hook
 
 **Files:**
+
 - Create: `apps/frontend/src/hooks/useAdminManager.ts`
 
 - [ ] **Step 1: Create `apps/frontend/src/hooks/useAdminManager.ts` with the full content below**
@@ -320,9 +324,7 @@ export function useAdminManager() {
   const { data: adminUsers = [], isPending: usersLoading } = useQuery({
     queryKey: ['admin-users', userQuery],
     queryFn: () =>
-      api
-        .get<AdminUser[]>(`/admin/users?q=${encodeURIComponent(userQuery)}`)
-        .catch(() => []),
+      api.get<AdminUser[]>(`/admin/users?q=${encodeURIComponent(userQuery)}`).catch(() => []),
   });
 
   const { data: adminLogs = [], isPending: logsLoading } = useQuery({
@@ -376,6 +378,7 @@ git commit -m "feat: add useAdminManager hook"
 ### Task 4: Frontend — update admin-users-manager.tsx
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/admin/admin-users-manager.tsx`
 
 - [ ] **Step 1: Replace the entire content of `apps/frontend/src/components/admin/admin-users-manager.tsx`**
@@ -542,6 +545,7 @@ git commit -m "feat: connect admin users manager to API"
 ### Task 5: Frontend — update logs, roles, and index
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/admin/admin-logs-view.tsx`
 - Modify: `apps/frontend/src/components/admin/admin-roles-manager.tsx`
 - Modify: `apps/frontend/src/routes/admin/index.tsx`
@@ -689,7 +693,10 @@ function AdminOverviewPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Administration" description="Manage system configuration, review logs, and control access." />
+      <AdminPageHeader
+        title="Administration"
+        description="Manage system configuration, review logs, and control access."
+      />
       <div className="mb-10 grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">

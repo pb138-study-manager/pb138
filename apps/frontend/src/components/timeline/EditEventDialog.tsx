@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
-import { Calendar, AlignLeft } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import DatePickerDialog from '@/components/tasks/date-picker-dialog'
-import { Event, EventType } from '@/types'
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, AlignLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import DatePickerDialog from '@/components/tasks/date-picker-dialog';
+import { Event, EventType } from '@/types';
 
 export default function EditEventDialog({
   event,
@@ -11,36 +11,48 @@ export default function EditEventDialog({
   onOpenChange,
   onSave,
 }: {
-  event: Event
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (data: { title: string; startDate: string; endDate: string; description?: string | null; place?: string; type: EventType }) => Promise<void>
+  event: Event;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSave: (data: {
+    title: string;
+    startDate: string;
+    endDate: string;
+    description?: string | null;
+    place?: string;
+    type: EventType;
+  }) => Promise<void>;
 }) {
-  const [title, setTitle] = useState(event.title)
-  const [startDate, setStartDate] = useState<Date | null>(null)
-  const [endDate, setEndDate] = useState<Date | null>(null)
-  const [type, setType] = useState<EventType>('EVENT')
-  const [description, setDescription] = useState(event.description ?? '')
-  const place = event.place ?? ''
-  const [isDateOpen, setIsDateOpen] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const initializedRef = useRef(false)
+  const [title, setTitle] = useState(event.title);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [type, setType] = useState<EventType>('EVENT');
+  const [description, setDescription] = useState(event.description ?? '');
+  const place = event.place ?? '';
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (!isOpen) { initializedRef.current = false; return }
-    setTitle(event.title)
-    setStartDate(new Date(event.startDate))
-    setEndDate(new Date(event.endDate))
-    setType(event.type ?? 'EVENT')
-    setDescription(event.description ?? '')
-    setTimeout(() => { initializedRef.current = true }, 100)
-  }, [isOpen, event])
+    if (!isOpen) {
+      initializedRef.current = false;
+      return;
+    }
+    setTitle(event.title);
+    setStartDate(new Date(event.startDate));
+    setEndDate(new Date(event.endDate));
+    setType(event.type ?? 'EVENT');
+    setDescription(event.description ?? '');
+    setTimeout(() => {
+      initializedRef.current = true;
+    }, 100);
+  }, [isOpen, event]);
 
-  const computedEndDate = type === 'DEADLINE' ? startDate : endDate
+  const computedEndDate = type === 'DEADLINE' ? startDate : endDate;
 
   useEffect(() => {
-    if (!initializedRef.current || !title.trim() || !startDate || !computedEndDate) return
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!initializedRef.current || !title.trim() || !startDate || !computedEndDate) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       onSave({
         title: title.trim(),
@@ -49,10 +61,12 @@ export default function EditEventDialog({
         description: description.trim() === '' ? null : description.trim(),
         place: place.trim() || undefined,
         type,
-      })
-    }, 800)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [title, startDate, endDate, type, description, computedEndDate, onSave, place])
+      });
+    }, 800);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [title, startDate, endDate, type, description, computedEndDate, onSave, place]);
 
   return (
     <>
@@ -93,14 +107,25 @@ export default function EditEventDialog({
               <button
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                  startDate ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  startDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
-                {startDate ? startDate.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Date'}
+                {startDate
+                  ? startDate.toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'Date'}
               </button>
 
-              <label className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors cursor-pointer ${description ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
+              <label
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors cursor-pointer ${description ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+              >
                 <AlignLeft className="w-3.5 h-3.5 shrink-0" />
                 <input
                   type="text"
@@ -125,5 +150,5 @@ export default function EditEventDialog({
         showDuration={type !== 'DEADLINE'}
       />
     </>
-  )
+  );
 }

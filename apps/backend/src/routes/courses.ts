@@ -1,7 +1,17 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { courses, userCourses, tasks, assignments, assignmentSubtasks, userProfiles, users, evals, events } from '../db/schema';
+import {
+  courses,
+  userCourses,
+  tasks,
+  assignments,
+  assignmentSubtasks,
+  userProfiles,
+  users,
+  evals,
+  events,
+} from '../db/schema';
 
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
@@ -237,7 +247,10 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
     }
     if (course.lectureTeacherId === authUser.id || course.seminarTeacherId === authUser.id) {
       set.status = 400;
-      return { error: 'SELF_ENROLLMENT_FORBIDDEN', message: 'Teacher cannot enroll in their own course' };
+      return {
+        error: 'SELF_ENROLLMENT_FORBIDDEN',
+        message: 'Teacher cannot enroll in their own course',
+      };
     }
     await db
       .insert(userCourses)
@@ -313,11 +326,14 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
           dueDate: assignments.dueDate,
         })
         .from(assignments)
-        .innerJoin(tasks, and(
-          eq(tasks.assignmentId, assignments.id),
-          eq(tasks.userId, authUser.id),
-          isNull(tasks.deletedAt)
-        ))
+        .innerJoin(
+          tasks,
+          and(
+            eq(tasks.assignmentId, assignments.id),
+            eq(tasks.userId, authUser.id),
+            isNull(tasks.deletedAt)
+          )
+        )
         .where(and(eq(assignments.courseId, courseId), isNull(assignments.deletedAt)));
       return studentAssignments;
     }
@@ -498,7 +514,11 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
         );
         return created;
       });
-      await logAction(db, authUser.id, `Created assignment ${assignment.id} for course ${course.id}`);
+      await logAction(
+        db,
+        authUser.id,
+        `Created assignment ${assignment.id} for course ${course.id}`
+      );
       return assignment;
     },
     zodBody(
@@ -534,7 +554,10 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       }
       if (body.userId === authUser.id) {
         set.status = 400;
-        return { error: 'SELF_ENROLLMENT_FORBIDDEN', message: 'Teacher cannot add themselves to a course' };
+        return {
+          error: 'SELF_ENROLLMENT_FORBIDDEN',
+          message: 'Teacher cannot add themselves to a course',
+        };
       }
       const [targetUser] = await db
         .select()
@@ -702,7 +725,11 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .update(assignmentSubtasks)
       .set({ deletedAt: new Date() })
       .where(eq(assignmentSubtasks.id, subtaskId));
-    await logAction(db, authUser.id, `Deleted subtask ${subtaskId} from assignment ${assignmentId}`);
+    await logAction(
+      db,
+      authUser.id,
+      `Deleted subtask ${subtaskId} from assignment ${assignmentId}`
+    );
     return { success: true };
   })
   .get('/:id/my-evals', async ({ params, user, set }) => {
@@ -719,9 +746,14 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
           evaluatedAt: evals.evaluatedAt,
         })
         .from(tasks)
-        .innerJoin(assignments, and(eq(tasks.assignmentId, assignments.id), isNull(assignments.deletedAt)))
+        .innerJoin(
+          assignments,
+          and(eq(tasks.assignmentId, assignments.id), isNull(assignments.deletedAt))
+        )
         .innerJoin(evals, eq(evals.taskId, tasks.id))
-        .where(and(eq(tasks.userId, authUser.id), eq(tasks.courseId, courseId), isNull(tasks.deletedAt)))
+        .where(
+          and(eq(tasks.userId, authUser.id), eq(tasks.courseId, courseId), isNull(tasks.deletedAt))
+        )
         .orderBy(sql`${assignments.dueDate} DESC`);
       return rows;
     } catch (err) {
@@ -775,7 +807,11 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
       .leftJoin(evals, eq(evals.taskId, tasks.id))
       .where(
-        and(eq(tasks.assignmentId, assignmentId), eq(tasks.courseId, courseId), isNull(tasks.deletedAt))
+        and(
+          eq(tasks.assignmentId, assignmentId),
+          eq(tasks.courseId, courseId),
+          isNull(tasks.deletedAt)
+        )
       );
     return rows.map(({ completedAt, ...row }) => ({
       ...row,
@@ -825,12 +861,7 @@ export const coursesRoutes = new Elysia({ prefix: '/courses' })
       .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
       .leftJoin(evals, eq(evals.taskId, tasks.id))
       .where(
-        and(
-          eq(tasks.courseId, courseId),
-          isNotNull(tasks.assignmentId),
-          isNull(tasks.deletedAt)
-        )
+        and(eq(tasks.courseId, courseId), isNotNull(tasks.assignmentId), isNull(tasks.deletedAt))
       );
     return rows.filter((r) => r.evalType !== 'none');
-  })
-;
+  });

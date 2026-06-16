@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
 import { PublicProfileModal } from '@/components/profile/public-profile-modal';
-import { ChevronLeft, CheckSquare, FileText, BookOpen, Star, ClipboardList, Users, Plus } from 'lucide-react';
+import {
+  ChevronLeft,
+  CheckSquare,
+  FileText,
+  BookOpen,
+  Star,
+  ClipboardList,
+  Users,
+  Plus,
+} from 'lucide-react';
 import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
 import { useRoleMode } from '@/lib/roleMode';
 import { Button } from '@/components/ui/button';
@@ -73,21 +82,27 @@ function CourseDetailPage() {
   const courseTasks = allTasks.filter((t) => t.courseId === Number(courseId));
   const allTaskTags = Array.from(new Set(courseTasks.flatMap((t) => t.tags ?? []))).sort();
 
-  const taskFilterGroups: FilterGroup[] = allTaskTags.length > 0 ? [{
-    type: 'tags' as const,
-    label: 'Tags',
-    options: allTaskTags.map((tag) => ({ key: tag, label: tag })),
-    active: taskFilterTags,
-    onToggle: (key) => setTaskFilterTags((prev) => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    }),
-  }] : [];
+  const taskFilterGroups: FilterGroup[] =
+    allTaskTags.length > 0
+      ? [
+          {
+            type: 'tags' as const,
+            label: 'Tags',
+            options: allTaskTags.map((tag) => ({ key: tag, label: tag })),
+            active: taskFilterTags,
+            onToggle: (key) =>
+              setTaskFilterTags((prev) => {
+                const next = new Set(prev);
+                next.has(key) ? next.delete(key) : next.add(key);
+                return next;
+              }),
+          },
+        ]
+      : [];
 
-  const [teacherTab, setTeacherTab] = useState<'assignments' | 'materials' | 'students' | 'evaluations'>(
-    'assignments'
-  );
+  const [teacherTab, setTeacherTab] = useState<
+    'assignments' | 'materials' | 'students' | 'evaluations'
+  >('assignments');
 
   if (courseLoading) {
     return (
@@ -153,10 +168,26 @@ function CourseDetailPage() {
           value={teacherTab}
           onChange={(key) => setTeacherTab(key as typeof teacherTab)}
           items={[
-            { key: 'assignments', icon: <ClipboardList size={14} />, label: t('courses.tabs.assignments', 'Assignments') },
-            { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
-            { key: 'students', icon: <Users size={14} />, label: t('courses.tabs.students', 'Students') },
-            { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
+            {
+              key: 'assignments',
+              icon: <ClipboardList size={14} />,
+              label: t('courses.tabs.assignments', 'Assignments'),
+            },
+            {
+              key: 'materials',
+              icon: <BookOpen size={14} />,
+              label: t('courses.tabs.materials', 'Materials'),
+            },
+            {
+              key: 'students',
+              icon: <Users size={14} />,
+              label: t('courses.tabs.students', 'Students'),
+            },
+            {
+              key: 'evaluations',
+              icon: <Star size={14} />,
+              label: t('courses.tabs.evaluations', 'Evaluations'),
+            },
           ]}
         />
       ) : (
@@ -166,12 +197,30 @@ function CourseDetailPage() {
               variant="underline"
               noBorder
               value={activeTab}
-              onChange={(key) => { setActiveTab(key as typeof activeTab); }}
+              onChange={(key) => {
+                setActiveTab(key as typeof activeTab);
+              }}
               items={[
-                { key: 'tasks', icon: <CheckSquare size={14} />, label: t('courses.tabs.tasks', 'Tasks') },
-                { key: 'notes', icon: <FileText size={14} />, label: t('courses.tabs.notes', 'Notes') },
-                { key: 'materials', icon: <BookOpen size={14} />, label: t('courses.tabs.materials', 'Materials') },
-                { key: 'evaluations', icon: <Star size={14} />, label: t('courses.tabs.evaluations', 'Evaluations') },
+                {
+                  key: 'tasks',
+                  icon: <CheckSquare size={14} />,
+                  label: t('courses.tabs.tasks', 'Tasks'),
+                },
+                {
+                  key: 'notes',
+                  icon: <FileText size={14} />,
+                  label: t('courses.tabs.notes', 'Notes'),
+                },
+                {
+                  key: 'materials',
+                  icon: <BookOpen size={14} />,
+                  label: t('courses.tabs.materials', 'Materials'),
+                },
+                {
+                  key: 'evaluations',
+                  icon: <Star size={14} />,
+                  label: t('courses.tabs.evaluations', 'Evaluations'),
+                },
               ]}
             />
           </div>
@@ -179,7 +228,10 @@ function CourseDetailPage() {
             {activeTab === 'tasks' && (
               <>
                 {taskFilterGroups.length > 0 && (
-                  <FilterControl groups={taskFilterGroups} onClear={() => setTaskFilterTags(new Set())} />
+                  <FilterControl
+                    groups={taskFilterGroups}
+                    onClear={() => setTaskFilterTags(new Set())}
+                  />
                 )}
                 {course.enrolled && (
                   <button
@@ -252,10 +304,7 @@ function CourseDetailPage() {
         <TeacherEvaluationsTab courseId={courseId as string} />
       )}
 
-      <PublicProfileModal
-        userId={viewingTeacherId}
-        onClose={() => setViewingTeacherId(null)}
-      />
+      <PublicProfileModal userId={viewingTeacherId} onClose={() => setViewingTeacherId(null)} />
     </div>
   );
 }

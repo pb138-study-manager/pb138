@@ -72,8 +72,18 @@ function TodayPage() {
 
   const tabItems: TabItem[] = [
     { key: 'ai', icon: <Sparkles size={14} />, label: t('ai.aiSummary') },
-    { key: 'tasks', icon: <CheckSquare size={14} />, label: t('tasks.title'), count: filteredToday.length + filteredBacklog.length },
-    { key: 'events', icon: <CalendarDays size={14} />, label: t('nav.timeline'), count: visibleEvents.length },
+    {
+      key: 'tasks',
+      icon: <CheckSquare size={14} />,
+      label: t('tasks.title'),
+      count: filteredToday.length + filteredBacklog.length,
+    },
+    {
+      key: 'events',
+      icon: <CalendarDays size={14} />,
+      label: t('nav.timeline'),
+      count: visibleEvents.length,
+    },
   ];
 
   if (isPending) {
@@ -94,7 +104,8 @@ function TodayPage() {
       {/* Greeting + progress */}
       <div className="px-4 pt-6 pb-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-0.5">
-          {greeting}{displayName ? `, ${displayName}` : ''} 👋
+          {greeting}
+          {displayName ? `, ${displayName}` : ''} 👋
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
           {t('today.progress', { done: counts.doneToday, total: todayTotal })}
@@ -185,24 +196,33 @@ function TodayPage() {
             </div>
           ) : (
             visibleEvents.map((event) => (
-              <div key={event.id} className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-4">
+              <div
+                key={event.id}
+                className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-4"
+              >
                 <div className="flex items-start gap-3">
-                  <div className="text-2xl shrink-0">
-                    {event.type === 'DEADLINE' ? '⏰' : '📅'}
-                  </div>
+                  <div className="text-2xl shrink-0">{event.type === 'DEADLINE' ? '⏰' : '📅'}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{event.title}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                      {event.title}
+                    </p>
                     {event.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{event.description}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                        {event.description}
+                      </p>
                     )}
                     <div className="flex items-center gap-1.5 mt-1.5 text-xs text-gray-400">
                       <Clock size={12} />
                       <span>
-                        {new Date(event.startDate).toLocaleTimeString(navigator.language ?? 'en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                        {event.endDate && ` – ${new Date(event.endDate).toLocaleTimeString(navigator.language ?? 'en-US', { hour: '2-digit', minute: '2-digit' })}`}
+                        {new Date(event.startDate).toLocaleTimeString(
+                          navigator.language ?? 'en-US',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        )}
+                        {event.endDate &&
+                          ` – ${new Date(event.endDate).toLocaleTimeString(navigator.language ?? 'en-US', { hour: '2-digit', minute: '2-digit' })}`}
                       </span>
                       {event.place && <span>· 📍 {event.place}</span>}
                     </div>
@@ -214,11 +234,7 @@ function TodayPage() {
         </div>
       )}
 
-      <NewTaskDialog
-        isOpen={newTaskOpen}
-        onOpenChange={setNewTaskOpen}
-        onSubmit={handleCreate}
-      />
+      <NewTaskDialog isOpen={newTaskOpen} onOpenChange={setNewTaskOpen} onSubmit={handleCreate} />
     </div>
   );
 }

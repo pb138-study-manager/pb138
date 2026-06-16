@@ -19,7 +19,11 @@ interface AvatarUploadDialogProps {
   onUpload: (file: File) => Promise<void>;
 }
 
-export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: AvatarUploadDialogProps) {
+export default function AvatarUploadDialog({
+  open,
+  onOpenChange,
+  onUpload,
+}: AvatarUploadDialogProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -76,9 +80,7 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('profile.avatarInfo')}
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('profile.avatarInfo')}</p>
 
           <div
             onClick={() => inputRef.current?.click()}
@@ -115,9 +117,7 @@ export default function AvatarUploadDialog({ open, onOpenChange, onUpload }: Ava
             onChange={handleFileChange}
           />
 
-          {error && (
-            <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
         </div>
 
         <DialogFooter showCloseButton>

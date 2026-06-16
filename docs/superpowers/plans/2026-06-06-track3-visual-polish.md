@@ -12,23 +12,24 @@
 
 ## Súbory
 
-| Akcia | Súbor |
-|---|---|
-| Vytvoriť | `apps/frontend/src/lib/urgency.ts` |
-| Vytvoriť | `apps/frontend/src/lib/urgency.test.ts` |
-| Vytvoriť | `apps/frontend/src/lib/readingTime.ts` |
-| Vytvoriť | `apps/frontend/src/lib/readingTime.test.ts` |
-| Modifikovať | `apps/frontend/src/routes/today/index.tsx` |
-| Modifikovať | `apps/frontend/src/components/tasks/tasks-card.tsx` |
+| Akcia       | Súbor                                                     |
+| ----------- | --------------------------------------------------------- |
+| Vytvoriť    | `apps/frontend/src/lib/urgency.ts`                        |
+| Vytvoriť    | `apps/frontend/src/lib/urgency.test.ts`                   |
+| Vytvoriť    | `apps/frontend/src/lib/readingTime.ts`                    |
+| Vytvoriť    | `apps/frontend/src/lib/readingTime.test.ts`               |
+| Modifikovať | `apps/frontend/src/routes/today/index.tsx`                |
+| Modifikovať | `apps/frontend/src/components/tasks/tasks-card.tsx`       |
 | Modifikovať | `apps/frontend/src/components/notes/note-detail-view.tsx` |
-| Modifikovať | `apps/frontend/src/components/notes/folders-view.tsx` |
-| Modifikovať | `apps/frontend/src/routes/timeline/index.tsx` |
+| Modifikovať | `apps/frontend/src/components/notes/folders-view.tsx`     |
+| Modifikovať | `apps/frontend/src/routes/timeline/index.tsx`             |
 
 ---
 
 ## Task 1: Urgency utility + unit test
 
 **Files:**
+
 - Create: `apps/frontend/src/lib/urgency.ts`
 - Create: `apps/frontend/src/lib/urgency.test.ts`
 
@@ -108,7 +109,8 @@ export function getUrgency(dueDate: string | null | undefined): Urgency {
 
 export function urgencyBadgeClasses(urgency: Urgency): string {
   if (urgency === 'high') return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-  if (urgency === 'medium') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+  if (urgency === 'medium')
+    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
   return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
 }
 
@@ -150,6 +152,7 @@ git commit -m "feat: add urgency utility with unit tests"
 ## Task 2: ReadingTime utility + unit test
 
 **Files:**
+
 - Create: `apps/frontend/src/lib/readingTime.ts`
 - Create: `apps/frontend/src/lib/readingTime.test.ts`
 
@@ -232,6 +235,7 @@ git commit -m "feat: add reading time utility with unit tests"
 ## Task 3: Today page — greeting + progress bar
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/today/index.tsx`
 
 - [ ] **Step 1: Pridaj greeting funkciu a progress bar do TodayPage**
@@ -249,6 +253,7 @@ function getGreeting(name: string): string {
 ```
 
 Nahraď `<h1>` tag:
+
 ```tsx
 <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
   {getGreeting(t('nav.today'))}
@@ -256,21 +261,26 @@ Nahraď `<h1>` tag:
 ```
 
 Potom pridaj progress bar hneď pod `</h1>`:
+
 ```tsx
-{counts.today > 0 && (
-  <div className="mt-2 mb-3">
-    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-      <span>{counts.done} z {counts.today + counts.done} úloh hotových dnes</span>
-      <span>{Math.round((counts.done / (counts.today + counts.done)) * 100)}%</span>
+{
+  counts.today > 0 && (
+    <div className="mt-2 mb-3">
+      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+        <span>
+          {counts.done} z {counts.today + counts.done} úloh hotových dnes
+        </span>
+        <span>{Math.round((counts.done / (counts.today + counts.done)) * 100)}%</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+          style={{ width: `${Math.round((counts.done / (counts.today + counts.done)) * 100)}%` }}
+        />
+      </div>
     </div>
-    <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-      <div
-        className="h-full rounded-full bg-indigo-500 transition-all duration-500"
-        style={{ width: `${Math.round((counts.done / (counts.today + counts.done)) * 100)}%` }}
-      />
-    </div>
-  </div>
-)}
+  );
+}
 ```
 
 - [ ] **Step 2: Pridaj empty state**
@@ -278,13 +288,15 @@ Potom pridaj progress bar hneď pod `</h1>`:
 Po `<TaskSection title={t('tasks.today')} .../>` bloku, pred backlog sekciou, pridaj podmienku:
 
 ```tsx
-{todayTasks.length === 0 && doneTasks.length === 0 && (
-  <div className="text-center py-12 text-gray-400 dark:text-gray-500">
-    <p className="text-4xl mb-3">✅</p>
-    <p className="font-medium">Žiadne úlohy na dnes</p>
-    <p className="text-sm mt-1">Chceš nejakú pridať?</p>
-  </div>
-)}
+{
+  todayTasks.length === 0 && doneTasks.length === 0 && (
+    <div className="text-center py-12 text-gray-400 dark:text-gray-500">
+      <p className="text-4xl mb-3">✅</p>
+      <p className="font-medium">Žiadne úlohy na dnes</p>
+      <p className="text-sm mt-1">Chceš nejakú pridať?</p>
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 3: Over vizuálne**
@@ -307,6 +319,7 @@ git commit -m "feat: add greeting header and progress bar to today page"
 ## Task 4: Tasks page — urgency badges + countdown + animations
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/tasks-card.tsx`
 
 - [ ] **Step 1: Prečítaj aktuálny tasks-card.tsx**
@@ -331,13 +344,17 @@ const countdown = urgencyCountdownText(task.dueDate);
 Na mieste kde sa zobrazuje dueDate, nahraď (alebo obal) dátumový element:
 
 ```tsx
-{task.dueDate && (
-  <div className="flex items-center gap-1.5 flex-wrap">
-    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${urgencyBadgeClasses(urgency)}`}>
-      {countdown}
-    </span>
-  </div>
-)}
+{
+  task.dueDate && (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span
+        className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${urgencyBadgeClasses(urgency)}`}
+      >
+        {countdown}
+      </span>
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 3: Pridaj strikethrough animáciu pri DONE stave**
@@ -345,11 +362,13 @@ Na mieste kde sa zobrazuje dueDate, nahraď (alebo obal) dátumový element:
 Nájdi miesto kde sa zobrazuje `task.title` a obal ho:
 
 ```tsx
-<span className={`transition-all duration-300 ${
-  task.status === 'DONE'
-    ? 'line-through text-gray-400 dark:text-gray-500 opacity-60'
-    : 'text-gray-900 dark:text-white'
-}`}>
+<span
+  className={`transition-all duration-300 ${
+    task.status === 'DONE'
+      ? 'line-through text-gray-400 dark:text-gray-500 opacity-60'
+      : 'text-gray-900 dark:text-white'
+  }`}
+>
   {task.title}
 </span>
 ```
@@ -368,25 +387,27 @@ git commit -m "feat: add urgency badges and done animation to task cards"
 ## Task 5: Notes — word count + AI button placeholders
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/notes/note-detail-view.tsx`
 
 - [ ] **Step 1: Pridaj word count do note-detail-view.tsx**
 
 Pridaj import:
+
 ```tsx
 import { getReadingStats } from '@/lib/readingTime';
 ```
 
 Vo vnútri komponentu, pred `return`:
+
 ```tsx
 const stats = getReadingStats(content);
 ```
 
 V header sekcii (vedľa titulku poznámky), pridaj:
+
 ```tsx
-<span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-  {stats.label}
-</span>
+<span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{stats.label}</span>
 ```
 
 - [ ] **Step 2: Pridaj AI tlačidlá (no-op — Track 4 doplní logiku)**
@@ -424,6 +445,7 @@ git commit -m "feat: add word count and AI button placeholders to note detail"
 ## Task 6: Notes — farebné folder ikony
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/notes/folders-view.tsx`
 
 - [ ] **Step 1: Prečítaj folders-view.tsx**
@@ -449,9 +471,11 @@ const FOLDER_COLORS = [
 ];
 
 // Na folder karte, nahraď generickú ikonu:
-<div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${FOLDER_COLORS[folder.id % 7]}`}>
+<div
+  className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${FOLDER_COLORS[folder.id % 7]}`}
+>
   📁
-</div>
+</div>;
 ```
 
 - [ ] **Step 3: Over vizuálne**
@@ -468,6 +492,7 @@ git commit -m "feat: add color palette to folder icons in notes"
 ## Task 7: Timeline — farebné eventy + hover tooltip + pridaj event button
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/timeline/index.tsx`
 
 - [ ] **Step 1: Prečítaj timeline/index.tsx**
@@ -484,8 +509,10 @@ V `apps/frontend/src/components/timeline/EventCard.tsx` nájdi hlavný wrapper d
 // Pridaj funkciu:
 function getEventColor(event: { title?: string }): string {
   const t = (event.title ?? '').toLowerCase();
-  if (t.includes('deadline') || t.includes('odovzdanie')) return 'border-l-red-500 bg-red-50 dark:bg-red-900/10';
-  if (t.includes('prednáška') || t.includes('seminár') || t.includes('cvičenie')) return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/10';
+  if (t.includes('deadline') || t.includes('odovzdanie'))
+    return 'border-l-red-500 bg-red-50 dark:bg-red-900/10';
+  if (t.includes('prednáška') || t.includes('seminár') || t.includes('cvičenie'))
+    return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/10';
   return 'border-l-emerald-500 bg-emerald-50 dark:bg-emerald-900/10';
 }
 ```
@@ -525,16 +552,16 @@ Pre každú stránku kde je `animate-spin` loader, nahraď ho shimmer skeletonmi
 ```tsx
 // Použi kdekoľvek ako placeholder namiesto spinneru:
 function SkeletonCard() {
-  return (
-    <div className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 h-16 w-full" />
-  );
+  return <div className="animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800 h-16 w-full" />;
 }
 
 // Použitie v stránke:
 if (isPending) {
   return (
     <div className="px-4 py-6 space-y-3">
-      {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+      {Array.from({ length: 4 }).map((_, i) => (
+        <SkeletonCard key={i} />
+      ))}
     </div>
   );
 }

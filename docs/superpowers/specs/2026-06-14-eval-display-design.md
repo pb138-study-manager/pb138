@@ -8,6 +8,7 @@
 ## Overview
 
 Two independent changes:
+
 1. **Eval display** — show teacher evaluations (score + feedback) to students on their task cards and in the task detail dialog.
 2. **Chat tab cleanup** — delete the unused `ChatTab.tsx` dead code.
 
@@ -18,6 +19,7 @@ Two independent changes:
 ### Context
 
 The backend already supports teacher evaluations via:
+
 - `POST /tasks/:id/eval` — teacher creates/updates eval (MENTOR/TEACHER role only)
 - `GET /tasks/:id/eval` — fetch eval for a specific task
 
@@ -32,11 +34,13 @@ The `Eval` TypeScript interface already exists in `apps/frontend/src/types/index
 **File:** `apps/backend/src/routes/tasks.ts`
 
 **`GET /tasks` (list endpoint):**
+
 - Add a LEFT JOIN on the `evals` table keyed on `evals.task_id = tasks.id`
 - Embed the eval as `eval: { id, score, feedback, evaluatedAt } | null` on each task object
 - Only return eval where `evals.task_id` matches — no extra filtering needed (eval is 1:1 with task)
 
 **`GET /tasks/:id` (detail endpoint):**
+
 - Same change: embed eval in the response alongside subtasks
 - Currently returns `{ ...task, subtasks: [...] }` → becomes `{ ...task, subtasks: [...], eval: {...} | null }`
 
@@ -101,9 +105,9 @@ No separate eval fetch. No loading state needed for eval (comes with the task li
 
 ## Files Changed
 
-| File | Change |
-|---|---|
-| `apps/backend/src/routes/tasks.ts` | LEFT JOIN evals in GET /tasks and GET /tasks/:id |
-| `apps/frontend/src/components/tasks/tasks-card.tsx` | Score badge + truncated feedback block |
-| `apps/frontend/src/components/tasks/edit-task-dialog.tsx` | Readonly eval section |
-| `apps/frontend/src/components/ai/ChatTab.tsx` | Delete |
+| File                                                      | Change                                           |
+| --------------------------------------------------------- | ------------------------------------------------ |
+| `apps/backend/src/routes/tasks.ts`                        | LEFT JOIN evals in GET /tasks and GET /tasks/:id |
+| `apps/frontend/src/components/tasks/tasks-card.tsx`       | Score badge + truncated feedback block           |
+| `apps/frontend/src/components/tasks/edit-task-dialog.tsx` | Readonly eval section                            |
+| `apps/frontend/src/components/ai/ChatTab.tsx`             | Delete                                           |

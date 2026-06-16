@@ -12,29 +12,31 @@
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `apps/backend/src/lib/validation.ts` | Create — `zodBody()` helper |
-| `apps/backend/src/routes/tasks.ts` | Modify — replace 2 `t.Object()` calls |
-| `apps/backend/src/routes/events.ts` | Modify — replace 2 `t.Object()` calls + move date refine into schema |
-| `apps/backend/src/routes/notes.ts` | Modify — replace 2 `t.Object()` calls |
-| `apps/backend/src/routes/folders.ts` | Modify — replace 2 `t.Object()` calls |
-| `apps/backend/src/routes/groups.ts` | Modify — replace 3 `t.Object()` calls |
-| `apps/backend/src/routes/users.ts` | Modify — replace 3 `t.Object()` calls |
-| `apps/backend/src/routes/courses.ts` | Modify — replace 2 `t.Object()` calls |
-| `apps/backend/package.json` | Modify — add `zod` dependency |
+| File                                 | Action                                                               |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| `apps/backend/src/lib/validation.ts` | Create — `zodBody()` helper                                          |
+| `apps/backend/src/routes/tasks.ts`   | Modify — replace 2 `t.Object()` calls                                |
+| `apps/backend/src/routes/events.ts`  | Modify — replace 2 `t.Object()` calls + move date refine into schema |
+| `apps/backend/src/routes/notes.ts`   | Modify — replace 2 `t.Object()` calls                                |
+| `apps/backend/src/routes/folders.ts` | Modify — replace 2 `t.Object()` calls                                |
+| `apps/backend/src/routes/groups.ts`  | Modify — replace 3 `t.Object()` calls                                |
+| `apps/backend/src/routes/users.ts`   | Modify — replace 3 `t.Object()` calls                                |
+| `apps/backend/src/routes/courses.ts` | Modify — replace 2 `t.Object()` calls                                |
+| `apps/backend/package.json`          | Modify — add `zod` dependency                                        |
 
 ---
 
 ## Task 1: Install Zod and create `zodBody()` helper
 
 **Files:**
+
 - Modify: `apps/backend/package.json`
 - Create: `apps/backend/src/lib/validation.ts`
 
 - [ ] **Step 1: Install Zod**
 
 Run from `apps/backend/`:
+
 ```bash
 bun add zod
 ```
@@ -69,6 +71,7 @@ export function zodBody<T extends z.ZodTypeAny>(schema: T) {
 - [ ] **Step 3: Run existing tests to confirm baseline**
 
 Run from `apps/backend/`:
+
 ```bash
 bun test
 ```
@@ -87,15 +90,19 @@ git commit -m "feat: add zod and zodBody validation helper"
 ## Task 2: Migrate tasks.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 
 - [ ] **Step 1: Add Zod schemas and update imports at the top of the file**
 
 Replace the first line:
+
 ```typescript
 import { Elysia, t } from 'elysia';
 ```
+
 With:
+
 ```typescript
 import { Elysia, t } from 'elysia';
 import { z } from 'zod';
@@ -123,6 +130,7 @@ const UpdateTaskSchema = z.object({
 - [ ] **Step 2: Replace POST /tasks body validation**
 
 Find and replace:
+
 ```typescript
     {
       body: t.Object({
@@ -133,14 +141,17 @@ Find and replace:
       }),
     }
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateTaskSchema)
+zodBody(CreateTaskSchema);
 ```
 
 - [ ] **Step 3: Replace PATCH /tasks/:id body validation**
 
 Find and replace:
+
 ```typescript
     {
       body: t.Object({
@@ -153,14 +164,17 @@ Find and replace:
       }),
     }
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateTaskSchema)
+zodBody(UpdateTaskSchema);
 ```
 
 - [ ] **Step 4: Remove unused `t` import if no longer used elsewhere in the file**
 
 Check if `t` is still used anywhere in `tasks.ts`. If the only usages were the two `t.Object()` calls you just replaced, change the import to:
+
 ```typescript
 import { Elysia } from 'elysia';
 ```
@@ -185,6 +199,7 @@ git commit -m "feat: migrate tasks routes to zod validation"
 ## Task 3: Migrate events.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/events.ts`
 
 > Note: The current PATCH handler manually checks `startDate ≤ endDate`. This moves into the Zod schema via `.refine()`, so the manual if-check is removed from the handler.
@@ -192,6 +207,7 @@ git commit -m "feat: migrate tasks routes to zod validation"
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -200,37 +216,42 @@ import { zodBody } from '../lib/validation';
 Add schemas below imports:
 
 ```typescript
-const CreateEventSchema = z.object({
-  title: z.string().min(1),
-  startDate: z.string(),
-  endDate: z.string(),
-  description: z.string().optional(),
-  place: z.string().optional(),
-}).refine(
-  (data) => new Date(data.startDate) <= new Date(data.endDate),
-  { message: 'startDate must not be after endDate', path: ['startDate'] }
-);
+const CreateEventSchema = z
+  .object({
+    title: z.string().min(1),
+    startDate: z.string(),
+    endDate: z.string(),
+    description: z.string().optional(),
+    place: z.string().optional(),
+  })
+  .refine((data) => new Date(data.startDate) <= new Date(data.endDate), {
+    message: 'startDate must not be after endDate',
+    path: ['startDate'],
+  });
 
-const UpdateEventSchema = z.object({
-  title: z.string().min(1).optional(),
-  description: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  place: z.string().optional(),
-}).refine(
-  (data) => {
-    if (data.startDate && data.endDate) {
-      return new Date(data.startDate) <= new Date(data.endDate);
-    }
-    return true;
-  },
-  { message: 'startDate must not be after endDate', path: ['startDate'] }
-);
+const UpdateEventSchema = z
+  .object({
+    title: z.string().min(1).optional(),
+    description: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    place: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.startDate) <= new Date(data.endDate);
+      }
+      return true;
+    },
+    { message: 'startDate must not be after endDate', path: ['startDate'] }
+  );
 ```
 
 - [ ] **Step 2: Replace POST /events body validation**
 
 Find and replace:
+
 ```typescript
     {
       body: t.Object({
@@ -242,22 +263,26 @@ Find and replace:
       }),
     }
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateEventSchema)
+zodBody(CreateEventSchema);
 ```
 
 - [ ] **Step 3: Remove manual date check from PATCH handler and replace body validation**
 
 In the PATCH `/:id` handler, find and remove this block at the top of the handler function:
+
 ```typescript
-      if (body.startDate && body.endDate && new Date(body.startDate) > new Date(body.endDate)) {
-        set.status = 400;
-        return { error: 'INVALID_DATE_RANGE', message: 'startDate must not be after endDate' };
-      }
+if (body.startDate && body.endDate && new Date(body.startDate) > new Date(body.endDate)) {
+  set.status = 400;
+  return { error: 'INVALID_DATE_RANGE', message: 'startDate must not be after endDate' };
+}
 ```
 
 Then find and replace the PATCH body validation:
+
 ```typescript
     {
       body: t.Object({
@@ -269,14 +294,17 @@ Then find and replace the PATCH body validation:
       }),
     }
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateEventSchema)
+zodBody(UpdateEventSchema);
 ```
 
 - [ ] **Step 4: Remove unused `t` import if no longer used**
 
 If `t` is only used in the removed `t.Object()` calls, update the import:
+
 ```typescript
 import { Elysia } from 'elysia';
 ```
@@ -301,11 +329,13 @@ git commit -m "feat: migrate events routes to zod validation with refine date ch
 ## Task 4: Migrate notes.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/notes.ts`
 
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -332,6 +362,7 @@ const UpdateNoteSchema = z.object({
 - [ ] **Step 2: Replace POST /notes body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -340,14 +371,17 @@ Find and replace:
         courseId: t.Optional(t.Number()),
       }),
 ```
+
 With (as a spread inside the route config object):
+
 ```typescript
-    zodBody(CreateNoteSchema)
+zodBody(CreateNoteSchema);
 ```
 
 - [ ] **Step 3: Replace PATCH /notes/:id body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         title: t.Optional(t.String({ minLength: 1 })),
@@ -356,9 +390,11 @@ Find and replace:
         courseId: t.Optional(t.Number()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateNoteSchema)
+zodBody(UpdateNoteSchema);
 ```
 
 - [ ] **Step 4: Remove unused `t` import if no longer used**
@@ -383,11 +419,13 @@ git commit -m "feat: migrate notes routes to zod validation"
 ## Task 5: Migrate folders.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/folders.ts`
 
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -408,27 +446,33 @@ const UpdateFolderSchema = z.object({
 - [ ] **Step 2: Replace POST /folders body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         name: t.String({ minLength: 1 }),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateFolderSchema)
+zodBody(CreateFolderSchema);
 ```
 
 - [ ] **Step 3: Replace PATCH /folders/:id body validation**
 
 Find and replace the second occurrence of:
+
 ```typescript
       body: t.Object({
         name: t.String({ minLength: 1 }),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateFolderSchema)
+zodBody(UpdateFolderSchema);
 ```
 
 - [ ] **Step 4: Remove unused `t` import if no longer used**
@@ -453,11 +497,13 @@ git commit -m "feat: migrate folders routes to zod validation"
 ## Task 6: Migrate groups.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/groups.ts`
 
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -484,32 +530,39 @@ const CreateAssignmentSchema = z.object({
 - [ ] **Step 2: Replace POST /groups body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         name: t.String({ minLength: 1 }),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateGroupSchema)
+zodBody(CreateGroupSchema);
 ```
 
 - [ ] **Step 3: Replace POST /groups/:id/members body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         userIds: t.Array(t.Number()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(AddMembersSchema)
+zodBody(AddMembersSchema);
 ```
 
 - [ ] **Step 4: Replace POST /groups/:id/assignments body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         title: t.String({ minLength: 1 }),
@@ -517,9 +570,11 @@ Find and replace:
         description: t.Optional(t.String()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateAssignmentSchema)
+zodBody(CreateAssignmentSchema);
 ```
 
 - [ ] **Step 5: Remove unused `t` import if no longer used**
@@ -544,11 +599,13 @@ git commit -m "feat: migrate groups routes to zod validation"
 ## Task 7: Migrate users.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/users.ts`
 
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -577,6 +634,7 @@ const ChangePasswordSchema = z.object({
 - [ ] **Step 2: Replace PATCH /users/me/profile body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         name: t.Optional(t.String()),
@@ -585,36 +643,44 @@ Find and replace:
         bio: t.Optional(t.String()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateProfileSchema)
+zodBody(UpdateProfileSchema);
 ```
 
 - [ ] **Step 3: Replace PATCH /users/me/settings body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         notificationsEnabled: t.Optional(t.Boolean()),
         lightTheme: t.Optional(t.Boolean()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateSettingsSchema)
+zodBody(UpdateSettingsSchema);
 ```
 
 - [ ] **Step 4: Replace PATCH /users/me/password body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         newPassword: t.String({ minLength: 8 }),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(ChangePasswordSchema)
+zodBody(ChangePasswordSchema);
 ```
 
 - [ ] **Step 5: Remove unused `t` import if no longer used**
@@ -639,11 +705,13 @@ git commit -m "feat: migrate users routes to zod validation"
 ## Task 8: Migrate courses.ts
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 
 - [ ] **Step 1: Update imports and add schemas**
 
 Add after existing imports:
+
 ```typescript
 import { z } from 'zod';
 import { zodBody } from '../lib/validation';
@@ -678,6 +746,7 @@ const UpdateCourseSchema = z.object({
 - [ ] **Step 2: Replace POST /courses body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         code: t.String({ minLength: 1 }),
@@ -690,14 +759,17 @@ Find and replace:
         seminarTeacherId: t.Optional(t.Number()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(CreateCourseSchema)
+zodBody(CreateCourseSchema);
 ```
 
 - [ ] **Step 3: Replace PATCH /courses/:id body validation**
 
 Find and replace:
+
 ```typescript
       body: t.Object({
         code: t.Optional(t.String({ minLength: 1 })),
@@ -710,9 +782,11 @@ Find and replace:
         seminarTeacherId: t.Optional(t.Number()),
       }),
 ```
+
 With:
+
 ```typescript
-    zodBody(UpdateCourseSchema)
+zodBody(UpdateCourseSchema);
 ```
 
 - [ ] **Step 4: Remove unused `t` import if no longer used**
@@ -739,6 +813,7 @@ git commit -m "feat: migrate courses routes to zod validation"
 - [ ] **Step 1: Run all backend tests**
 
 Run from `apps/backend/`:
+
 ```bash
 bun test
 ```
@@ -748,6 +823,7 @@ Expected: All tests pass (same count as before migration started).
 - [ ] **Step 2: Run lint**
 
 Run from the repo root:
+
 ```bash
 pnpm lint
 ```

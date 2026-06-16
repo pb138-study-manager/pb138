@@ -27,7 +27,13 @@ export function SegmentedTabs({
 }: SegmentedTabsProps) {
   if (variant === 'underline') {
     return (
-      <div className={cn('flex', !noBorder && 'border-b border-gray-200 dark:border-gray-700', className)}>
+      <div
+        className={cn(
+          'flex',
+          !noBorder && 'border-b border-gray-200 dark:border-gray-700',
+          className
+        )}
+      >
         {items.map((item) => {
           const isActive = item.key === value;
           return (
@@ -65,7 +71,10 @@ export function SegmentedTabs({
 
   return (
     <div
-      className={cn('inline-flex rounded-2xl bg-gray-100 dark:bg-white/[0.06] p-1 gap-0.5', className)}
+      className={cn(
+        'inline-flex rounded-2xl bg-gray-100 dark:bg-white/[0.06] p-1 gap-0.5',
+        className
+      )}
     >
       {items.map((item) => {
         const isActive = item.key === value;

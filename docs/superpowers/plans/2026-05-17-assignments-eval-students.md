@@ -12,16 +12,16 @@
 
 ## File Map
 
-| File | Action | What changes |
-|---|---|---|
-| `apps/frontend/src/components/courses/new-assignment-dialog.tsx` | Create | New assignment dialog with DatePickerDialog |
-| `apps/frontend/src/components/courses/edit-assignment-dialog.tsx` | Create | Edit assignment dialog with auto-save + DatePickerDialog + student task list |
-| `apps/frontend/src/components/courses/eval-dialog.tsx` | Create | Evaluation dialog (pass/fail or graded) |
-| `apps/frontend/src/routes/courses/$courseId.tsx` | Modify | Use new dialogs, remove teacher header, remove enroll button, add student search |
-| `apps/backend/src/routes/tasks.ts` | Modify | Add `POST /tasks/:id/eval`, `GET /tasks/:id/eval` |
-| `apps/backend/src/routes/courses.ts` | Modify | Add `POST /courses/:id/students` (teacher enrolls a student) |
-| `apps/backend/src/routes/tasks.test.ts` | Modify | Tests for eval endpoints |
-| `apps/backend/src/routes/courses.test.ts` | Modify | Test for teacher-enroll-student endpoint |
+| File                                                              | Action | What changes                                                                     |
+| ----------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------- |
+| `apps/frontend/src/components/courses/new-assignment-dialog.tsx`  | Create | New assignment dialog with DatePickerDialog                                      |
+| `apps/frontend/src/components/courses/edit-assignment-dialog.tsx` | Create | Edit assignment dialog with auto-save + DatePickerDialog + student task list     |
+| `apps/frontend/src/components/courses/eval-dialog.tsx`            | Create | Evaluation dialog (pass/fail or graded)                                          |
+| `apps/frontend/src/routes/courses/$courseId.tsx`                  | Modify | Use new dialogs, remove teacher header, remove enroll button, add student search |
+| `apps/backend/src/routes/tasks.ts`                                | Modify | Add `POST /tasks/:id/eval`, `GET /tasks/:id/eval`                                |
+| `apps/backend/src/routes/courses.ts`                              | Modify | Add `POST /courses/:id/students` (teacher enrolls a student)                     |
+| `apps/backend/src/routes/tasks.test.ts`                           | Modify | Tests for eval endpoints                                                         |
+| `apps/backend/src/routes/courses.test.ts`                         | Modify | Test for teacher-enroll-student endpoint                                         |
 
 ---
 
@@ -32,6 +32,7 @@ Add `POST /tasks/:id/eval` and `GET /tasks/:id/eval` to `apps/backend/src/routes
 The `evals` table already exists in schema: `{ id, taskId, feedback, score, evaluatedAt }`.
 
 **Business rules:**
+
 - Only TEACHER can create/update an eval
 - Task must be DONE before eval is allowed (return 400 otherwise)
 - `score` values: use `-1` to represent pass/fail mode (score = 1 means pass, score = 0 means fail); any `score >= 0` means graded. Frontend decides which mode based on the assignment's `evalType` (see Task 3)
@@ -39,6 +40,7 @@ The `evals` table already exists in schema: `{ id, taskId, feedback, score, eval
 - Any authenticated user can `GET` their task's eval
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 - Modify: `apps/backend/src/routes/tasks.test.ts`
 
@@ -63,7 +65,12 @@ describe('POST /tasks/:id/eval', () => {
     // Create teacher user
     const [teacher] = await db
       .insert(users)
-      .values({ email: 'eval-teacher@example.com', login: 'eval-teacher', pwdHash: '', authId: TEACHER_AUTH })
+      .values({
+        email: 'eval-teacher@example.com',
+        login: 'eval-teacher',
+        pwdHash: '',
+        authId: TEACHER_AUTH,
+      })
       .returning();
     teacherUserId = teacher.id;
     const [role] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
@@ -226,6 +233,7 @@ git commit -m "feat: add POST/GET /tasks/:id/eval for teacher evaluation"
 Add `POST /courses/:id/students` so teachers can enroll any user by email or userId.
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 - Modify: `apps/backend/src/routes/courses.test.ts`
 
@@ -352,6 +360,7 @@ git commit -m "feat: add POST /courses/:id/students for teacher enrollment"
 Add `evalType` column to `assignments` table: `'none' | 'pass_fail' | 'graded'`.
 
 **Files:**
+
 - Modify: `apps/backend/src/db/schema.ts`
 - New migration: `bun run db:generate && bun run db:push`
 - Modify: `apps/backend/src/routes/courses.ts` (include evalType in GET /courses/:id/assignments response, accept it in POST /courses/:id/assignments)
@@ -378,15 +387,18 @@ cd apps/backend && bun run db:generate && bun run db:push
 In `courses.ts`, update the `zodBody` schema for `POST /:id/assignments` to accept `evalType`:
 
 ```typescript
-zodBody(z.object({
-  title: z.string().min(1),
-  description: z.string().optional(),
-  dueDate: z.string(),
-  evalType: z.enum(['none', 'pass_fail', 'graded']).optional().default('none'),
-}))
+zodBody(
+  z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    dueDate: z.string(),
+    evalType: z.enum(['none', 'pass_fail', 'graded']).optional().default('none'),
+  })
+);
 ```
 
 And in the insert:
+
 ```typescript
 .values({
   courseId: course.id,
@@ -413,6 +425,7 @@ git commit -m "feat: add evalType to assignments (none | pass_fail | graded)"
 Replace the inline bottom-sheet in `$courseId.tsx` with a proper `NewAssignmentDialog` component using `DatePickerDialog`.
 
 **Files:**
+
 - Create: `apps/frontend/src/components/courses/new-assignment-dialog.tsx`
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
@@ -427,7 +440,12 @@ import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { title: string; description?: string; dueDate: string; evalType: 'none' | 'pass_fail' | 'graded' }) => Promise<void>;
+  onSubmit: (data: {
+    title: string;
+    description?: string;
+    dueDate: string;
+    evalType: 'none' | 'pass_fail' | 'graded';
+  }) => Promise<void>;
 }
 
 export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: Props) {
@@ -515,7 +533,9 @@ export default function NewAssignmentDialog({ isOpen, onOpenChange, onSubmit }: 
           </div>
 
           <div className="flex gap-2">
-            <Button variant="ghost" className="flex-1" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="ghost" className="flex-1" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
             <Button
               className="flex-1"
               onClick={handleSubmit}
@@ -557,12 +577,14 @@ git commit -m "feat: NewAssignmentDialog with DatePickerDialog and evalType"
 Create `EditAssignmentDialog` with auto-save (useEffect debounce pattern from `edit-task-dialog.tsx`) and a list of student tasks showing completion status.
 
 **Files:**
+
 - Create: `apps/frontend/src/components/courses/edit-assignment-dialog.tsx`
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
 - [ ] **Step 1: Create EditAssignmentDialog**
 
 The dialog opens when a teacher taps an assignment card. It shows:
+
 - Editable title (auto-saves after 600ms debounce — `PATCH /courses/:id/assignments/:assignmentId` — NOTE: this endpoint doesn't exist yet, add it in Task 6 backend)
 - Date picker (auto-saves on change)
 - Eval type selector (auto-saves on change)
@@ -600,8 +622,14 @@ interface Props {
 }
 
 export default function EditAssignmentDialog({
-  assignmentId, courseId, initialTitle, initialDescription,
-  initialDueDate, initialEvalType, onClose, onEval,
+  assignmentId,
+  courseId,
+  initialTitle,
+  initialDescription,
+  initialDueDate,
+  initialEvalType,
+  onClose,
+  onEval,
 }: Props) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(initialTitle);
@@ -627,7 +655,9 @@ export default function EditAssignmentDialog({
           evalType,
         });
         queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }, 600);
     return () => clearTimeout(timer);
   }, [title, description, selectedDate, evalType]);
@@ -635,7 +665,8 @@ export default function EditAssignmentDialog({
   // Fetch per-assignment student task list
   const { data: students = [] } = useQuery({
     queryKey: ['assignmentStudents', assignmentId],
-    queryFn: () => api.get<AssignmentStudent[]>(`/courses/${courseId}/assignments/${assignmentId}/students`),
+    queryFn: () =>
+      api.get<AssignmentStudent[]>(`/courses/${courseId}/assignments/${assignmentId}/students`),
   });
 
   return (
@@ -692,11 +723,21 @@ export default function EditAssignmentDialog({
           {/* Student task list — "subtasks" for assignments */}
           {students.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Students</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                Students
+              </p>
               {students.map((s) => {
-                const initials = (s.name ?? s.email).split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+                const initials = (s.name ?? s.email)
+                  .split(' ')
+                  .map((w: string) => w[0])
+                  .slice(0, 2)
+                  .join('')
+                  .toUpperCase();
                 return (
-                  <div key={s.taskId} className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2">
+                  <div
+                    key={s.taskId}
+                    className="flex items-center gap-3 bg-gray-50 rounded-xl px-3 py-2"
+                  >
                     {s.avatar ? (
                       <img src={s.avatar} className="w-7 h-7 rounded-full object-cover shrink-0" />
                     ) : (
@@ -705,7 +746,9 @@ export default function EditAssignmentDialog({
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{s.name ?? s.email}</p>
+                      <p className="text-xs font-medium text-gray-900 truncate">
+                        {s.name ?? s.email}
+                      </p>
                     </div>
                     {s.status === 'DONE' ? (
                       <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
@@ -755,10 +798,12 @@ git commit -m "feat: EditAssignmentDialog with auto-save, DatePickerDialog, stud
 ## Task 6: Backend — Assignment Detail Endpoints
 
 Add:
+
 - `PATCH /courses/:id/assignments/:assignmentId` — update assignment (title, description, dueDate, evalType)
 - `GET /courses/:id/assignments/:assignmentId/students` — per-assignment student task list with eval status
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/courses.ts`
 
 - [ ] **Step 1: Implement PATCH /courses/:id/assignments/:assignmentId**
@@ -844,6 +889,7 @@ git commit -m "feat: PATCH assignment + GET assignment students with eval status
 Create `EvalDialog` for teacher to grade a student's completed task.
 
 **Files:**
+
 - Create: `apps/frontend/src/components/courses/eval-dialog.tsx`
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
@@ -864,7 +910,14 @@ interface Props {
   onSubmit: (taskId: number, score: number, feedback: string) => Promise<void>;
 }
 
-export default function EvalDialog({ taskId, evalType, currentScore, currentFeedback = '', onClose, onSubmit }: Props) {
+export default function EvalDialog({
+  taskId,
+  evalType,
+  currentScore,
+  currentFeedback = '',
+  onClose,
+  onSubmit,
+}: Props) {
   const [score, setScore] = useState<number | null>(currentScore);
   const [feedback, setFeedback] = useState(currentFeedback);
   const [saving, setSaving] = useState(false);
@@ -875,7 +928,11 @@ export default function EvalDialog({ taskId, evalType, currentScore, currentFeed
     try {
       await onSubmit(taskId, score, feedback);
       onClose();
-    } catch { /* stay open */ } finally { setSaving(false); }
+    } catch {
+      /* stay open */
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -883,7 +940,9 @@ export default function EvalDialog({ taskId, evalType, currentScore, currentFeed
       <div className="w-full max-w-sm bg-white rounded-2xl p-5 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900">Evaluate</h2>
-          <button onClick={onClose}><X className="w-5 h-5 text-gray-400" /></button>
+          <button onClick={onClose}>
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
         {evalType === 'pass_fail' ? (
@@ -924,7 +983,9 @@ export default function EvalDialog({ taskId, evalType, currentScore, currentFeed
         />
 
         <div className="flex gap-2">
-          <Button variant="ghost" className="flex-1" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" className="flex-1" onClick={onClose}>
+            Cancel
+          </Button>
           <Button className="flex-1" onClick={handleSubmit} disabled={saving || score === null}>
             {saving ? 'Saving…' : 'Save'}
           </Button>
@@ -953,6 +1014,7 @@ git commit -m "feat: EvalDialog for pass/fail and graded evaluation"
 In the Students tab (teacher view), add a "Add Student" button that opens a search input. Uses `GET /users/search?q=...` to find users by name/email, then calls `POST /courses/:id/students`.
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
 - [ ] **Step 1: Add add-student UI inline**
@@ -963,14 +1025,23 @@ In the Students tab header row, add a `+` button. Clicking it reveals an inline 
 // Add to state declarations:
 const [showAddStudent, setShowAddStudent] = useState(false);
 const [studentQuery, setStudentQuery] = useState('');
-const [studentResults, setStudentResults] = useState<{ id: number; name: string | null; email: string }[]>([]);
+const [studentResults, setStudentResults] = useState<
+  { id: number; name: string | null; email: string }[]
+>([]);
 const [addingStudent, setAddingStudent] = useState(false);
 
 // Add search handler:
 useEffect(() => {
-  if (studentQuery.length < 2) { setStudentResults([]); return; }
+  if (studentQuery.length < 2) {
+    setStudentResults([]);
+    return;
+  }
   const timer = setTimeout(async () => {
-    const results = await api.get<{ id: number; name: string | null; email: string }[]>(`/users/search?q=${encodeURIComponent(studentQuery)}`).catch(() => []);
+    const results = await api
+      .get<
+        { id: number; name: string | null; email: string }[]
+      >(`/users/search?q=${encodeURIComponent(studentQuery)}`)
+      .catch(() => []);
     setStudentResults(results);
   }, 300);
   return () => clearTimeout(timer);
@@ -984,39 +1055,45 @@ async function handleAddStudent(userId: number) {
     setShowAddStudent(false);
     setStudentQuery('');
     setStudentResults([]);
-  } catch { /* ignore */ } finally { setAddingStudent(false); }
+  } catch {
+    /* ignore */
+  } finally {
+    setAddingStudent(false);
+  }
 }
 ```
 
 The inline search UI renders below the Students header when `showAddStudent` is true:
 
 ```tsx
-{showAddStudent && (
-  <div className="relative mb-3">
-    <input
-      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
-      placeholder="Search by name or email..."
-      value={studentQuery}
-      onChange={(e) => setStudentQuery(e.target.value)}
-      autoFocus
-    />
-    {studentResults.length > 0 && (
-      <div className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 overflow-hidden">
-        {studentResults.map((u) => (
-          <button
-            key={u.id}
-            onClick={() => handleAddStudent(u.id)}
-            disabled={addingStudent}
-            className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
-          >
-            <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
-            {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
-)}
+{
+  showAddStudent && (
+    <div className="relative mb-3">
+      <input
+        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400"
+        placeholder="Search by name or email..."
+        value={studentQuery}
+        onChange={(e) => setStudentQuery(e.target.value)}
+        autoFocus
+      />
+      {studentResults.length > 0 && (
+        <div className="absolute top-full left-0 right-0 z-10 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 overflow-hidden">
+          {studentResults.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => handleAddStudent(u.id)}
+              disabled={addingStudent}
+              className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-sm"
+            >
+              <span className="font-medium text-gray-900">{u.name ?? u.email}</span>
+              {u.name && <span className="text-gray-400 ml-2 text-xs">{u.email}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 2: Commit**
@@ -1031,25 +1108,26 @@ git commit -m "feat: add student search and enrollment from Students tab"
 ## Task 9: Frontend — Remove Teacher Header + Remove Enroll Button
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
 - [ ] **Step 1: Remove teacher display for teacher's own view**
 
 Find the teacher row section:
+
 ```tsx
-{/* Teacher */}
-<div className="flex items-center gap-3 mb-4">
-  ...teacherName / teacherAvatar...
-</div>
+{
+  /* Teacher */
+}
+<div className="flex items-center gap-3 mb-4">...teacherName / teacherAvatar...</div>;
 ```
 
 Wrap it so it only shows in student mode:
+
 ```tsx
-{!isTeacher && (
-  <div className="flex items-center gap-3 mb-4">
-    ...
-  </div>
-)}
+{
+  !isTeacher && <div className="flex items-center gap-3 mb-4">...</div>;
+}
 ```
 
 - [ ] **Step 2: Remove enroll/unenroll button completely**

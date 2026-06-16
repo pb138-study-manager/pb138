@@ -12,18 +12,19 @@
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/types/index.ts` | Add `courseId` to `Note` interface |
-| `apps/frontend/package.json` | Add `react-markdown` dependency |
+| File                                                      | Change                                                     |
+| --------------------------------------------------------- | ---------------------------------------------------------- |
+| `apps/frontend/src/types/index.ts`                        | Add `courseId` to `Note` interface                         |
+| `apps/frontend/package.json`                              | Add `react-markdown` dependency                            |
 | `apps/frontend/src/components/notes/note-detail-view.tsx` | Click-to-edit, MD render, course badge, remove Edit button |
-| `apps/frontend/src/routes/courses/$courseId.tsx` | + button + inline form in Notes tab |
+| `apps/frontend/src/routes/courses/$courseId.tsx`          | + button + inline form in Notes tab                        |
 
 ---
 
 ## Task 1: Add `courseId` to `Note` type + install `react-markdown`
 
 **Files:**
+
 - Modify: `apps/frontend/src/types/index.ts`
 
 - [ ] **Step 1: Add `courseId` to `Note` interface**
@@ -70,6 +71,7 @@ git commit -m "feat: add courseId to Note type, install react-markdown"
 ## Task 2: NoteDetailView — click-to-edit + auto-save
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/notes/note-detail-view.tsx`
 
 The goal: remove the Edit button, let the user click anywhere on the note text to enter edit mode. Escape or click-outside auto-saves and returns to view mode.
@@ -108,12 +110,7 @@ interface NoteDetailViewProps {
   onDelete: (id: number) => Promise<void>;
 }
 
-export default function NoteDetailView({
-  note,
-  autoEdit,
-  onSave,
-  onDelete,
-}: NoteDetailViewProps) {
+export default function NoteDetailView({ note, autoEdit, onSave, onDelete }: NoteDetailViewProps) {
   const [isEditing, setIsEditing] = useState(autoEdit || false);
   const [title, setTitle] = useState(note.title);
   const [content, setContent] = useState(note.description || '');
@@ -252,12 +249,15 @@ export default function NoteDetailView({
                     key={c.id}
                     onClick={() => handleLinkCourse(c.id)}
                     className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                      note.courseId === c.id ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                      note.courseId === c.id
+                        ? 'text-indigo-600 dark:text-indigo-400 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
                     }`}
                   >
                     {note.courseId === c.id && <span>✓</span>}
                     {note.courseId !== c.id && <span className="w-4" />}
-                    {c.code}{c.name ? ` — ${c.name}` : ''}
+                    {c.code}
+                    {c.name ? ` — ${c.name}` : ''}
                   </button>
                 ))}
                 <button
@@ -378,6 +378,7 @@ git commit -m "feat: click-to-edit notes, auto-save on blur/Escape, course badge
 ## Task 3: NoteDetailView — ReactMarkdown rendering
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/notes/note-detail-view.tsx`
 
 - [ ] **Step 1: Add ReactMarkdown import**
@@ -393,29 +394,35 @@ import ReactMarkdown from 'react-markdown';
 In the view mode section (inside `{isEditing ? ... : ...}`), replace the plain text render:
 
 ```tsx
-{content ? (
-  <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-    {content}
-  </p>
-) : (
-  <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>
-)}
+{
+  content ? (
+    <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+      {content}
+    </p>
+  ) : (
+    <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>
+  );
+}
 ```
 
 With:
 
 ```tsx
-{content ? (
-  <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed
+{
+  content ? (
+    <div
+      className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed
     prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
     prose-code:bg-gray-100 dark:prose-code:bg-gray-700 prose-code:rounded prose-code:px-1 prose-code:text-sm
     prose-pre:bg-gray-100 dark:prose-pre:bg-gray-700 prose-pre:rounded-lg prose-pre:p-3
-    prose-ul:pl-4 prose-ol:pl-4">
-    <ReactMarkdown>{content}</ReactMarkdown>
-  </div>
-) : (
-  <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>
-)}
+    prose-ul:pl-4 prose-ol:pl-4"
+    >
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  ) : (
+    <p className="text-gray-400 dark:text-gray-500 italic text-sm">{t('notes.empty')}</p>
+  );
+}
 ```
 
 - [ ] **Step 3: Install Tailwind typography plugin (required for `prose` classes)**
@@ -458,6 +465,7 @@ git commit -m "feat: markdown rendering in note view with react-markdown"
 ## Task 4: Course detail Notes tab — `+` button + inline form
 
 **Files:**
+
 - Modify: `apps/frontend/src/routes/courses/$courseId.tsx`
 
 - [ ] **Step 1: Add state for new note inline form**
@@ -498,66 +506,85 @@ async function handleCreateNote() {
 Find the Notes tab section (starts at `{!isTeacher && activeTab === 'notes' && (`). Replace the header div and list with:
 
 ```tsx
-{!isTeacher && activeTab === 'notes' && (
-  <div className="px-4 mt-6">
-    <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-5 h-5 text-yellow-500" />
-        <span className="font-semibold text-gray-900 dark:text-white">Notes</span>
-        <span className="text-gray-400 text-sm">{notes.length}</span>
-      </div>
-      <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => setShowNewNote(true)}>
-        <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-      </Button>
-    </div>
-
-    {notes.length === 0 && !showNewNote && (
-      <p className="text-sm text-gray-400 py-4 text-center">No notes for this course</p>
-    )}
-
-    {notes.length > 0 && (
-      <div className="space-y-2 mb-3">
-        {notes.map((note) => (
-          <div
-            key={note.id}
-            className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm"
-          >
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
-          </div>
-        ))}
-      </div>
-    )}
-
-    {showNewNote && (
-      <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-900/10">
-        <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">Nová note</p>
-        <input
-          className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white mb-3"
-          placeholder="Názov note..."
-          value={newNoteTitle}
-          onChange={(e) => setNewNoteTitle(e.target.value)}
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleCreateNote();
-            if (e.key === 'Escape') { setShowNewNote(false); setNewNoteTitle(''); }
-          }}
-        />
-        <div className="flex gap-2 justify-end">
-          <Button variant="ghost" size="sm" onClick={() => { setShowNewNote(false); setNewNoteTitle(''); }}>
-            Zrušiť
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleCreateNote}
-            disabled={savingNote || !newNoteTitle.trim()}
-          >
-            {savingNote ? 'Ukladám…' : 'Vytvoriť'}
-          </Button>
+{
+  !isTeacher && activeTab === 'notes' && (
+    <div className="px-4 mt-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-yellow-500" />
+          <span className="font-semibold text-gray-900 dark:text-white">Notes</span>
+          <span className="text-gray-400 text-sm">{notes.length}</span>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-7 h-7"
+          onClick={() => setShowNewNote(true)}
+        >
+          <Plus className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        </Button>
       </div>
-    )}
-  </div>
-)}
+
+      {notes.length === 0 && !showNewNote && (
+        <p className="text-sm text-gray-400 py-4 text-center">No notes for this course</p>
+      )}
+
+      {notes.length > 0 && (
+        <div className="space-y-2 mb-3">
+          {notes.map((note) => (
+            <div
+              key={note.id}
+              className="flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl px-4 py-3 shadow-sm"
+            >
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showNewNote && (
+        <div className="border border-dashed border-indigo-300 dark:border-indigo-700 rounded-2xl p-4 bg-indigo-50/50 dark:bg-indigo-900/10">
+          <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-3">
+            Nová note
+          </p>
+          <input
+            className="w-full border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white mb-3"
+            placeholder="Názov note..."
+            value={newNoteTitle}
+            onChange={(e) => setNewNoteTitle(e.target.value)}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleCreateNote();
+              if (e.key === 'Escape') {
+                setShowNewNote(false);
+                setNewNoteTitle('');
+              }
+            }}
+          />
+          <div className="flex gap-2 justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowNewNote(false);
+                setNewNoteTitle('');
+              }}
+            >
+              Zrušiť
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleCreateNote}
+              disabled={savingNote || !newNoteTitle.trim()}
+            >
+              {savingNote ? 'Ukladám…' : 'Vytvoriť'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 ```
 
 - [ ] **Step 4: TypeScript check**
@@ -580,6 +607,7 @@ git commit -m "feat: add note creation from course detail Notes tab"
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Feature 1 (create note from course detail) — Task 4
 - ✅ Feature 2 (link/unlink note to course via badge) — Task 2 (course badge+dropdown with `handleLinkCourse`)
 - ✅ Feature 3 (click-to-edit) — Task 2
@@ -589,6 +617,7 @@ git commit -m "feat: add note creation from course detail Notes tab"
 - ✅ `react-markdown` install — Task 1
 
 **Type consistency:**
+
 - `NoteModel` gains `courseId?: number | null` in Task 1 → used in `note-detail-view.tsx` Tasks 2–3 via `note.courseId`
 - `handleLinkCourse(courseId: number | null)` defined and used consistently
 - `Course` interface in `note-detail-view.tsx`: `{ id, code, name }` — matches what `GET /courses` returns

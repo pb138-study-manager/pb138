@@ -124,10 +124,7 @@ export default function TaskCard({
                     </span>
                   ))}
                 {task.priority && (
-                  <PriorityPill
-                    priority={task.priority}
-                    label={PRIORITY_LABELS[task.priority]}
-                  />
+                  <PriorityPill priority={task.priority} label={PRIORITY_LABELS[task.priority]} />
                 )}
                 {visibleTags.map((tag) => (
                   <span

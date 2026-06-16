@@ -51,14 +51,14 @@ describe('shiftDate', () => {
   it('shifts forward 7 days (next week navigation)', () => {
     const thu = new Date(2026, 4, 28); // Thu May 28
     const result = shiftDate(thu, 7);
-    expect(result.getDate()).toBe(4);   // Thu June 4
-    expect(result.getMonth()).toBe(5);  // June
+    expect(result.getDate()).toBe(4); // Thu June 4
+    expect(result.getMonth()).toBe(5); // June
   });
 
   it('shifts backward 7 days (prev week navigation)', () => {
     const thu = new Date(2026, 4, 28); // Thu May 28
     const result = shiftDate(thu, -7);
-    expect(result.getDate()).toBe(21);  // Thu May 21
+    expect(result.getDate()).toBe(21); // Thu May 21
   });
 
   it('does not mutate the original date', () => {

@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Star, Package, ClipboardCheck, Plus, AlertCircle, CalendarDays, Clock, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  Star,
+  Package,
+  ClipboardCheck,
+  Plus,
+  AlertCircle,
+  CalendarDays,
+  Clock,
+  ChevronDown,
+  ChevronRight,
+} from 'lucide-react';
 import { Task } from '@/types';
 import { Button } from '@/components/ui/button';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
@@ -84,7 +94,13 @@ export default function TaskSection({
     return (
       <div>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            onToggle={onToggle}
+            onEditFull={onEditFull}
+            onDelete={onDelete}
+          />
         ))}
         <NewTaskDialog
           isOpen={openCreateTaskDialog}
@@ -123,7 +139,13 @@ export default function TaskSection({
       {!collapsed && (
         <div>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onToggle={onToggle} onEditFull={onEditFull} onDelete={onDelete} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onToggle={onToggle}
+              onEditFull={onEditFull}
+              onDelete={onDelete}
+            />
           ))}
         </div>
       )}

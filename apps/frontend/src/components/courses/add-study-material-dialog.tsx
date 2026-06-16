@@ -24,7 +24,11 @@ type AddStudyMaterialDialogProps = {
   onSubmit: (payload: NewStudyMaterialPayload) => void;
 };
 
-export function AddStudyMaterialDialog({ open, onOpenChange, onSubmit }: AddStudyMaterialDialogProps) {
+export function AddStudyMaterialDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+}: AddStudyMaterialDialogProps) {
   const titleId = useId();
   const descId = useId();
   const urlId = useId();
@@ -58,7 +62,8 @@ export function AddStudyMaterialDialog({ open, onOpenChange, onSubmit }: AddStud
         <DialogHeader>
           <DialogTitle>Add study material</DialogTitle>
           <DialogDescription>
-            Everyone enrolled in the course will see this material. You can connect this to the backend later.
+            Everyone enrolled in the course will see this material. You can connect this to the
+            backend later.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 py-1">

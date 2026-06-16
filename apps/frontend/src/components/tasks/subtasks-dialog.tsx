@@ -71,7 +71,9 @@ export default function SubtasksDialog({
               </div>
             ))}
             {subtasks.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">No subtasks added yet.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No subtasks added yet.
+              </p>
             )}
           </div>
         </div>

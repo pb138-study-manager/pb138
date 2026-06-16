@@ -41,7 +41,12 @@ export default function EvalDialog({
   }
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Evaluate</DialogTitle>
@@ -73,14 +78,18 @@ export default function EvalDialog({
             </div>
           ) : (
             <div className="space-y-2">
-              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">Score (0–100)</label>
+              <label className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                Score (0–100)
+              </label>
               <input
                 type="number"
                 min={0}
                 max={100}
                 className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-transparent dark:text-gray-200"
                 value={score ?? ''}
-                onChange={(e) => setScore(e.target.value === '' ? null : Math.round(Number(e.target.value)))}
+                onChange={(e) =>
+                  setScore(e.target.value === '' ? null : Math.round(Number(e.target.value)))
+                }
               />
             </div>
           )}

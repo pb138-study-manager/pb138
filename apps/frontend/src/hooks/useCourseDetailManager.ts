@@ -127,12 +127,15 @@ export function useCourseDetailManager({
 
   const { data: studentTasks = [] } = useQuery({
     queryKey: ['studentDetail', courseId, selectedStudentId],
-    queryFn: () => api.get<StudentTask[]>(`/courses/${courseId}/students/${selectedStudentId}`).catch(() => []),
+    queryFn: () =>
+      api.get<StudentTask[]>(`/courses/${courseId}/students/${selectedStudentId}`).catch(() => []),
     enabled: selectedStudentId !== null,
   });
 
   const [studentQuery, setStudentQuery] = useState('');
-  const [studentResults, setStudentResults] = useState<{ id: number; name: string | null; email: string }[]>([]);
+  const [studentResults, setStudentResults] = useState<
+    { id: number; name: string | null; email: string }[]
+  >([]);
   const [studentError, setStudentError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -143,9 +146,9 @@ export function useCourseDetailManager({
     }
     const timer = setTimeout(async () => {
       const results = await api
-        .get<{ id: number; name: string | null; email: string }[]>(
-          `/users/search?q=${encodeURIComponent(studentQuery)}`
-        )
+        .get<
+          { id: number; name: string | null; email: string }[]
+        >(`/users/search?q=${encodeURIComponent(studentQuery)}`)
         .catch(() => []);
       setStudentResults(results);
     }, 300);
@@ -153,7 +156,8 @@ export function useCourseDetailManager({
   }, [studentQuery]);
 
   const addMaterialMutation = useMutation({
-    mutationFn: (data: { title: string; url?: string; description?: string }) => api.post(`/courses/${courseId}/materials`, data),
+    mutationFn: (data: { title: string; url?: string; description?: string }) =>
+      api.post(`/courses/${courseId}/materials`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseMaterials', courseId] });
     },
@@ -165,13 +169,28 @@ export function useCourseDetailManager({
   });
 
   const addAssignmentMutation = useMutation({
-    mutationFn: (data: { title: string; description?: string; dueDate: string; evalType: 'none' | 'pass_fail' | 'graded'; targetUserId?: number }) => api.post(`/courses/${courseId}/assignments`, data),
+    mutationFn: (data: {
+      title: string;
+      description?: string;
+      dueDate: string;
+      evalType: 'none' | 'pass_fail' | 'graded';
+      targetUserId?: number;
+    }) => api.post(`/courses/${courseId}/assignments`, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] }),
   });
 
   const submitEvalMutation = useMutation({
-    mutationFn: ({ taskId, score, feedback }: { taskId: number; score: number; feedback: string }) => api.post(`/tasks/${taskId}/eval`, { score, feedback }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['assignmentStudents', editingAssignmentId] }),
+    mutationFn: ({
+      taskId,
+      score,
+      feedback,
+    }: {
+      taskId: number;
+      score: number;
+      feedback: string;
+    }) => api.post(`/tasks/${taskId}/eval`, { score, feedback }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['assignmentStudents', editingAssignmentId] }),
   });
 
   const addStudentMutation = useMutation({
@@ -183,8 +202,10 @@ export function useCourseDetailManager({
     },
     onError: (err: unknown) => {
       const e = err as { error?: string; message?: string };
-      if (e?.error === 'ALREADY_ENROLLED') setStudentError(t('courses.errorAlreadyEnrolled', 'This student is already enrolled.'));
-      else if (e?.error === 'SELF_ENROLLMENT_FORBIDDEN') setStudentError(t('courses.errorSelfEnroll', 'You cannot add yourself to a course.'));
+      if (e?.error === 'ALREADY_ENROLLED')
+        setStudentError(t('courses.errorAlreadyEnrolled', 'This student is already enrolled.'));
+      else if (e?.error === 'SELF_ENROLLMENT_FORBIDDEN')
+        setStudentError(t('courses.errorSelfEnroll', 'You cannot add yourself to a course.'));
       else setStudentError(t('courses.errorAddStudent', 'Failed to add student.'));
     },
   });
@@ -199,7 +220,17 @@ export function useCourseDetailManager({
   });
 
   const editTaskMutation = useMutation({
-    mutationFn: async ({ id, data, subtasksToAdd, subtaskIdsToDelete }: { id: number; data: Partial<Task>; subtasksToAdd: string[]; subtaskIdsToDelete: number[] }) => {
+    mutationFn: async ({
+      id,
+      data,
+      subtasksToAdd,
+      subtaskIdsToDelete,
+    }: {
+      id: number;
+      data: Partial<Task>;
+      subtasksToAdd: string[];
+      subtaskIdsToDelete: number[];
+    }) => {
       await Promise.all([
         api.patch<Task>(`/tasks/${id}`, data),
         ...subtaskIdsToDelete.map((subId: number) => api.delete(`/tasks/${subId}`)),
@@ -215,20 +246,23 @@ export function useCourseDetailManager({
 
   const deleteTaskMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/tasks/${id}`),
-    onSuccess: (_, id) => queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id)),
+    onSuccess: (_, id) =>
+      queryClient.setQueryData<Task[]>(['tasks'], (prev = []) => prev.filter((t) => t.id !== id)),
   });
 
   const createNoteMutation = useMutation({
-    mutationFn: (title: string) => api.post('/notes', { title, description: '', courseId: Number(courseId) }),
+    mutationFn: (title: string) =>
+      api.post('/notes', { title, description: '', courseId: Number(courseId) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });
 
   const createTaskMutation = useMutation({
-    mutationFn: (data: { title: string; dueDate: string }) => api.post<Task>('/tasks', {
-      title: data.title,
-      dueDate: data.dueDate,
-      courseId: Number(courseId),
-    }),
+    mutationFn: (data: { title: string; dueDate: string }) =>
+      api.post<Task>('/tasks', {
+        title: data.title,
+        dueDate: data.dueDate,
+        courseId: Number(courseId),
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
@@ -248,18 +282,31 @@ export function useCourseDetailManager({
     studentResults,
     studentError,
     setStudentError,
-    addMaterial: (data: { title: string; url?: string; description?: string }, onSuccess?: () => void) =>
-      addMaterialMutation.mutate(data, { onSuccess }),
+    addMaterial: (
+      data: { title: string; url?: string; description?: string },
+      onSuccess?: () => void
+    ) => addMaterialMutation.mutate(data, { onSuccess }),
     isAddingMaterial: addMaterialMutation.isPending,
     deleteMaterial: (id: number) => deleteMaterialMutation.mutate(id),
-    addAssignment: (data: { title: string; description?: string; dueDate: string; evalType: 'none' | 'pass_fail' | 'graded'; targetUserId?: number }) =>
-      addAssignmentMutation.mutate(data),
-    submitEval: (taskId: number, score: number, feedback: string) => submitEvalMutation.mutate({ taskId, score, feedback }),
-    addStudent: (userId: number, onSuccess?: () => void) => addStudentMutation.mutate(userId, { onSuccess }),
+    addAssignment: (data: {
+      title: string;
+      description?: string;
+      dueDate: string;
+      evalType: 'none' | 'pass_fail' | 'graded';
+      targetUserId?: number;
+    }) => addAssignmentMutation.mutate(data),
+    submitEval: (taskId: number, score: number, feedback: string) =>
+      submitEvalMutation.mutate({ taskId, score, feedback }),
+    addStudent: (userId: number, onSuccess?: () => void) =>
+      addStudentMutation.mutate(userId, { onSuccess }),
     isAddingStudent: addStudentMutation.isPending,
     toggleTask: (id: number) => toggleTaskMutation.mutate(id),
-    editTask: (id: number, data: Partial<Task>, subtasksToAdd: string[], subtaskIdsToDelete: number[]) =>
-      editTaskMutation.mutate({ id, data, subtasksToAdd, subtaskIdsToDelete }),
+    editTask: (
+      id: number,
+      data: Partial<Task>,
+      subtasksToAdd: string[],
+      subtaskIdsToDelete: number[]
+    ) => editTaskMutation.mutate({ id, data, subtasksToAdd, subtaskIdsToDelete }),
     deleteTask: (id: number) => deleteTaskMutation.mutate(id),
     createNote: (title: string) => createNoteMutation.mutate(title),
     createTask: (title: string, dueDate: string, onSuccess?: () => void) =>

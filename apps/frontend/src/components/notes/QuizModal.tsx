@@ -25,10 +25,16 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
   const [done, setDone] = useState(false);
   const { i18n } = useTranslation();
 
-  const { data: questions = [], isFetching: isLoading, refetch } = useQuery({
+  const {
+    data: questions = [],
+    isFetching: isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['ai-quiz', noteId, i18n.language],
     queryFn: async () => {
-      const result = await api.post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, { lang: i18n.language });
+      const result = await api.post<{ questions: Question[] }>(`/ai/notes/${noteId}/quiz`, {
+        lang: i18n.language,
+      });
       return result.questions ?? [];
     },
     enabled: isOpen,
@@ -47,7 +53,7 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
       setAnswers([]);
       setDone(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, questions.length]);
 
   function load() {
@@ -97,7 +103,9 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
       <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b dark:border-gray-700">
-          <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{noteTitle}</p>
+          <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+            {noteTitle}
+          </p>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
@@ -108,7 +116,10 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
             <div className="space-y-3 py-4">
               <p className="text-center text-sm text-gray-400 mb-4">Generujem otázky...</p>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                <div
+                  key={i}
+                  className="h-10 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"
+                />
               ))}
             </div>
           )}
@@ -116,25 +127,45 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
           {!isLoading && questions.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-400 text-sm">Nepodarilo sa vygenerovať otázky.</p>
-              <Button onClick={load} className="mt-4" size="sm">Skúsiť znova</Button>
+              <Button onClick={load} className="mt-4" size="sm">
+                Skúsiť znova
+              </Button>
             </div>
           )}
 
           {!isLoading && done && (
             <div className="text-center py-6 space-y-4">
-              <p className="text-4xl">{score >= questions.length * 0.8 ? '🎉' : score >= questions.length * 0.5 ? '👍' : '📚'}</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">{score}/{questions.length} správnych</p>
-              <p className="text-sm text-gray-400">
-                {score === questions.length ? 'Perfektné!' : score >= questions.length * 0.5 ? 'Dobrá práca!' : 'Prečítaj si poznámku znova.'}
+              <p className="text-4xl">
+                {score >= questions.length * 0.8
+                  ? '🎉'
+                  : score >= questions.length * 0.5
+                    ? '👍'
+                    : '📚'}
               </p>
-              <Button onClick={restart} className="mt-2">Skúsiť znova</Button>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {score}/{questions.length} správnych
+              </p>
+              <p className="text-sm text-gray-400">
+                {score === questions.length
+                  ? 'Perfektné!'
+                  : score >= questions.length * 0.5
+                    ? 'Dobrá práca!'
+                    : 'Prečítaj si poznámku znova.'}
+              </p>
+              <Button onClick={restart} className="mt-2">
+                Skúsiť znova
+              </Button>
             </div>
           )}
 
           {!isLoading && !done && q && (
             <div className="space-y-4">
-              <p className="text-xs text-gray-400 font-medium">Otázka {current + 1} z {questions.length}</p>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">{q.question}</p>
+              <p className="text-xs text-gray-400 font-medium">
+                Otázka {current + 1} z {questions.length}
+              </p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
+                {q.question}
+              </p>
               <div className="space-y-2">
                 {q.options.map((opt, i) => {
                   const isSelected = selected === i;
@@ -154,7 +185,8 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
                           : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white hover:border-indigo-300'
                       }`}
                     >
-                      <span className="font-medium mr-2">{['A', 'B', 'C', 'D'][i]}.</span>{opt}
+                      <span className="font-medium mr-2">{['A', 'B', 'C', 'D'][i]}.</span>
+                      {opt}
                     </button>
                   );
                 })}
@@ -166,7 +198,13 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
         {/* Footer nav */}
         {!isLoading && !done && questions.length > 0 && (
           <div className="flex items-center justify-between px-5 py-4 border-t dark:border-gray-700">
-            <Button variant="outline" size="sm" onClick={prev} disabled={current === 0} className="gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={prev}
+              disabled={current === 0}
+              className="gap-1"
+            >
               <ChevronLeft size={14} /> Predošlá
             </Button>
             <Button size="sm" onClick={next} disabled={selected === null} className="gap-1">

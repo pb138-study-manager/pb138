@@ -1,14 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
-import {
-  ArrowLeft,
-  FileText,
-  LayoutDashboard,
-  Server,
-  Shield,
-  Users,
-} from 'lucide-react';
+import { ArrowLeft, FileText, LayoutDashboard, Server, Shield, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const items: { to: string; label: string; icon: ReactNode; exact?: boolean }[] = [

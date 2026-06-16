@@ -30,7 +30,12 @@ test.describe('Materials file upload', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ id: '123', aud: 'authenticated', role: 'authenticated', email: 'test@example.com' }),
+        body: JSON.stringify({
+          id: '123',
+          aud: 'authenticated',
+          role: 'authenticated',
+          email: 'test@example.com',
+        }),
       });
     });
 
@@ -40,7 +45,9 @@ test.describe('Materials file upload', () => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: 393, email: 'test@example.com', roles: ['TEACHER', 'USER'],
+          id: 393,
+          email: 'test@example.com',
+          roles: ['TEACHER', 'USER'],
           profile: { name: 'Test Teacher' },
           settings: { lightTheme: true, notificationsEnabled: true },
         }),
@@ -49,27 +56,44 @@ test.describe('Materials file upload', () => {
 
     // Courses list
     await page.route(`${API}/courses`, async (route) => {
-      if (route.request().method() !== 'GET') { await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); return; }
+      if (route.request().method() !== 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
-          { id: COURSE_ID, code: 'PB138', name: 'Student OS', semester: 'Spring 2026',
-            lectureTeacherId: 393, enrolled: true },
+          {
+            id: COURSE_ID,
+            code: 'PB138',
+            name: 'Student OS',
+            semester: 'Spring 2026',
+            lectureTeacherId: 393,
+            enrolled: true,
+          },
         ]),
       });
     });
 
     // Course detail
     await page.route(`${API}/courses/${COURSE_ID}`, async (route) => {
-      if (route.request().method() !== 'GET') { await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); return; }
+      if (route.request().method() !== 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: COURSE_ID, code: 'PB138', name: 'Student OS', semester: 'Spring 2026',
-          lectureTeacherId: 393, enrolled: true,
-          teacherName: 'Test Teacher', teacherAvatar: null,
+          id: COURSE_ID,
+          code: 'PB138',
+          name: 'Student OS',
+          semester: 'Spring 2026',
+          lectureTeacherId: 393,
+          enrolled: true,
+          teacherName: 'Test Teacher',
+          teacherAvatar: null,
         }),
       });
     });
@@ -89,9 +113,12 @@ test.describe('Materials file upload', () => {
     // File upload (POST multipart)
     await page.route(`${API}/courses/${COURSE_ID}/materials/upload`, async (route) => {
       const newMaterial = {
-        id: 999, courseId: COURSE_ID, createdBy: 393,
+        id: 999,
+        courseId: COURSE_ID,
+        createdBy: 393,
         title: 'Entity-Relationship Diagram',
-        description: null, url: null,
+        description: null,
+        url: null,
         storagePath: `course-${COURSE_ID}/uuid-entity-relationship.png`,
         deletedAt: null,
       };
@@ -136,9 +163,11 @@ test.describe('Materials file upload', () => {
 
     await page.getByPlaceholder('Title').fill('Entity-Relationship Diagram');
 
-    await page.locator('input[type="file"]').setInputFiles(
-      path.resolve(__dirname, '../../../docs/analysis/diagrams/entity-relationship.png')
-    );
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles(
+        path.resolve(__dirname, '../../../docs/analysis/diagrams/entity-relationship.png')
+      );
     await expect(page.getByText('entity-relationship.png')).toBeVisible({ timeout: 3000 });
 
     let uploadCT = '';
@@ -163,9 +192,11 @@ test.describe('Materials file upload', () => {
     await page.locator('button.w-7').click();
     await page.getByRole('button', { name: 'File' }).click();
     await page.getByPlaceholder('Title').fill('Entity-Relationship Diagram');
-    await page.locator('input[type="file"]').setInputFiles(
-      path.resolve(__dirname, '../../../docs/analysis/diagrams/entity-relationship.png')
-    );
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles(
+        path.resolve(__dirname, '../../../docs/analysis/diagrams/entity-relationship.png')
+      );
     await page.getByRole('button', { name: 'Add' }).click();
     await expect(page.getByText('Entity-Relationship Diagram')).toBeVisible({ timeout: 8000 });
 
@@ -174,7 +205,9 @@ test.describe('Materials file upload', () => {
       if (req.url().includes('/materials/999/download')) downloadCalled = true;
     });
 
-    await page.evaluate(() => { window.open = () => null; });
+    await page.evaluate(() => {
+      window.open = () => null;
+    });
     await page.getByText('Entity-Relationship Diagram').click();
     await page.waitForTimeout(1000);
 

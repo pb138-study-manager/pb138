@@ -6,12 +6,7 @@ import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
-import {
-  uploadFile,
-  getSignedUrl,
-  deleteFile,
-  COURSE_MATERIALS_BUCKET,
-} from '../services/storage';
+import { uploadFile, getSignedUrl, deleteFile, COURSE_MATERIALS_BUCKET } from '../services/storage';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>;
@@ -131,7 +126,11 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
       })
       .returning();
 
-    await logAction(db, authUser.id, `Uploaded file material ${material.id} to course ${course.id}`);
+    await logAction(
+      db,
+      authUser.id,
+      `Uploaded file material ${material.id} to course ${course.id}`
+    );
     return material;
   })
   .get('/:id/materials/:matId/download', async ({ params, user, set }) => {
@@ -164,7 +163,11 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
 
     try {
       const url = await getSignedUrl(COURSE_MATERIALS_BUCKET, material.storagePath);
-      await logAction(db, authUser.id, `Downloaded material ${material.id} from course ${course.id}`);
+      await logAction(
+        db,
+        authUser.id,
+        `Downloaded material ${material.id} from course ${course.id}`
+      );
       return { url };
     } catch (e) {
       set.status = 502;
@@ -237,7 +240,10 @@ export const materialsRoutes = new Elysia({ prefix: '/courses' })
     const text = parsed.text.trim();
     if (!text) {
       set.status = 422;
-      return { error: 'NO_TEXT', message: 'PDF appears to be scanned (image-only), cannot extract text' };
+      return {
+        error: 'NO_TEXT',
+        message: 'PDF appears to be scanned (image-only), cannot extract text',
+      };
     }
     return { text: text.slice(0, 8000) };
   });

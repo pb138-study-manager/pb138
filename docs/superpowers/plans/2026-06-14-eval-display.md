@@ -13,6 +13,7 @@
 ### Task 1: Backend — embed eval in GET /tasks list
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts:53-97`
 
 - [ ] **Step 1: Extend the SELECT to LEFT JOIN evals**
@@ -58,13 +59,16 @@ return parentTasks.map(({ evalId, evalScore, evalFeedback, evalEvaluatedAt, ...t
   assignmentDeadline: task.assignmentDeadline?.toISOString() ?? null,
   subtaskCount: subtaskMap.get(task.id)?.total ?? 0,
   doneSubtaskCount: subtaskMap.get(task.id)?.done ?? 0,
-  eval: evalId != null ? {
-    id: evalId,
-    taskId: task.id,
-    score: evalScore!,
-    feedback: evalFeedback!,
-    evaluatedAt: evalEvaluatedAt!.toISOString(),
-  } : null,
+  eval:
+    evalId != null
+      ? {
+          id: evalId,
+          taskId: task.id,
+          score: evalScore!,
+          feedback: evalFeedback!,
+          evaluatedAt: evalEvaluatedAt!.toISOString(),
+        }
+      : null,
 }));
 ```
 
@@ -99,6 +103,7 @@ git commit -m "feat: embed eval in GET /tasks list response"
 ### Task 2: Backend — embed eval in GET /tasks/:id detail
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts:137-157`
 
 - [ ] **Step 1: Add eval query after fetching task detail**
@@ -162,6 +167,7 @@ git commit -m "feat: embed eval in GET /tasks/:id detail response"
 ### Task 3: i18n keys for eval strings
 
 **Files:**
+
 - Modify: `apps/frontend/src/locales/en.json`
 - Modify: `apps/frontend/src/locales/cs.json`
 
@@ -195,6 +201,7 @@ git commit -m "feat: add i18n keys for eval display"
 ### Task 4: Frontend — eval display on TaskCard
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/tasks-card.tsx`
 
 - [ ] **Step 1: Add score badge between content div and toggle button**
@@ -202,11 +209,13 @@ git commit -m "feat: add i18n keys for eval display"
 In `tasks-card.tsx`, find the line `<button onClick={handleToggle}` (line 249). Insert the score badge immediately before it:
 
 ```tsx
-{task.eval && isChecked && (
-  <span className="shrink-0 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-2 py-0.5 rounded-md border border-green-200 dark:border-green-800">
-    {task.eval.score} b.
-  </span>
-)}
+{
+  task.eval && isChecked && (
+    <span className="shrink-0 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold px-2 py-0.5 rounded-md border border-green-200 dark:border-green-800">
+      {task.eval.score} b.
+    </span>
+  );
+}
 ```
 
 - [ ] **Step 2: Add feedback block below the card content**
@@ -214,18 +223,20 @@ In `tasks-card.tsx`, find the line `<button onClick={handleToggle}` (line 249). 
 Find the closing `</div>` of the `p-4 flex items-center gap-3` div (line 258 — the one that closes right before the subtasks toggle section). Insert the feedback block immediately after that `</div>`:
 
 ```tsx
-{task.eval && isChecked && (
-  <div className="px-4 pb-3">
-    <div className="border-l-2 border-green-400 dark:border-green-600 pl-2 bg-green-50 dark:bg-green-900/20 rounded-r-md py-1.5 px-2">
-      <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-0.5">
-        {t('tasks.evalLabel')}
-      </p>
-      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
-        "{task.eval.feedback}"
-      </p>
+{
+  task.eval && isChecked && (
+    <div className="px-4 pb-3">
+      <div className="border-l-2 border-green-400 dark:border-green-600 pl-2 bg-green-50 dark:bg-green-900/20 rounded-r-md py-1.5 px-2">
+        <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-0.5">
+          {t('tasks.evalLabel')}
+        </p>
+        <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+          "{task.eval.feedback}"
+        </p>
+      </div>
     </div>
-  </div>
-)}
+  );
+}
 ```
 
 - [ ] **Step 3: Verify TypeScript compiles**
@@ -239,6 +250,7 @@ Expected: no errors.
 - [ ] **Step 4: Visual check in browser**
 
 Start both servers:
+
 ```bash
 # Terminal 1
 cd apps/backend && bun run dev
@@ -248,6 +260,7 @@ pnpm --filter @pb138/frontend dev
 ```
 
 Open http://localhost:5173, log in, navigate to /tasks. Find a DONE task that has been evaluated by a teacher. Verify:
+
 - Green score badge (`XX b.`) appears to the left of the toggle button
 - Green left-border feedback block appears below the card
 - Feedback longer than 2 lines is cut off with `...`
@@ -265,6 +278,7 @@ git commit -m "feat: show eval score badge and feedback on TaskCard"
 ### Task 5: Frontend — readonly eval section in EditTaskDialog
 
 **Files:**
+
 - Modify: `apps/frontend/src/components/tasks/edit-task-dialog.tsx`
 
 - [ ] **Step 1: Add eval section at bottom of dialog content**
@@ -272,24 +286,26 @@ git commit -m "feat: show eval score badge and feedback on TaskCard"
 In `edit-task-dialog.tsx`, find the closing `</div>` of the `px-6 py-6 space-y-0` div (line 328 — immediately before `</DialogContent>`). Insert the eval section immediately before that closing `</div>`:
 
 ```tsx
-{task.eval && (
-  <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-    <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-2">
-      {t('tasks.evalLabelFull')}
-    </p>
-    <div className="flex items-center gap-2 mb-1.5">
-      <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-bold px-2.5 py-0.5 rounded-md">
-        {task.eval.score} b.
-      </span>
-      <span className="text-xs text-gray-400">
-        {new Date(task.eval.evaluatedAt).toLocaleDateString('sk-SK')}
-      </span>
+{
+  task.eval && (
+    <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+      <p className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide mb-2">
+        {t('tasks.evalLabelFull')}
+      </p>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-bold px-2.5 py-0.5 rounded-md">
+          {task.eval.score} b.
+        </span>
+        <span className="text-xs text-gray-400">
+          {new Date(task.eval.evaluatedAt).toLocaleDateString('sk-SK')}
+        </span>
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+        "{task.eval.feedback}"
+      </p>
     </div>
-    <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-      "{task.eval.feedback}"
-    </p>
-  </div>
-)}
+  );
+}
 ```
 
 - [ ] **Step 2: Verify TypeScript compiles**
@@ -303,6 +319,7 @@ Expected: no errors.
 - [ ] **Step 3: Visual check in browser**
 
 Open http://localhost:5173/tasks, click a DONE task that has been evaluated. Verify:
+
 - "Hodnotenie od učiteľa" section appears at the bottom of the dialog
 - Score + date on one line, full feedback text below (no truncation)
 - Section does not appear for tasks without eval
@@ -319,6 +336,7 @@ git commit -m "feat: show full eval section in EditTaskDialog"
 ### Task 6: Cleanup — delete ChatTab.tsx
 
 **Files:**
+
 - Delete: `apps/frontend/src/components/ai/ChatTab.tsx`
 
 - [ ] **Step 1: Delete the file**

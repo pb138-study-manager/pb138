@@ -43,6 +43,7 @@ export function filterTasks(
 **File:** `apps/frontend/src/components/tasks/task-filter-bar.tsx`
 
 Props:
+
 ```typescript
 {
   allTasks: Task[];                                          // unfiltered list — source of tag pills
@@ -55,12 +56,14 @@ Props:
 ```
 
 Renders:
+
 - Priority pills — always shown: Low (green), Medium (amber), High (red). Active = filled background, inactive = outline/ghost.
 - Tag pills — derived from `allTasks`: collect all unique tags across all tasks in the list. Shown only if at least one task has tags. Same toggle style as priority pills.
 - "Clear" button — visible only when `activePriorities.size > 0 || activeTags.size > 0`. Resets all filters.
 - If no tasks have any priority or tags at all, the filter bar is not rendered.
 
 Pill colors:
+
 - Priority LOW active: `bg-green-100 text-green-700 border-green-300`
 - Priority MEDIUM active: `bg-amber-100 text-amber-700 border-amber-300`
 - Priority HIGH active: `bg-red-100 text-red-700 border-red-300`
@@ -74,24 +77,27 @@ Pill colors:
 ### `/tasks` — `apps/frontend/src/routes/tasks/index.tsx`
 
 Add filter state:
+
 ```typescript
 const [activePriorities, setActivePriorities] = useState<Set<'LOW' | 'MEDIUM' | 'HIGH'>>(new Set());
 const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
 ```
 
 Derive `allTasks` (union of all sections, for tag source):
+
 ```typescript
 const allTasks = [...overdue, ...today, ...thisWeek, ...later, ...done];
 ```
 
 Apply filter to each section before passing to `TaskSection`:
+
 ```typescript
 const filtered = {
   overdue: filterTasks(overdue, activePriorities, activeTags),
-  today:   filterTasks(today,   activePriorities, activeTags),
+  today: filterTasks(today, activePriorities, activeTags),
   thisWeek: filterTasks(thisWeek, activePriorities, activeTags),
-  later:   filterTasks(later,   activePriorities, activeTags),
-  done:    filterTasks(done,    activePriorities, activeTags),
+  later: filterTasks(later, activePriorities, activeTags),
+  done: filterTasks(done, activePriorities, activeTags),
 };
 ```
 
@@ -116,6 +122,7 @@ Add to both `en.json` and `cs.json` under `"tasks"`:
 ```
 
 Czech:
+
 ```json
 "filterByPriority": "Priorita",
 "filterByTag": "Štítek",
@@ -126,14 +133,14 @@ Czech:
 
 ## Affected Files
 
-| File | Change |
-|---|---|
-| `apps/frontend/src/lib/task-utils.ts` | Add `filterTasks()` |
-| `apps/frontend/src/components/tasks/task-filter-bar.tsx` | New component |
-| `apps/frontend/src/routes/tasks/index.tsx` | Filter state + `TaskFilterBar` + filtered task sections |
-| `apps/frontend/src/routes/today/index.tsx` | Same |
-| `apps/frontend/src/locales/en.json` | 3 i18n keys |
-| `apps/frontend/src/locales/cs.json` | Same in Czech |
+| File                                                     | Change                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------- |
+| `apps/frontend/src/lib/task-utils.ts`                    | Add `filterTasks()`                                     |
+| `apps/frontend/src/components/tasks/task-filter-bar.tsx` | New component                                           |
+| `apps/frontend/src/routes/tasks/index.tsx`               | Filter state + `TaskFilterBar` + filtered task sections |
+| `apps/frontend/src/routes/today/index.tsx`               | Same                                                    |
+| `apps/frontend/src/locales/en.json`                      | 3 i18n keys                                             |
+| `apps/frontend/src/locales/cs.json`                      | Same in Czech                                           |
 
 ---
 

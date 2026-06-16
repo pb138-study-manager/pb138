@@ -68,20 +68,33 @@ async function seed() {
   const permMap = Object.fromEntries(allPermissions.map((p) => [p.name, p.id]));
 
   const userPermissions = [
-    'CREATE_TASK', 'EDIT_TASK', 'DELETE_TASK',
-    'CREATE_EVENT', 'EDIT_EVENT', 'DELETE_EVENT',
-    'CREATE_NOTE', 'EDIT_NOTE', 'DELETE_NOTE',
+    'CREATE_TASK',
+    'EDIT_TASK',
+    'DELETE_TASK',
+    'CREATE_EVENT',
+    'EDIT_EVENT',
+    'DELETE_EVENT',
+    'CREATE_NOTE',
+    'EDIT_NOTE',
+    'DELETE_NOTE',
   ];
 
   const teacherPermissions = [
     ...userPermissions,
-    'MANAGE_GROUP', 'ADD_TO_GROUP', 'REMOVE_FROM_GROUP',
-    'ASSIGN_TASK', 'EVALUATE_TASK', 'SEARCH_USERS',
+    'MANAGE_GROUP',
+    'ADD_TO_GROUP',
+    'REMOVE_FROM_GROUP',
+    'ASSIGN_TASK',
+    'EVALUATE_TASK',
+    'SEARCH_USERS',
   ];
 
   const adminPermissions = [
     ...teacherPermissions,
-    'MANAGE_USERS', 'MANAGE_ROLES', 'VIEW_LOGS', 'MANAGE_SYSTEM_SETTINGS',
+    'MANAGE_USERS',
+    'MANAGE_ROLES',
+    'VIEW_LOGS',
+    'MANAGE_SYSTEM_SETTINGS',
   ];
 
   const mappings = [

@@ -17,10 +17,13 @@
 ### Step 1.1 — Fix the import line (line 2)
 
 Change:
+
 ```tsx
 import { X, Sparkles, MessageSquare, Newspaper } from 'lucide-react';
 ```
+
 To:
+
 ```tsx
 import { X, Sparkles, Newspaper } from 'lucide-react';
 ```
@@ -28,6 +31,7 @@ import { X, Sparkles, Newspaper } from 'lucide-react';
 ### Step 1.2 — Remove ChatTab import (line 5)
 
 Delete this entire line:
+
 ```tsx
 import { ChatTab } from './ChatTab';
 ```
@@ -35,10 +39,13 @@ import { ChatTab } from './ChatTab';
 ### Step 1.3 — Fix the Tab type (line 8)
 
 Change:
+
 ```tsx
 type Tab = 'brief' | 'chat' | 'agent';
 ```
+
 To:
+
 ```tsx
 type Tab = 'brief' | 'agent';
 ```
@@ -46,38 +53,47 @@ type Tab = 'brief' | 'agent';
 ### Step 1.4 — Remove the Chat tab button (lines 47–57)
 
 Delete this entire block:
+
 ```tsx
-        <button
-          onClick={() => setTab('chat')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
-            tab === 'chat'
-              ? 'text-indigo-600 border-b-2 border-indigo-500'
-              : 'text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <MessageSquare size={14} />
-          Chat
-        </button>
+<button
+  onClick={() => setTab('chat')}
+  className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium transition-colors ${
+    tab === 'chat'
+      ? 'text-indigo-600 border-b-2 border-indigo-500'
+      : 'text-gray-400 hover:text-gray-600'
+  }`}
+>
+  <MessageSquare size={14} />
+  Chat
+</button>
 ```
 
 ### Step 1.5 — Remove the ChatTab content div (lines 76–78)
 
 Delete this entire block:
+
 ```tsx
-        <div className={tab === 'chat' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
-          <ChatTab />
-        </div>
+<div className={tab === 'chat' ? 'flex flex-col flex-1 overflow-hidden' : 'hidden'}>
+  <ChatTab />
+</div>
 ```
 
 ### Step 1.6 — Fix the stale comment (line 71)
 
 Change:
+
 ```tsx
-      {/* Content — both tabs always mounted, hidden tab just invisible */}
+{
+  /* Content — both tabs always mounted, hidden tab just invisible */
+}
 ```
+
 To:
+
 ```tsx
-      {/* Content */}
+{
+  /* Content */
+}
 ```
 
 ### Step 1.7 — Verify
@@ -85,9 +101,11 @@ To:
 ```bash
 pnpm --filter @pb138/frontend build 2>&1 | grep -iE "error TS"
 ```
+
 Expected: no output.
 
 - [ ] **Commit:**
+
 ```bash
 git add apps/frontend/src/components/ai/AICopilotPanel.tsx
 git commit -m "feat: remove Chat tab from AI Copilot panel"
@@ -104,11 +122,14 @@ All changes are inside the agent loop block (lines 290–341).
 ### Step 2.1 — Insert `lastDisplay` variable before the loop
 
 Find this comment + for-loop opening (lines 290–291):
+
 ```typescript
     // Agent loop: max 6 iterations to prevent runaway chains.
     for (let i = 0; i < 6; i++) {
 ```
+
 Replace with:
+
 ```typescript
     const LIST_DISPLAY_TOOLS: Record<string, 'tasks' | 'events' | 'notes' | 'courses'> = {
       list_tasks: 'tasks',
@@ -127,17 +148,21 @@ Replace with:
 ### Step 2.2 — Include `display` in the text reply return (line 304)
 
 Change:
+
 ```typescript
-        return { reply: msg.content ?? '' };
+return { reply: msg.content ?? '' };
 ```
+
 To:
+
 ```typescript
-        return { reply: msg.content ?? '', display: lastDisplay };
+return { reply: msg.content ?? '', display: lastDisplay };
 ```
 
 ### Step 2.3 — Track `lastDisplay` after read-only tool executes
 
 Find this block (lines 324–328):
+
 ```typescript
       // Read-only tool → execute immediately, feed result back to model.
       const result = await executeTool(toolName, toolArgs, authHeader);
@@ -145,7 +170,9 @@ Find this block (lines 324–328):
 
       messages.push({
 ```
+
 Replace with:
+
 ```typescript
       // Read-only tool → execute immediately, feed result back to model.
       const result = await executeTool(toolName, toolArgs, authHeader);
@@ -162,12 +189,15 @@ Replace with:
 ### Step 2.4 — Include `display` in the fallback return (line 340)
 
 Change:
+
 ```typescript
-    return { reply: 'Nepodarilo sa dokončiť požiadavku.' };
+return { reply: 'Nepodarilo sa dokončiť požiadavku.' };
 ```
+
 To:
+
 ```typescript
-    return { reply: 'Nepodarilo sa dokončiť požiadavku.', display: lastDisplay };
+return { reply: 'Nepodarilo sa dokončiť požiadavku.', display: lastDisplay };
 ```
 
 ### Step 2.5 — Verify
@@ -175,9 +205,11 @@ To:
 ```bash
 cd apps/backend && bun build src/index.ts --outdir /tmp/ai-build-check --target bun 2>&1 | grep -iE "error"
 ```
+
 Expected: no output.
 
 - [ ] **Commit:**
+
 ```bash
 git add apps/backend/src/routes/ai.ts
 git commit -m "feat: include display data in agent reply for list tool results"
@@ -192,12 +224,15 @@ git commit -m "feat: include display data in agent reply for list tool results"
 ### Step 3.1 — Add new imports (lines 1–3)
 
 Change:
+
 ```tsx
 import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 ```
+
 To:
+
 ```tsx
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -208,11 +243,14 @@ import { api } from '@/lib/api';
 ### Step 3.2 — Add `AgentDisplay` type and update `Message` type (lines 5–6)
 
 Change:
+
 ```tsx
 type Message = { role: 'user' | 'assistant'; content: string };
 type PendingAction = { name: string; args: Record<string, unknown>; label: string };
 ```
+
 To:
+
 ```tsx
 type AgentDisplay = { type: 'tasks' | 'events' | 'notes' | 'courses'; items: unknown[] };
 type Message = { role: 'user' | 'assistant'; content: string; display?: AgentDisplay };
@@ -245,17 +283,22 @@ function TaskCard({ item }: { item: Record<string, unknown> }) {
     <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
       <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor[status] ?? 'bg-gray-400'}`} />
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium truncate ${status === 'DONE' ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>
+        <p
+          className={`text-sm font-medium truncate ${status === 'DONE' ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}
+        >
           {String(item.title ?? '')}
         </p>
         {dueDate && (
           <p className={`text-xs ${overdue ? 'text-red-500' : 'text-gray-400'}`}>
-            {overdue ? 'Overdue · ' : ''}{dueDate.toLocaleDateString()}
+            {overdue ? 'Overdue · ' : ''}
+            {dueDate.toLocaleDateString()}
           </p>
         )}
       </div>
       {badgeColor[priority] && (
-        <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${badgeColor[priority]}`}>
+        <span
+          className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${badgeColor[priority]}`}
+        >
           {priority}
         </span>
       )}
@@ -299,7 +342,8 @@ function CourseCard({ item }: { item: Record<string, unknown> }) {
     <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
       <BookOpen size={14} className="text-indigo-400 shrink-0" />
       <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-        {item.code ? `${item.code} — ` : ''}{String(item.name ?? '')}
+        {item.code ? `${item.code} — ` : ''}
+        {String(item.name ?? '')}
       </p>
     </div>
   );
@@ -349,24 +393,31 @@ const mdComponents = {
 ### Step 3.4 — Strip `display` when sending to API (line 32 inside `send()`)
 
 Change:
+
 ```tsx
-      const body: Record<string, unknown> = { messages: newMessages };
+const body: Record<string, unknown> = { messages: newMessages };
 ```
+
 To:
+
 ```tsx
-      const body: Record<string, unknown> = {
-        messages: newMessages.map(({ role, content }) => ({ role, content })),
-      };
+const body: Record<string, unknown> = {
+  messages: newMessages.map(({ role, content }) => ({ role, content })),
+};
 ```
+
 The backend Zod schema only accepts `{ role, content }` — sending the extra `display` field would cause a 422 validation error.
 
 ### Step 3.5 — Update the API response type
 
 Change:
+
 ```tsx
       const res = await api.post<{ reply?: string; pendingAction?: PendingAction }>(
 ```
+
 To:
+
 ```tsx
       const res = await api.post<{ reply?: string; pendingAction?: PendingAction; display?: AgentDisplay }>(
 ```
@@ -374,48 +425,58 @@ To:
 ### Step 3.6 — Store `display` on the assistant message
 
 Change:
+
 ```tsx
-        setMessages((prev) => [...prev, { role: 'assistant', content: res.reply! }]);
+setMessages((prev) => [...prev, { role: 'assistant', content: res.reply! }]);
 ```
+
 To:
+
 ```tsx
-        setMessages((prev) => [...prev, { role: 'assistant', content: res.reply!, display: res.display }]);
+setMessages((prev) => [...prev, { role: 'assistant', content: res.reply!, display: res.display }]);
 ```
 
 ### Step 3.7 — Update the message bubble renderer
 
 Find this block (lines 69–81):
+
 ```tsx
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
-                m.role === 'user'
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-              }`}
-            >
-              {m.content}
-            </div>
-          </div>
-        ))}
+{
+  messages.map((m, i) => (
+    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
+          m.role === 'user'
+            ? 'bg-indigo-500 text-white'
+            : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+        }`}
+      >
+        {m.content}
+      </div>
+    </div>
+  ));
+}
 ```
+
 Replace with:
+
 ```tsx
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            {m.role === 'user' ? (
-              <div className="max-w-[85%] rounded-xl px-3 py-2 text-sm bg-indigo-500 text-white">
-                {m.content}
-              </div>
-            ) : (
-              <div className="max-w-[95%] rounded-xl px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
-                <ReactMarkdown components={mdComponents}>{m.content}</ReactMarkdown>
-                {m.display && <DisplayCards display={m.display} />}
-              </div>
-            )}
-          </div>
-        ))}
+{
+  messages.map((m, i) => (
+    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      {m.role === 'user' ? (
+        <div className="max-w-[85%] rounded-xl px-3 py-2 text-sm bg-indigo-500 text-white">
+          {m.content}
+        </div>
+      ) : (
+        <div className="max-w-[95%] rounded-xl px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
+          <ReactMarkdown components={mdComponents}>{m.content}</ReactMarkdown>
+          {m.display && <DisplayCards display={m.display} />}
+        </div>
+      )}
+    </div>
+  ));
+}
 ```
 
 ### Step 3.8 — Verify
@@ -423,9 +484,11 @@ Replace with:
 ```bash
 pnpm --filter @pb138/frontend build 2>&1 | grep -iE "error TS"
 ```
+
 Expected: no output.
 
 - [ ] **Commit:**
+
 ```bash
 git add apps/frontend/src/components/ai/AgentTab.tsx
 git commit -m "feat: markdown rendering and rich display cards in AI Agent tab"
@@ -445,6 +508,7 @@ git commit -m "feat: markdown rendering and rich display cards in AI Agent tab"
 - [ ] Toggle dark mode in Profile → cards readable in dark
 
 - [ ] **Push:**
+
 ```bash
 git push
 ```

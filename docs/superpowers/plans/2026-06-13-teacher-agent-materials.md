@@ -12,23 +12,25 @@
 
 ## File Map
 
-| File | Action | What changes |
-|---|---|---|
-| `apps/backend/src/ai/tools.ts` | Modify | Split into STUDENT_TOOLS/TEACHER_TOOLS, add 6 new tools, add `getToolsForRole()` |
-| `apps/backend/src/ai/executor.ts` | Modify | Add 6 new switch cases |
-| `apps/backend/src/routes/tasks.ts` | Modify | Add `POST /tasks/assign` endpoint |
-| `apps/backend/src/routes/ai.ts` | Modify | Two system prompts, use `getToolsForRole()` |
+| File                               | Action | What changes                                                                     |
+| ---------------------------------- | ------ | -------------------------------------------------------------------------------- |
+| `apps/backend/src/ai/tools.ts`     | Modify | Split into STUDENT_TOOLS/TEACHER_TOOLS, add 6 new tools, add `getToolsForRole()` |
+| `apps/backend/src/ai/executor.ts`  | Modify | Add 6 new switch cases                                                           |
+| `apps/backend/src/routes/tasks.ts` | Modify | Add `POST /tasks/assign` endpoint                                                |
+| `apps/backend/src/routes/ai.ts`    | Modify | Two system prompts, use `getToolsForRole()`                                      |
 
 ---
 
 ## Task 1: Extend tool manifest (`tools.ts`)
 
 **Files:**
+
 - Modify: `apps/backend/src/ai/tools.ts`
 
 ### What to do
 
 Replace the current file content with the version below. Key changes:
+
 - `STUDENT_TOOLS` = all existing tools + new `list_course_materials`
 - `TEACHER_TOOLS` = `STUDENT_TOOLS` + 5 teacher-only tools
 - `getToolsForRole(roles)` picks the right array
@@ -61,9 +63,20 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           title: { type: 'string', description: 'Short task title' },
           description: { type: 'string', description: 'Optional longer details' },
-          dueDate: { type: 'string', description: 'Due date in ISO format, e.g. 2026-06-15. Default: today' },
-          priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'], description: 'Default: LOW' },
-          courseId: { type: 'number', description: 'Optional course ID to link this task to a course. Use list_courses first to find the ID.' },
+          dueDate: {
+            type: 'string',
+            description: 'Due date in ISO format, e.g. 2026-06-15. Default: today',
+          },
+          priority: {
+            type: 'string',
+            enum: ['LOW', 'MEDIUM', 'HIGH'],
+            description: 'Default: LOW',
+          },
+          courseId: {
+            type: 'number',
+            description:
+              'Optional course ID to link this task to a course. Use list_courses first to find the ID.',
+          },
         },
         required: ['title'],
       },
@@ -73,7 +86,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'update_task',
-      description: 'Update an existing task. Use when the user wants to change a task title, due date, priority, or description.',
+      description:
+        'Update an existing task. Use when the user wants to change a task title, due date, priority, or description.',
       parameters: {
         type: 'object',
         properties: {
@@ -122,7 +136,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'list_notes',
-      description: "List the current user's notes (title, folderId). Use to find notes or answer questions about them.",
+      description:
+        "List the current user's notes (title, folderId). Use to find notes or answer questions about them.",
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -151,7 +166,10 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
           title: { type: 'string', description: 'Note title' },
           description: { type: 'string', description: 'Note content (markdown supported)' },
           folderId: { type: 'number', description: 'Optional folder ID to put the note in' },
-          courseId: { type: 'number', description: 'Optional course ID to link this note to a course.' },
+          courseId: {
+            type: 'number',
+            description: 'Optional course ID to link this note to a course.',
+          },
         },
         required: ['title'],
       },
@@ -231,7 +249,8 @@ const STUDENT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'list_course_materials',
-      description: 'List study materials for a specific course. Use list_courses first to find the courseId.',
+      description:
+        'List study materials for a specific course. Use list_courses first to find the courseId.',
       parameters: {
         type: 'object',
         properties: {
@@ -337,9 +356,7 @@ const TEACHER_ONLY_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 
 export const TEACHER_TOOLS = [...STUDENT_TOOLS, ...TEACHER_ONLY_TOOLS];
 
-export function getToolsForRole(
-  roles: string[]
-): OpenAI.Chat.Completions.ChatCompletionTool[] {
+export function getToolsForRole(roles: string[]): OpenAI.Chat.Completions.ChatCompletionTool[] {
   return roles.includes('TEACHER') ? TEACHER_TOOLS : STUDENT_TOOLS;
 }
 
@@ -370,12 +387,15 @@ export const TOOL_MUTATES: Record<string, boolean> = {
 ```
 
 - [ ] **Skontroluj** že súbor sa uložil bez chýb — otvor terminál a spusti:
+
 ```bash
 cd apps/backend && bun build src/ai/tools.ts --target=bun 2>&1 | head -5
 ```
+
 Očakávaný výstup: žiadne errory (môže vypísať cestu k výstupu).
 
 - [ ] **Commitni:**
+
 ```bash
 git add apps/backend/src/ai/tools.ts
 git commit -m "feat: split agent tools into student/teacher sets, add getToolsForRole"
@@ -386,17 +406,21 @@ git commit -m "feat: split agent tools into student/teacher sets, add getToolsFo
 ## Task 2: Add `POST /tasks/assign` endpoint (`tasks.ts`)
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/tasks.ts`
 
 Pridaj nový Zod schema a endpoint na koniec Elysia chainu (pred posledný `;`).
 
 - [ ] **Pridaj** tento import na začiatok `tasks.ts` (ak tam ešte nie je `users`):
+
 ```typescript
 import { users } from '../db/schema';
 ```
-*(Skontroluj riadok 4 — ak tam `users` nie je, pridaj ho do importu z `'../db/schema'`.)*
+
+_(Skontroluj riadok 4 — ak tam `users` nie je, pridaj ho do importu z `'../db/schema'`.)_
 
 - [ ] **Pridaj** nový schema objekt za existujúci `UpdateTaskSchema` (pred `export const tasksRoutes`):
+
 ```typescript
 const AssignTaskSchema = z.object({
   studentId: z.number().int().positive(),
@@ -408,6 +432,7 @@ const AssignTaskSchema = z.object({
 ```
 
 - [ ] **Pridaj** nový endpoint na koniec Elysia chainu v `tasksRoutes` — tesne pred posledný `;`:
+
 ```typescript
   .post(
     '/assign',
@@ -447,12 +472,15 @@ const AssignTaskSchema = z.object({
 ```
 
 - [ ] **Skontroluj** že importy sú kompletné:
+
 ```bash
 cd apps/backend && bun build src/routes/tasks.ts --target=bun 2>&1 | head -10
 ```
+
 Očakávaný výstup: žiadne errory.
 
 - [ ] **Commitni:**
+
 ```bash
 git add apps/backend/src/routes/tasks.ts
 git commit -m "feat: add POST /tasks/assign for teacher-to-student task assignment"
@@ -463,6 +491,7 @@ git commit -m "feat: add POST /tasks/assign for teacher-to-student task assignme
 ## Task 3: Extend executor (`executor.ts`)
 
 **Files:**
+
 - Modify: `apps/backend/src/ai/executor.ts`
 
 - [ ] **Pridaj** 6 nových cases do switchu v `executeTool` — tesne pred `default:`:
@@ -492,12 +521,15 @@ git commit -m "feat: add POST /tasks/assign for teacher-to-student task assignme
 ```
 
 - [ ] **Skontroluj:**
+
 ```bash
 cd apps/backend && bun build src/ai/executor.ts --target=bun 2>&1 | head -10
 ```
+
 Očakávaný výstup: žiadne errory.
 
 - [ ] **Commitni:**
+
 ```bash
 git add apps/backend/src/ai/executor.ts
 git commit -m "feat: add executor cases for materials, groups, students, teacher assignments"
@@ -508,91 +540,105 @@ git commit -m "feat: add executor cases for materials, groups, students, teacher
 ## Task 4: Two system prompts + role-aware tools (`ai.ts`)
 
 **Files:**
+
 - Modify: `apps/backend/src/routes/ai.ts`
 
 - [ ] **Uprav import** na riadku 10 — zmeň:
+
 ```typescript
 import { AGENT_TOOLS, TOOL_MUTATES } from '../ai/tools';
 ```
+
 na:
+
 ```typescript
 import { getToolsForRole, TOOL_MUTATES } from '../ai/tools';
 ```
 
 - [ ] **Nájdi** v `POST /ai/agent` handler tieto riadky (sú na začiatku handlera):
-```typescript
-    const authHeader = request.headers.get('authorization') ?? '';
-    const lang = body.lang ?? 'sk';
-    const langLabel = lang === 'en' ? 'English' : 'Slovak';
-    const today = new Date().toISOString().split('T')[0];
 
-    // Build message list for the model.
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content: `You are a student AI assistant. Today is ${today}.
+```typescript
+const authHeader = request.headers.get('authorization') ?? '';
+const lang = body.lang ?? 'sk';
+const langLabel = lang === 'en' ? 'English' : 'Slovak';
+const today = new Date().toISOString().split('T')[0];
+
+// Build message list for the model.
+const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+  {
+    role: 'system',
+    content: `You are a student AI assistant. Today is ${today}.
 You have tools to read and manage the student's data. Use them to answer questions and take actions.
 When you use a tool and get a result, summarize it clearly in ${langLabel}.
 Be concise. Never expose raw JSON to the user.`,
-      },
-      ...body.messages,
-    ];
+  },
+  ...body.messages,
+];
 ```
 
 **Nahraď ich** týmto blokom:
-```typescript
-    const authHeader = request.headers.get('authorization') ?? '';
-    const lang = body.lang ?? 'sk';
-    const langLabel = lang === 'en' ? 'English' : 'Slovak';
-    const today = new Date().toISOString().split('T')[0];
-    const isTeacher = authUser.roles.includes('TEACHER');
 
-    const systemPrompt = isTeacher
-      ? `You are an AI assistant for a university teacher. Today is ${today}.
+```typescript
+const authHeader = request.headers.get('authorization') ?? '';
+const lang = body.lang ?? 'sk';
+const langLabel = lang === 'en' ? 'English' : 'Slovak';
+const today = new Date().toISOString().split('T')[0];
+const isTeacher = authUser.roles.includes('TEACHER');
+
+const systemPrompt = isTeacher
+  ? `You are an AI assistant for a university teacher. Today is ${today}.
 You can: assign tasks to groups (create_assignment) or individual students (assign_task_to_student), list groups and their members, search students by name or email, and browse study materials for courses.
 When assigning to a student, use list_students first to find their ID. When assigning to a group, use list_groups and list_group_members first.
 Never share one student's data with another. Be concise. Never expose raw JSON. Respond in ${langLabel}.`
-      : `You are an AI assistant for a student. Today is ${today}.
+  : `You are an AI assistant for a student. Today is ${today}.
 You have tools to read and manage your tasks, notes, events, courses, and study materials. Use them to answer questions and take actions.
 When you use a tool and get a result, summarize it clearly in ${langLabel}.
 Be concise. Never expose raw JSON.`;
 
-    // Build message list for the model.
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-      ...body.messages,
-    ];
+// Build message list for the model.
+const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+  {
+    role: 'system',
+    content: systemPrompt,
+  },
+  ...body.messages,
+];
 ```
 
 - [ ] **Nájdi** v agent loope volanie modelu:
+
 ```typescript
-      const completion = await client.chat.completions.create({
-        model: MODEL,
-        messages,
-        tools: AGENT_TOOLS,
-      });
+const completion = await client.chat.completions.create({
+  model: MODEL,
+  messages,
+  tools: AGENT_TOOLS,
+});
 ```
+
 **Zmeň** `tools: AGENT_TOOLS` na:
+
 ```typescript
         tools: getToolsForRole(authUser.roles),
 ```
 
 - [ ] **Skontroluj:**
+
 ```bash
 cd apps/backend && bun build src/routes/ai.ts --target=bun 2>&1 | head -10
 ```
+
 Očakávaný výstup: žiadne errory.
 
 - [ ] **Spusti backend** a manuálne otestuj:
+
 ```bash
 cd apps/backend && bun run dev
 ```
+
 V AI Copilot paneli (Agent tab) ako študent: napíš "zoznam mojich úloh" — mal by odpovedať bez teacher nástrojov.
 
 - [ ] **Commitni:**
+
 ```bash
 git add apps/backend/src/routes/ai.ts
 git commit -m "feat: role-aware system prompt and tool selection in AI agent"

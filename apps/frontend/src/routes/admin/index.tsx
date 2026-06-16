@@ -42,7 +42,9 @@ function AdminOverviewPage() {
       <div className="mb-10 grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Users</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">
+              Users
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{adminUsers.length}</p>
@@ -50,7 +52,9 @@ function AdminOverviewPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Log events</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">
+              Log events
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{adminLogs.length}</p>
@@ -58,7 +62,9 @@ function AdminOverviewPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Roles</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">
+              Roles
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{adminRoles.length}</p>
@@ -70,7 +76,9 @@ function AdminOverviewPage() {
           <Link key={t.to} to={t.to}>
             <Card className="h-full transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-                <div className="mt-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 p-2">{t.icon}</div>
+                <div className="mt-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 p-2">
+                  {t.icon}
+                </div>
                 <div>
                   <CardTitle className="text-lg">{t.title}</CardTitle>
                   <CardDescription>{t.description}</CardDescription>

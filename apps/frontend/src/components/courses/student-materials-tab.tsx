@@ -21,7 +21,9 @@ export default function StudentMaterialsTab({ courseId }: { courseId: string }) 
 
   async function handleDownload(material: StudyMaterial) {
     try {
-      const { url } = await api.get<{ url: string }>(`/courses/${courseId}/materials/${material.id}/download`);
+      const { url } = await api.get<{ url: string }>(
+        `/courses/${courseId}/materials/${material.id}/download`
+      );
       window.open(url, '_blank');
     } catch (e) {
       alert(`Could not open file: ${(e as Error)?.message ?? 'Unknown error'}`);

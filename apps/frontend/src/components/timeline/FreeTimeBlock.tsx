@@ -1,10 +1,10 @@
-import { Plus } from 'lucide-react'
+import { Plus } from 'lucide-react';
 
 interface FreeTimeBlockProps {
-  startTime: string
-  endTime: string
-  durationLabel: string
-  onAdd?: () => void
+  startTime: string;
+  endTime: string;
+  durationLabel: string;
+  onAdd?: () => void;
 }
 
 export function FreeTimeBlock({ startTime, endTime, durationLabel, onAdd }: FreeTimeBlockProps) {
@@ -33,5 +33,5 @@ export function FreeTimeBlock({ startTime, endTime, durationLabel, onAdd }: Free
         </div>
       </div>
     </div>
-  )
+  );
 }

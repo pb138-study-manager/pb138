@@ -1,13 +1,13 @@
-import { useState } from 'react'
-import { Users } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Task, TaskStatus } from '@/types'
-import EditTaskDialog from '@/components/tasks/edit-task-dialog'
+import { useState } from 'react';
+import { Users } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Task, TaskStatus } from '@/types';
+import EditTaskDialog from '@/components/tasks/edit-task-dialog';
 
 interface TaskTimelineCardProps {
-  task: Task
-  timeLabel: string
-  onToggle: () => void
+  task: Task;
+  timeLabel: string;
+  onToggle: () => void;
   onEditFull: (
     id: number,
     data: {
@@ -21,17 +21,19 @@ interface TaskTimelineCardProps {
     },
     subtasksToAdd: string[],
     subtaskIdsToDelete: number[]
-  ) => Promise<void>
+  ) => Promise<void>;
 }
 
 export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: TaskTimelineCardProps) {
-  const [editOpen, setEditOpen] = useState(false)
-  const isDone = task.status === 'DONE'
+  const [editOpen, setEditOpen] = useState(false);
+  const isDone = task.status === 'DONE';
 
   return (
     <>
       <div className="flex items-stretch gap-3">
-        <span className="text-[11px] font-semibold text-gray-400 w-16 pt-4 shrink-0 text-right">{timeLabel}</span>
+        <span className="text-[11px] font-semibold text-gray-400 w-16 pt-4 shrink-0 text-right">
+          {timeLabel}
+        </span>
         <div className="w-1.5 shrink-0" />
         <Card
           className={`flex-1 border-gray-100 dark:border-gray-700 shadow-sm rounded-2xl transition-opacity ${isDone ? 'opacity-40' : ''}`}
@@ -41,7 +43,9 @@ export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: Task
               <Users className="w-4 h-4 text-blue-500" />
             </div>
             <div className="flex-1 min-w-0" onClick={() => setEditOpen(true)}>
-              <p className={`font-bold text-sm truncate cursor-pointer ${isDone ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
+              <p
+                className={`font-bold text-sm truncate cursor-pointer ${isDone ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}
+              >
                 {task.title}
               </p>
               <p className="text-[13px] text-gray-400 mt-0.5">{timeLabel}</p>
@@ -66,5 +70,5 @@ export function TaskTimelineCard({ task, timeLabel, onToggle, onEditFull }: Task
         onSave={(data) => onEditFull(task.id, data, data.subtasksToAdd, data.subtaskIdsToDelete)}
       />
     </>
-  )
+  );
 }

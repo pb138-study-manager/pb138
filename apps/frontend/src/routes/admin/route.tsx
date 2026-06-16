@@ -29,7 +29,7 @@ function AdminLayout() {
         <ShieldOff className="w-16 h-16 text-red-400" />
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Access Denied</h1>
         <p className="text-gray-500 dark:text-gray-400 max-w-sm">
-          You don't have permission to access the administration panel.
+          You don&apos;t have permission to access the administration panel.
         </p>
         <Link
           to="/dashboard"

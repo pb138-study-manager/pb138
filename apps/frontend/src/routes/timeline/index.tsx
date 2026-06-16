@@ -3,7 +3,15 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ChevronLeft, ChevronRight, CalendarDays, Copy, Check, RefreshCw } from 'lucide-react';
+import {
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  Copy,
+  Check,
+  RefreshCw,
+} from 'lucide-react';
 import { useTimelineManager } from '@/hooks/useTimelineManager';
 import { EventCard } from '@/components/timeline/EventCard';
 import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard';
@@ -79,7 +87,10 @@ function TimelinePage() {
     setCalendarModalOpen(true);
     try {
       const { token } = await api.get<{ token: string }>('/users/me/calendar-token');
-      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^https?/, 'webcal');
+      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(
+        /^https?/,
+        'webcal'
+      );
       setCalendarUrl(`${base}/events/ical?token=${token}`);
     } finally {
       setCalTokenLoading(false);
@@ -90,7 +101,10 @@ function TimelinePage() {
     setCalTokenLoading(true);
     try {
       const { token } = await api.post<{ token: string }>('/users/me/calendar-token', {});
-      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^https?/, 'webcal');
+      const base = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(
+        /^https?/,
+        'webcal'
+      );
       setCalendarUrl(`${base}/events/ical?token=${token}`);
     } finally {
       setCalTokenLoading(false);
@@ -179,7 +193,10 @@ function TimelinePage() {
               </button>
             </div>
             <p className="text-xs text-gray-400">
-              {t('timeline.calendarSubscribeHint', 'Copy this URL and paste it into Google Calendar → "Add by URL", or open it in Apple Calendar / Outlook to subscribe.')}
+              {t(
+                'timeline.calendarSubscribeHint',
+                'Copy this URL and paste it into Google Calendar → "Add by URL", or open it in Apple Calendar / Outlook to subscribe.'
+              )}
             </p>
             {calTokenLoading ? (
               <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
@@ -188,8 +205,15 @@ function TimelinePage() {
                 <span className="flex-1 text-xs text-gray-600 dark:text-gray-300 truncate font-mono">
                   {calendarUrl}
                 </span>
-                <button onClick={handleCopy} className="shrink-0 text-gray-400 hover:text-indigo-500 transition-colors">
-                  {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                <button
+                  onClick={handleCopy}
+                  className="shrink-0 text-gray-400 hover:text-indigo-500 transition-colors"
+                >
+                  {copied ? (
+                    <Check className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             )}
@@ -435,9 +459,7 @@ function MonthGrid({
             const in_month = date.getMonth() === current_month;
             const is_active = isSameDay(date, selected_date);
             const is_today = isSameDay(date, today);
-            const day_events = active_events.filter((e) =>
-              isSameDay(new Date(e.startDate), date)
-            );
+            const day_events = active_events.filter((e) => isSameDay(new Date(e.startDate), date));
             const has_event = day_events.some((e) => e.type === 'EVENT');
             const has_deadline = day_events.some((e) => e.type === 'DEADLINE');
             const has_task = tasks.some(

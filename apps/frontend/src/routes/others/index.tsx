@@ -3,7 +3,16 @@ import BottomNav from '@/components/ui/bottom-nav';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import ActionSetting from '@/components/profile/action-setting';
-import { Users, CalendarDays, LayoutPanelLeft, Clock, ClipboardCheck, BookOpen, ClipboardList, GraduationCap } from 'lucide-react';
+import {
+  Users,
+  CalendarDays,
+  LayoutPanelLeft,
+  Clock,
+  ClipboardCheck,
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { AVAILABLE_ITEMS } from '@/hooks/useCustomNavManager';
@@ -34,9 +43,12 @@ function OthersPage() {
       api.get<{ settings: { customNav?: { id: string }[] | null } }>('/users/me').catch(() => null),
   });
 
-  const navIds: string[] = me?.settings?.customNav && Array.isArray(me.settings.customNav) && me.settings.customNav.length > 0
-    ? me.settings.customNav.map((n) => n.id)
-    : DEFAULT_NAV_IDS;
+  const navIds: string[] =
+    me?.settings?.customNav &&
+    Array.isArray(me.settings.customNav) &&
+    me.settings.customNav.length > 0
+      ? me.settings.customNav.map((n) => n.id)
+      : DEFAULT_NAV_IDS;
 
   const hiddenItems = AVAILABLE_ITEMS.filter(
     (item) => item.id !== 'others' && !navIds.includes(item.id)

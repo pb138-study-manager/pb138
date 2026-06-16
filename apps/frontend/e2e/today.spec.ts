@@ -95,7 +95,7 @@ test.describe('Today Page', () => {
     // Ak sa projekt spolieha na presmerovanie na `/login`,
     // musíme sa postarať o to, aby sme to obišli alebo namockovali
     // Ak by to nefungovalo priamo, tak použijeme login page na prihlásenie.
-    // 
+    //
     // Keďže testujeme vizuál a funkcionalitu, ak auth nejde obísť (kvôli zložitému Supabase clientu),
     // Playwright môže zlyhať na presmerovaní. Ale predpokladajme, že mockAPI pomôže.
     await mockData(page);
@@ -103,7 +103,7 @@ test.describe('Today Page', () => {
 
     // Aby sme predišli auth guardu, zameriame sa na testovanie renderovania z nezávislého pohľadu
     // Prípadne pre reálny projekt by tu bola `page.request.post('/login')`
-    
+
     // Ale keďže E2E Auth guard test presmeruje všetko, skúšame ísť priamo
     await page.goto('/today');
   });
@@ -112,7 +112,7 @@ test.describe('Today Page', () => {
     await page.route('**/tasks*', async (route) => {
       const type = route.request().resourceType();
       if (type !== 'fetch' && type !== 'xhr') return route.continue();
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
     });
 
@@ -142,7 +142,11 @@ test.describe('Today Page', () => {
     await expect(page.locator('text=Dnešná úloha 1')).toBeVisible();
     await expect(page.locator('text=Stará úloha z backlogu')).toBeVisible();
     // Done section is collapsed by default — expand it first
-    await page.locator('h3').filter({ hasText: /Done|Hotovo/ }).first().click();
+    await page
+      .locator('h3')
+      .filter({ hasText: /Done|Hotovo/ })
+      .first()
+      .click();
     await expect(page.locator('text=Hotová dnešná úloha')).toBeVisible();
   });
 
@@ -152,7 +156,7 @@ test.describe('Today Page', () => {
     if (await filterBtn.isVisible()) {
       await filterBtn.click();
     }
-    
+
     // Kliknutie na tag "React" a kontrola či ostatné zmizli
     const reactTag = page.locator('button', { hasText: 'React' });
     if (await reactTag.isVisible()) {
@@ -166,7 +170,7 @@ test.describe('Today Page', () => {
   test('creates a new task for today', async ({ page }) => {
     // Predpokladáme, že TaskSection má input alebo tlačidlo na vytvorenie novej úlohy
     const input = page.locator('input[placeholder*="task"], input[placeholder*="úloh"]');
-    if (await input.count() > 0) {
+    if ((await input.count()) > 0) {
       await input.first().fill('Nová úloha');
       await input.first().press('Enter');
 
@@ -179,8 +183,10 @@ test.describe('Today Page', () => {
   test('marks a task as done', async ({ page }) => {
     // Nájde checkbox pri "Dnešná úloha 1"
     const taskContainer = page.locator('div').filter({ hasText: 'Dnešná úloha 1' }).last();
-    const checkbox = taskContainer.locator('button[role="checkbox"], input[type="checkbox"]').first();
-    
+    const checkbox = taskContainer
+      .locator('button[role="checkbox"], input[type="checkbox"]')
+      .first();
+
     if (await checkbox.isVisible()) {
       await checkbox.click();
       // V mocku sme nastavili, že po PATCH odpovie so statusom DONE,

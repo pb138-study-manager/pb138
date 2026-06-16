@@ -16,10 +16,10 @@ Add subtask support to the existing `tasks` feature. A subtask is a full task re
 Add one nullable column to `tasks`:
 
 ```typescript
-parentId: integer('parent_id').references(() => tasks.id)
+parentId: integer('parent_id').references(() => tasks.id);
 ```
 
-- `null` → top-level task  
+- `null` → top-level task
 - non-null → subtask belonging to the referenced parent
 
 No new table needed.
@@ -29,17 +29,21 @@ No new table needed.
 ## API Changes
 
 ### `POST /tasks`
+
 - Accept optional `parentId` in body
 - Validation: if `parentId` is provided, verify the parent exists, belongs to the same user, is not soft-deleted, and is itself a top-level task (no chaining)
 
 ### `GET /tasks/:id`
+
 - Response includes `subtasks: Task[]` — all non-deleted tasks where `parent_id = id`
 
 ### `DELETE /tasks/:id` (soft-delete)
+
 - Before soft-deleting the parent, soft-delete all subtasks where `parent_id = id`
 - Log each deletion in audit_logs
 
 ### `PATCH /tasks/:id`
+
 - Accept optional `parentId` in body
 - `parentId: number` → convert existing task to subtask (attach to parent)
 - `parentId: null` → detach subtask, make it a top-level task
@@ -50,14 +54,17 @@ No new table needed.
 ## Frontend Changes
 
 ### `useTasksManager.handleCreate`
+
 - After creating the parent task, iterate over `subtasks: string[]` from `SubtasksDialog`
 - For each subtask title, call `POST /tasks` with `{ title, dueDate: parentDueDate, parentId: newTask.id }`
 
 ### Task detail view
+
 - `GET /tasks/:id` now returns subtasks — render them as a checklist under the task
 - Each subtask shows toggle-done + delete
 
 ### Convert task to subtask
+
 - In task detail, add a "Move to..." picker that calls `PATCH /tasks/:id` with `parentId`
 - To detach: `PATCH /tasks/:id` with `parentId: null`
 
@@ -75,6 +82,6 @@ No new table needed.
 
 ## Migration
 
-1. Edit `schema.ts` — add `parentId` column  
-2. `bun run db:generate` → new migration file  
+1. Edit `schema.ts` — add `parentId` column
+2. `bun run db:generate` → new migration file
 3. `bun run db:migrate` → apply to DB

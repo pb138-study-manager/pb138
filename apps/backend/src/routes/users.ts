@@ -2,8 +2,12 @@ import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
 import {
-  users, userProfiles, userSettings,
-  userCourses, courses, userIntegrations,
+  users,
+  userProfiles,
+  userSettings,
+  userCourses,
+  courses,
+  userIntegrations,
 } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, ilike, or } from 'drizzle-orm';
@@ -17,7 +21,12 @@ const UpdateProfileSchema = z.object({
   title: z.string().nullish(),
   organization: z.string().nullish(),
   bio: z.string().nullish(),
-  login: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_.-]+$/).optional(),
+  login: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-zA-Z0-9_.-]+$/)
+    .optional(),
 });
 
 const UpdateSettingsSchema = z.object({
@@ -54,10 +63,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
     }
 
     // Optional profile row (may not exist yet)
-    const [profile] = await db
-      .select()
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, uid));
+    const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.userId, uid));
 
     // Optional settings row — fall back to defaults if missing
     const [settings] = await db
@@ -140,9 +146,12 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       })),
       integrations: integrationRows.map((r) => ({
         service: r.service,
-        connectedAt: r.connectedAt instanceof Date 
-          ? r.connectedAt.toISOString() 
-          : (typeof r.connectedAt === 'string' ? r.connectedAt : new Date().toISOString()),
+        connectedAt:
+          r.connectedAt instanceof Date
+            ? r.connectedAt.toISOString()
+            : typeof r.connectedAt === 'string'
+              ? r.connectedAt
+              : new Date().toISOString(),
       })),
     };
   })
@@ -241,7 +250,9 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
       const uid = (user as AuthUser).id;
       const values = {
         userId: uid,
-        ...(body.notificationsEnabled !== undefined && { notificationsEnabled: body.notificationsEnabled }),
+        ...(body.notificationsEnabled !== undefined && {
+          notificationsEnabled: body.notificationsEnabled,
+        }),
         ...(body.lightTheme !== undefined && { lightTheme: body.lightTheme }),
       };
       let updated;
@@ -282,17 +293,14 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
         return { error: 'PASSWORD_CHANGE_FAILED', message: 'Server misconfiguration' };
       }
 
-      const response = await fetch(
-        `${supabaseUrl}/auth/v1/admin/users/${userData.authId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${serviceRoleKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ password: body.newPassword }),
-        }
-      );
+      const response = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userData.authId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${serviceRoleKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: body.newPassword }),
+      });
 
       if (!response.ok) {
         set.status = 500;
@@ -373,12 +381,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
     const [row] = await db
       .select()
       .from(userIntegrations)
-      .where(
-        and(
-          eq(userIntegrations.userId, uid),
-          eq(userIntegrations.service, params.service)
-        )
-      );
+      .where(and(eq(userIntegrations.userId, uid), eq(userIntegrations.service, params.service)));
     if (!row) {
       set.status = 404;
       return { error: 'NOT_FOUND', message: 'Integration not found' };
@@ -386,12 +389,7 @@ export const usersRoutes = new Elysia({ prefix: '/users' })
     await db
       .update(userIntegrations)
       .set({ connected: false, connectedAt: null })
-      .where(
-        and(
-          eq(userIntegrations.userId, uid),
-          eq(userIntegrations.service, params.service)
-        )
-      );
+      .where(and(eq(userIntegrations.userId, uid), eq(userIntegrations.service, params.service)));
     return { success: true };
   })
   .get('/:id', async ({ params, set }) => {

@@ -12,17 +12,18 @@
 
 ## File Map
 
-| Action | File | Purpose |
-|--------|------|---------|
-| Create | `apps/frontend/src/hooks/timeline-utils.ts` | Pure helpers extracted from hook: `getWeekStart`, `getWeekDates`, `isSameDay` |
-| Create | `apps/frontend/src/hooks/timeline-utils.test.ts` | Unit tests for those helpers + navigation shift logic |
-| Modify | `apps/frontend/src/hooks/useTimelineManager.ts` | Import from utils; remove `deadlineEvents`; fix `prevWeek`/`nextWeek` |
+| Action | File                                             | Purpose                                                                       |
+| ------ | ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Create | `apps/frontend/src/hooks/timeline-utils.ts`      | Pure helpers extracted from hook: `getWeekStart`, `getWeekDates`, `isSameDay` |
+| Create | `apps/frontend/src/hooks/timeline-utils.test.ts` | Unit tests for those helpers + navigation shift logic                         |
+| Modify | `apps/frontend/src/hooks/useTimelineManager.ts`  | Import from utils; remove `deadlineEvents`; fix `prevWeek`/`nextWeek`         |
 
 ---
 
 ## Task 1: Extract pure helpers to `timeline-utils.ts`
 
 **Files:**
+
 - Create: `apps/frontend/src/hooks/timeline-utils.ts`
 
 - [ ] **Step 1: Create the utility file**
@@ -74,6 +75,7 @@ git commit -m "feat: extract timeline pure helpers to timeline-utils.ts"
 ## Task 2: Write and run tests for the helpers (TDD — write before fixing the hook)
 
 **Files:**
+
 - Create: `apps/frontend/src/hooks/timeline-utils.test.ts`
 
 - [ ] **Step 1: Write the test file**
@@ -133,14 +135,14 @@ describe('shiftDate', () => {
   it('shifts forward 7 days (next week navigation)', () => {
     const thu = new Date(2026, 4, 28); // Thu May 28
     const result = shiftDate(thu, 7);
-    expect(result.getDate()).toBe(4);   // Thu June 4
-    expect(result.getMonth()).toBe(5);  // June
+    expect(result.getDate()).toBe(4); // Thu June 4
+    expect(result.getMonth()).toBe(5); // June
   });
 
   it('shifts backward 7 days (prev week navigation)', () => {
     const thu = new Date(2026, 4, 28); // Thu May 28
     const result = shiftDate(thu, -7);
-    expect(result.getDate()).toBe(21);  // Thu May 21
+    expect(result.getDate()).toBe(21); // Thu May 21
   });
 
   it('does not mutate the original date', () => {
@@ -171,6 +173,7 @@ git commit -m "test: add unit tests for timeline-utils helpers"
 ## Task 3: Fix KAN-75 — remove DEADLINE filter and synthetic deadlineEvents
 
 **Files:**
+
 - Modify: `apps/frontend/src/hooks/useTimelineManager.ts`
 
 The backend already inserts a real DEADLINE event for every student when an assignment is created (`courses.ts` — `tx.insert(events)` with `type: 'DEADLINE'`). The synthetic generation is redundant and causes two problems: manually-created DEADLINE events are thrown away, and assignment deadlines are duplicated as fake events with negative IDs.
@@ -180,6 +183,7 @@ The backend already inserts a real DEADLINE event for every student when an assi
 Open `apps/frontend/src/hooks/useTimelineManager.ts`. Make the following changes:
 
 **Add import at the top** (after existing imports):
+
 ```ts
 import { getWeekStart, getWeekDates, isSameDay, shiftDate } from './timeline-utils';
 ```
@@ -187,6 +191,7 @@ import { getWeekStart, getWeekDates, isSameDay, shiftDate } from './timeline-uti
 **Remove** the local function definitions for `getWeekStart`, `getWeekDates`, `isSameDay` (lines 6–28 — the three functions defined before the hook). They are now in `timeline-utils.ts`.
 
 **Remove** the entire `deadlineEvents` block (lines 51–78 in the original file):
+
 ```ts
 // DELETE everything from here:
   // Synthetic deadline events derived from assignment tasks — one per unique assignment deadline per day
@@ -202,22 +207,24 @@ import { getWeekStart, getWeekDates, isSameDay, shiftDate } from './timeline-uti
 ```
 
 **Replace with:**
+
 ```ts
-  const allEvents = events;
+const allEvents = events;
 ```
 
 The full changed section should look like this after the edit:
+
 ```ts
-  const { data: tasks = [] } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
-  });
+const { data: tasks = [] } = useQuery({
+  queryKey: ['tasks'],
+  queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
+});
 
-  const allEvents = events;
+const allEvents = events;
 
-  const eventsForSelectedDate = allEvents.filter((e) =>
-    isSameDay(new Date(e.startDate), selectedDate)
-  );
+const eventsForSelectedDate = allEvents.filter((e) =>
+  isSameDay(new Date(e.startDate), selectedDate)
+);
 ```
 
 - [ ] **Step 2: Run tests to make sure nothing broke**
@@ -240,6 +247,7 @@ git commit -m "fix: show real DEADLINE events from API instead of synthetic ones
 ## Task 4: Fix KAN-76 — shift selectedDate with week navigation
 
 **Files:**
+
 - Modify: `apps/frontend/src/hooks/useTimelineManager.ts`
 
 `prevWeek()` and `nextWeek()` currently only update `weekStart`. `selectedDate` stays in the old week, so `eventsForSelectedDate` returns nothing and no day is highlighted in the strip.
@@ -249,43 +257,47 @@ git commit -m "fix: show real DEADLINE events from API instead of synthetic ones
 Find and replace the `prevWeek` function:
 
 **Before:**
+
 ```ts
-  function prevWeek() {
-    setWeekStart((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() - 7);
-      return d;
-    });
-  }
+function prevWeek() {
+  setWeekStart((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() - 7);
+    return d;
+  });
+}
 ```
 
 **After:**
+
 ```ts
-  function prevWeek() {
-    setWeekStart((prev) => shiftDate(prev, -7));
-    setSelectedDate((prev) => shiftDate(prev, -7));
-  }
+function prevWeek() {
+  setWeekStart((prev) => shiftDate(prev, -7));
+  setSelectedDate((prev) => shiftDate(prev, -7));
+}
 ```
 
 Find and replace the `nextWeek` function:
 
 **Before:**
+
 ```ts
-  function nextWeek() {
-    setWeekStart((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() + 7);
-      return d;
-    });
-  }
+function nextWeek() {
+  setWeekStart((prev) => {
+    const d = new Date(prev);
+    d.setDate(d.getDate() + 7);
+    return d;
+  });
+}
 ```
 
 **After:**
+
 ```ts
-  function nextWeek() {
-    setWeekStart((prev) => shiftDate(prev, 7));
-    setSelectedDate((prev) => shiftDate(prev, 7));
-  }
+function nextWeek() {
+  setWeekStart((prev) => shiftDate(prev, 7));
+  setSelectedDate((prev) => shiftDate(prev, 7));
+}
 ```
 
 - [ ] **Step 2: Run tests**
