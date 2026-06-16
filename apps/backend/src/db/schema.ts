@@ -233,6 +233,7 @@ export const events = pgTable('events', {
   place: text('place'),
   type: eventTypeEnum('type').notNull().default('EVENT'),
   courseId: integer('course_id').references(() => courses.id),
+  assignmentId: integer('assignment_id').references(() => assignments.id),
   deletedAt: timestamp('deleted_at'),
 });
 

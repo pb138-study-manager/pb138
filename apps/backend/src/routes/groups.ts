@@ -1,7 +1,7 @@
 import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
-import { groups, groupMembers, users, assignments, tasks } from '../db/schema';
+import { groups, groupMembers, users, assignments, tasks, events } from '../db/schema';
 import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { eq, and, isNull, inArray, or } from 'drizzle-orm';
 import { logAction } from '../services/audit';
@@ -315,6 +315,17 @@ export const groupsRoutes = new Elysia({ prefix: '/groups' })
             title: body.title,
             description: body.description,
             dueDate: new Date(body.dueDate),
+          }))
+        );
+        await db.insert(events).values(
+          memberRows.map((m) => ({
+            userId: m.userId,
+            assignmentId: assignment.id,
+            title: body.title,
+            description: body.description ?? null,
+            startDate: new Date(body.dueDate),
+            endDate: new Date(body.dueDate),
+            type: 'DEADLINE' as const,
           }))
         );
       }

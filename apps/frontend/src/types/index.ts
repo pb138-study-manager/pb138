@@ -57,6 +57,7 @@ export interface Event {
   endDate: string;
   place: string | null;
   type: EventType;
+  assignmentId: number | null;
   deletedAt: string | null;
 }
 

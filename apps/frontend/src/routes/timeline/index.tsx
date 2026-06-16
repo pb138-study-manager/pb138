@@ -11,7 +11,6 @@ import NewEventDialog from '@/components/timeline/NewEventDialog';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Event, Task } from '@/types';
-import type { UserProfileResponse } from '@/hooks/useProfileManager';
 import { getWeekStart, isSameDay, shiftDate } from '@/hooks/timeline-utils';
 
 export const Route = createFileRoute('/timeline/')({
@@ -68,11 +67,6 @@ function TimelinePage() {
 
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'cs' ? 'cs-CZ' : 'en-US';
-
-  const { data: me } = useQuery({
-    queryKey: ['userMe'],
-    queryFn: () => api.get<UserProfileResponse>('/users/me').catch(() => null),
-  });
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [calendarUrl, setCalendarUrl] = useState<string | null>(null);
@@ -382,7 +376,7 @@ function TimelinePage() {
             <EventCard
               key={`event-${item.data.id}`}
               event={item.data}
-              canEdit={!!me && item.data.userId === me.id}
+              canEdit={!item.data.assignmentId}
               onDelete={() => deleteEvent(item.data.id)}
               onEdit={(data) => editEvent(item.data.id, data)}
             />
