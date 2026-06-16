@@ -133,11 +133,15 @@ test.describe('Today Page', () => {
   });
 
   test('renders event card for today', async ({ page }) => {
+    // Today page starts on AI tab — switch to the Timeline/Events tab first
+    await page.locator('button').filter({ hasText: /Timeline|Časová os/ }).first().click();
     // Event má názov "Zápas - Test"
     await expect(page.locator('text=Zápas - Test')).toBeVisible();
   });
 
   test('groups tasks into sections correctly', async ({ page }) => {
+    // Today page starts on AI tab — switch to the Tasks tab first
+    await page.locator('button').filter({ hasText: /Tasks|Úlohy/ }).first().click();
     // Zistíme či sa úlohy zobrazujú v správnych sekciách (Titulky by mali obsahovať názvy)
     await expect(page.locator('text=Dnešná úloha 1')).toBeVisible();
     await expect(page.locator('text=Stará úloha z backlogu')).toBeVisible();

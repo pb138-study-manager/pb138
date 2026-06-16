@@ -88,6 +88,7 @@ function NotesPage() {
 
         {view === 'notes' && (
           <button
+            aria-label={t('notes.addFolder')}
             onClick={() => setIsCreateFolderOpen(true)}
             className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
           >
@@ -96,6 +97,7 @@ function NotesPage() {
         )}
         {view === 'folder' && (
           <button
+            aria-label={t('notes.addNote')}
             onClick={() => setIsCreateNoteOpen(true)}
             className="inline-flex shrink-0 items-center justify-center w-8 h-8 rounded-xl border border-border bg-background hover:bg-muted text-foreground transition-colors"
           >

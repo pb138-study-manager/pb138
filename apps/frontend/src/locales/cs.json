@@ -84,6 +84,8 @@
     "title": "Poznámky",
     "addFolder": "Přidat složku",
     "addNote": "Přidat poznámku",
+    "createFolder": "Vytvořit složku",
+    "createNote": "Vytvořit poznámku",
     "rename": "Přejmenovat",
     "delete": "Smazat",
     "empty": "Prázdné...",

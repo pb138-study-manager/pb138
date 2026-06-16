@@ -84,6 +84,8 @@
     "title": "Notes",
     "addFolder": "Add folder",
     "addNote": "Add note",
+    "createFolder": "Create folder",
+    "createNote": "Create note",
     "rename": "Rename",
     "delete": "Delete",
     "empty": "Empty...",

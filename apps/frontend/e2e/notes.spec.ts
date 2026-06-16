@@ -130,7 +130,7 @@ test.describe('Notes page', () => {
 
   test('creates a new folder and opens it', async ({ page }) => {
     await page.getByRole('button', { name: 'Add folder' }).click();
-    await page.getByPlaceholder('Folder name').fill('Work');
+    await page.getByPlaceholder('Enter folder name...').fill('Work');
     await page.getByRole('button', { name: 'Create folder' }).click();
 
     await expect(page.getByText('Work')).toBeVisible();
@@ -141,9 +141,9 @@ test.describe('Notes page', () => {
     await page.getByText('School').click();
     await expect(page.getByText('Study plan')).toBeVisible();
     await page.getByRole('button', { name: 'Add note' }).click();
-    await page.getByPlaceholder('Note title').fill('New test note');
+    await page.getByPlaceholder('Enter note title...').fill('New test note');
     await page.getByRole('button', { name: 'Create note' }).click();
 
-    await expect(page.getByRole('heading', { name: 'New test note' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'New test note' }).first()).toBeVisible();
   });
 });

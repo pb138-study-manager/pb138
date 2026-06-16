@@ -132,30 +132,28 @@ test.describe('Tasks Page', () => {
   });
 
   test('renders task sections and tasks correctly', async ({ page }) => {
-    // We can check either English or Slovak versions depending on default locale.
-    // Usually Playwright defaults to English 'en-US'.
-    await expect(
-      page.locator('h3').filter({ hasText: /(Overdue|Po termíne|Po termínu)/ })
-    ).toBeVisible();
-    await expect(page.locator('h3').filter({ hasText: /(Today|Dnes)/ })).toBeVisible();
-    await expect(
-      page.locator('h3').filter({ hasText: /(This Week|Tento týždeň|Tento týden)/ })
-    ).toBeVisible();
-    await expect(page.locator('h3').filter({ hasText: /(Later|Neskôr|Později)/ })).toBeVisible();
-    await expect(page.locator('h3').filter({ hasText: /(Done|Hotovo)/ })).toBeVisible();
+    // Tasks page uses segmented tabs — each tab shows one section at a time.
+    // Default tab is "Today". The Overdue tab appears because we have an overdue task.
+    await expect(page.locator('button').filter({ hasText: /Overdue|Po termínu/ }).first()).toBeVisible();
+    await expect(page.locator('button').filter({ hasText: /Today|Dnes/ }).first()).toBeVisible();
 
-    // Specific tasks
-    await expect(page.locator('text=Overdue task')).toBeVisible();
+    // Default tab is Today — "Today task" should be visible
     await expect(page.locator('text=Today task')).toBeVisible();
+
+    // Switch to Overdue tab
+    await page.locator('button').filter({ hasText: /Overdue|Po termínu/ }).first().click();
+    await expect(page.locator('text=Overdue task')).toBeVisible();
+
+    // Switch to This Week tab
+    await page.locator('button').filter({ hasText: /This Week|Tento týden/ }).first().click();
     await expect(page.locator('text=This week task')).toBeVisible();
+
+    // Switch to Later tab
+    await page.locator('button').filter({ hasText: /Later|Pozdéji|Neskôr/ }).first().click();
     await expect(page.locator('text=Later task')).toBeVisible();
 
-    // 'Done' section is collapsed by default, let's open it
-    const doneHeader = page
-      .locator('h3')
-      .filter({ hasText: /(Done|Hotovo)/ })
-      .first();
-    await doneHeader.click();
+    // Switch to Done tab
+    await page.locator('button').filter({ hasText: /Done|Hotovo/ }).first().click();
     await expect(page.locator('text=Done task')).toBeVisible();
   });
 

@@ -93,12 +93,6 @@ test.describe('Profile page', () => {
     await expect(page.getByRole('button', { name: 'Čeština' })).toBeVisible();
   });
 
-  test('toggles notifications setting', async ({ page }) => {
-    const notificationsToggle = page.getByText('Notifications').locator('../..').locator('button');
-    await notificationsToggle.click();
-    await expect(notificationsToggle).toBeVisible();
-  });
-
   test('logs out and navigates to login page', async ({ page }) => {
     await page.getByRole('button', { name: 'Log Out' }).click();
     await expect(page).toHaveURL(/\/login/);

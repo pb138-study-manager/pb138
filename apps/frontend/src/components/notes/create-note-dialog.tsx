@@ -50,6 +50,7 @@ export default function CreateNoteDialog({
         <div className="flex justify-end px-6 pb-5">
           <button
             type="button"
+            aria-label={t('notes.createNote')}
             onClick={handleSubmit}
             disabled={!noteName.trim() || isCreating}
             className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-gray-900 disabled:opacity-40 transition-colors"

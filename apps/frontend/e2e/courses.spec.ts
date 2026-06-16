@@ -65,6 +65,15 @@ async function mockCourses(page: Page) {
       return;
     }
 
+    if (request.method() === 'GET' && url.pathname === '/courses/teaching') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(courses.map((c) => ({ ...c, studentCount: 0 }))),
+      });
+      return;
+    }
+
     if (request.method() === 'POST' && url.pathname === '/courses') {
       const payload = request.postDataJSON() as { code: string; name?: string; semester: string };
       const newCourse: Course = {
@@ -199,7 +208,7 @@ test.describe('Courses page', () => {
     await page.getByPlaceholder('e.g. Spring 2026').fill('Summer 2026');
 
     await page.getByRole('button', { name: 'Create Course' }).click();
-    await expect(page).toHaveURL(/\/courses$/);
+    await expect(page).toHaveURL(/\/teachers$/);
     await expect(page.getByText('PB180')).toBeVisible();
     await expect(page.getByText('Advanced Testing')).toBeVisible();
   });
