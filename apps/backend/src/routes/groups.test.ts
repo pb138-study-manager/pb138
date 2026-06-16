@@ -9,6 +9,7 @@ import {
   groupMembers,
   assignments,
   tasks,
+  events,
   auditLogs,
 } from '../db/schema';
 import { groupsRoutes } from './groups';
@@ -86,6 +87,7 @@ afterAll(async () => {
       .from(assignments)
       .where(eq(assignments.groupId, g.id));
     for (const a of assignmentRows) {
+      await db.delete(events).where(eq(events.assignmentId, a.id));
       await db.delete(tasks).where(eq(tasks.assignmentId, a.id));
     }
     await db.delete(assignments).where(eq(assignments.groupId, g.id));

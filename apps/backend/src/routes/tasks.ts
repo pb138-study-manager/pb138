@@ -2,7 +2,7 @@ import { Elysia } from 'elysia';
 import { z } from 'zod';
 import { db } from '../db';
 import { tasks, evals, assignments, users } from '../db/schema';
-import type { AuthUser } from '../middleware/auth';
+import { authMiddleware, type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { zodBody } from '../lib/validation';
@@ -43,6 +43,13 @@ const AssignTaskSchema = z.object({
 });
 
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
+  .use(authMiddleware)
+  .onBeforeHandle(({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'UNAUTHORIZED', message: 'Invalid or missing token' };
+    }
+  })
   .get('/', async ({ user }) => {
     const authUser = user as AuthUser;
     const parentTasks = await db
