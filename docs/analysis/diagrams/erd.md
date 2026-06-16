@@ -37,6 +37,7 @@ erDiagram
         bool light_theme
         string language "default 'en'"
         jsonb custom_nav "nullable — custom bottom nav slots"
+        string calendar_token "nullable"
     }
 
     %% RBAC
@@ -85,6 +86,7 @@ erDiagram
         int created_by FK "→ User"
         string title
         string url "nullable"
+        string storage_path "nullable — Supabase Storage"
         string description "nullable"
         datetime deleted_at
     }
@@ -92,7 +94,7 @@ erDiagram
     %% Groups & Assignments
     Group {
         int id PK
-        int teacher_id FK "→ User"
+        int mentor_id FK "→ User"
         string name
         string type "enum: SEMINAR | GROUP"
         datetime deleted_at
@@ -110,6 +112,7 @@ erDiagram
         string title
         string description "nullable"
         datetime due_date "deadline shown in student's timeline"
+        string eval_type "enum: none | pass_fail | graded"
         datetime deleted_at
     }
 
@@ -130,8 +133,11 @@ erDiagram
         int parent_id FK "nullable → Task (subtask)"
         string title
         string description "nullable"
-        datetime due_date "nullable — student sets own target date"
+        datetime due_date "nullable"
         string status "enum: TODO | IN PROGRESS | DONE"
+        datetime completed_at "nullable"
+        string priority "nullable — enum: LOW | MEDIUM | HIGH"
+        text[] tags "default []"
         datetime deleted_at
     }
 
@@ -148,6 +154,7 @@ erDiagram
         int id PK
         int user_id FK
         int course_id FK "nullable"
+        int assignment_id FK "nullable — set for teacher-assigned deadlines"
         string title
         string description "nullable"
         datetime start_date
@@ -162,6 +169,7 @@ erDiagram
         int id PK
         int user_id FK
         string name
+        text[] tags "default []"
         datetime deleted_at
     }
 
@@ -172,10 +180,11 @@ erDiagram
         int course_id FK "nullable"
         string title
         string description "nullable"
+        text[] tags "default []"
         datetime deleted_at
     }
 
-    %% Notifications & Audit
+    %% Audit & Email
     EmailTemplate {
         int id PK
         string type "unique"
@@ -223,7 +232,7 @@ erDiagram
 
     Assignment ||--o{ AssignmentSubtask : "has"
 
-    User ||--o{ Group : "teaches"
+    User ||--o{ Group : "mentors"
     User ||--o{ GroupMember : "member of"
     GroupMember }o--|| Group : "has"
     Group ||--o{ Assignment : "has"
@@ -237,6 +246,7 @@ erDiagram
 
     User ||--o{ Event : "has"
     Event }o--o| Course : "linked to"
+    Event }o--o| Assignment : "deadline for"
 
     User ||--o{ Folder : "has"
     User ||--o{ Note : "has"
