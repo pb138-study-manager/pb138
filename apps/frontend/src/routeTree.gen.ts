@@ -13,7 +13,27 @@ import { Route as VerifyEmailRouteImport } from './routes/verify-email'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CustomNavRouteImport } from './routes/custom-nav'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TodayIndexRouteImport } from './routes/today/index'
+import { Route as TimelineIndexRouteImport } from './routes/timeline/index'
+import { Route as TeachersIndexRouteImport } from './routes/teachers/index'
+import { Route as TasksIndexRouteImport } from './routes/tasks/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as OthersIndexRouteImport } from './routes/others/index'
+import { Route as NotesIndexRouteImport } from './routes/notes/index'
+import { Route as CoursesIndexRouteImport } from './routes/courses/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as TeachersNewRouteImport } from './routes/teachers/new'
+import { Route as NotesNoteIdRouteImport } from './routes/notes/$noteId'
+import { Route as CoursesNewRouteImport } from './routes/courses/new'
+import { Route as CoursesCourseIdRouteImport } from './routes/courses/$courseId'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRolesRouteImport } from './routes/admin/roles'
+import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminDatabaseRouteImport } from './routes/admin/database'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -35,48 +55,296 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomNavRoute = CustomNavRouteImport.update({
+  id: '/custom-nav',
+  path: '/custom-nav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TodayIndexRoute = TodayIndexRouteImport.update({
+  id: '/today/',
+  path: '/today/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimelineIndexRoute = TimelineIndexRouteImport.update({
+  id: '/timeline/',
+  path: '/timeline/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeachersIndexRoute = TeachersIndexRouteImport.update({
+  id: '/teachers/',
+  path: '/teachers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TasksIndexRoute = TasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OthersIndexRoute = OthersIndexRouteImport.update({
+  id: '/others/',
+  path: '/others/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesIndexRoute = NotesIndexRouteImport.update({
+  id: '/notes/',
+  path: '/notes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesIndexRoute = CoursesIndexRouteImport.update({
+  id: '/courses/',
+  path: '/courses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const TeachersNewRoute = TeachersNewRouteImport.update({
+  id: '/teachers/new',
+  path: '/teachers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesNoteIdRoute = NotesNoteIdRouteImport.update({
+  id: '/notes/$noteId',
+  path: '/notes/$noteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesNewRoute = CoursesNewRouteImport.update({
+  id: '/courses/new',
+  path: '/courses/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
+  id: '/courses/$courseId',
+  path: '/courses/$courseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminLogsRoute = AdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminDatabaseRoute = AdminDatabaseRouteImport.update({
+  id: '/database',
+  path: '/database',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/courses/': typeof CoursesIndexRoute
+  '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/admin': typeof AdminIndexRoute
+  '/courses': typeof CoursesIndexRoute
+  '/notes': typeof NotesIndexRoute
+  '/others': typeof OthersIndexRoute
+  '/profile': typeof ProfileIndexRoute
+  '/tasks': typeof TasksIndexRoute
+  '/teachers': typeof TeachersIndexRoute
+  '/timeline': typeof TimelineIndexRoute
+  '/today': typeof TodayIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/custom-nav': typeof CustomNavRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/database': typeof AdminDatabaseRoute
+  '/admin/logs': typeof AdminLogsRoute
+  '/admin/roles': typeof AdminRolesRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/new': typeof CoursesNewRoute
+  '/notes/$noteId': typeof NotesNoteIdRoute
+  '/teachers/new': typeof TeachersNewRoute
+  '/admin/': typeof AdminIndexRoute
+  '/courses/': typeof CoursesIndexRoute
+  '/notes/': typeof NotesIndexRoute
+  '/others/': typeof OthersIndexRoute
+  '/profile/': typeof ProfileIndexRoute
+  '/tasks/': typeof TasksIndexRoute
+  '/teachers/': typeof TeachersIndexRoute
+  '/timeline/': typeof TimelineIndexRoute
+  '/today/': typeof TodayIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/admin/'
+    | '/courses/'
+    | '/notes/'
+    | '/others/'
+    | '/profile/'
+    | '/tasks/'
+    | '/teachers/'
+    | '/timeline/'
+    | '/today/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
-  id: '__root__' | '/' | '/dashboard' | '/login' | '/register' | '/verify-email'
+  to:
+    | '/'
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/admin'
+    | '/courses'
+    | '/notes'
+    | '/others'
+    | '/profile'
+    | '/tasks'
+    | '/teachers'
+    | '/timeline'
+    | '/today'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/custom-nav'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/verify-email'
+    | '/admin/database'
+    | '/admin/logs'
+    | '/admin/roles'
+    | '/admin/settings'
+    | '/admin/users'
+    | '/courses/$courseId'
+    | '/courses/new'
+    | '/notes/$noteId'
+    | '/teachers/new'
+    | '/admin/'
+    | '/courses/'
+    | '/notes/'
+    | '/others/'
+    | '/profile/'
+    | '/tasks/'
+    | '/teachers/'
+    | '/timeline/'
+    | '/today/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  CustomNavRoute: typeof CustomNavRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  CoursesNewRoute: typeof CoursesNewRoute
+  NotesNoteIdRoute: typeof NotesNoteIdRoute
+  TeachersNewRoute: typeof TeachersNewRoute
+  CoursesIndexRoute: typeof CoursesIndexRoute
+  NotesIndexRoute: typeof NotesIndexRoute
+  OthersIndexRoute: typeof OthersIndexRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+  TasksIndexRoute: typeof TasksIndexRoute
+  TeachersIndexRoute: typeof TeachersIndexRoute
+  TimelineIndexRoute: typeof TimelineIndexRoute
+  TodayIndexRoute: typeof TodayIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -109,6 +377,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/custom-nav': {
+      id: '/custom-nav'
+      path: '/custom-nav'
+      fullPath: '/custom-nav'
+      preLoaderRoute: typeof CustomNavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -116,15 +398,177 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/today/': {
+      id: '/today/'
+      path: '/today'
+      fullPath: '/today/'
+      preLoaderRoute: typeof TodayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/timeline/': {
+      id: '/timeline/'
+      path: '/timeline'
+      fullPath: '/timeline/'
+      preLoaderRoute: typeof TimelineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teachers/': {
+      id: '/teachers/'
+      path: '/teachers'
+      fullPath: '/teachers/'
+      preLoaderRoute: typeof TeachersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tasks/': {
+      id: '/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof TasksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/others/': {
+      id: '/others/'
+      path: '/others'
+      fullPath: '/others/'
+      preLoaderRoute: typeof OthersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/': {
+      id: '/notes/'
+      path: '/notes'
+      fullPath: '/notes/'
+      preLoaderRoute: typeof NotesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/': {
+      id: '/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof CoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/teachers/new': {
+      id: '/teachers/new'
+      path: '/teachers/new'
+      fullPath: '/teachers/new'
+      preLoaderRoute: typeof TeachersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes/$noteId': {
+      id: '/notes/$noteId'
+      path: '/notes/$noteId'
+      fullPath: '/notes/$noteId'
+      preLoaderRoute: typeof NotesNoteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/new': {
+      id: '/courses/new'
+      path: '/courses/new'
+      fullPath: '/courses/new'
+      preLoaderRoute: typeof CoursesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$courseId': {
+      id: '/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId'
+      preLoaderRoute: typeof CoursesCourseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/logs': {
+      id: '/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AdminLogsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/database': {
+      id: '/admin/database'
+      path: '/database'
+      fullPath: '/admin/database'
+      preLoaderRoute: typeof AdminDatabaseRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminDatabaseRoute: typeof AdminDatabaseRoute
+  AdminLogsRoute: typeof AdminLogsRoute
+  AdminRolesRoute: typeof AdminRolesRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminDatabaseRoute: AdminDatabaseRoute,
+  AdminLogsRoute: AdminLogsRoute,
+  AdminRolesRoute: AdminRolesRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  CustomNavRoute: CustomNavRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  CoursesCourseIdRoute: CoursesCourseIdRoute,
+  CoursesNewRoute: CoursesNewRoute,
+  NotesNoteIdRoute: NotesNoteIdRoute,
+  TeachersNewRoute: TeachersNewRoute,
+  CoursesIndexRoute: CoursesIndexRoute,
+  NotesIndexRoute: NotesIndexRoute,
+  OthersIndexRoute: OthersIndexRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+  TasksIndexRoute: TasksIndexRoute,
+  TeachersIndexRoute: TeachersIndexRoute,
+  TimelineIndexRoute: TimelineIndexRoute,
+  TodayIndexRoute: TodayIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

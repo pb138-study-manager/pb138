@@ -1,0 +1,98 @@
+<h2>AI Copilot</h2>
+<p class="subtitle">Section 4 of 5 — What the AI actually does and how it feels. Does this capture the "full copilot" vision?</p>
+
+<div class="section">
+  <h3>The AI Panel — 3 modes</h3>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+
+    <!-- Mode 1: Proactive feed -->
+    <div style="flex:1;min-width:180px">
+      <div style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">① Proactive Feed (default)</div>
+      <div style="background:#f0f9ff;border:1.5px solid #38bdf8;border-radius:10px;padding:12px;font-size:11px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10px;font-weight:700;color:#0284c7;letter-spacing:.06em">🤖 AI COPILOT</div>
+        <div style="background:#fff;border-radius:6px;padding:8px;border-left:3px solid #ef4444">
+          <div style="font-size:10px;font-weight:600;color:#dc2626;margin-bottom:2px">⚠ Overload warning</div>
+          <div style="font-size:10px;color:#475569">You have 5 tasks due this week + 2 exams. You're likely overloaded. Want me to reschedule lower-priority tasks?</div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <div style="background:#6366f1;color:#fff;border-radius:4px;padding:2px 8px;font-size:9px;cursor:pointer">Yes, reschedule</div>
+            <div style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:9px;cursor:pointer">Ignore</div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:8px;border-left:3px solid #f59e0b">
+          <div style="font-size:10px;font-weight:600;color:#d97706;margin-bottom:2px">📌 Priority nudge</div>
+          <div style="font-size:10px;color:#475569">PB138 Project 2 is due in 3 days and still TODO. Suggest starting now.</div>
+        </div>
+        <div style="background:#fff;border-radius:6px;padding:8px;border-left:3px solid #4ade80">
+          <div style="font-size:10px;font-weight:600;color:#16a34a;margin-bottom:2px">✅ Good progress</div>
+          <div style="font-size:10px;color:#475569">You completed 8 tasks this week — 60% more than last week. Keep it up!</div>
+        </div>
+        <div style="background:#e0f2fe;border-radius:6px;padding:5px 8px;font-size:10px;color:#0284c7;text-align:center;cursor:pointer">Ask something… ✦</div>
+      </div>
+    </div>
+
+    <!-- Mode 2: Chat -->
+    <div style="flex:1;min-width:180px">
+      <div style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">② Chat mode</div>
+      <div style="background:#f0f9ff;border:1.5px solid #38bdf8;border-radius:10px;padding:12px;font-size:11px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10px;font-weight:700;color:#0284c7;letter-spacing:.06em">🤖 AI COPILOT</div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+          <div style="background:#e0f2fe;border-radius:6px 6px 6px 2px;padding:6px 8px;font-size:10px;color:#0369a1;align-self:flex-start;max-width:90%">What should I study today?</div>
+          <div style="background:#fff;border-radius:6px 6px 2px 6px;padding:6px 8px;font-size:10px;color:#1e293b;border:1px solid #e0f2fe;align-self:flex-end;max-width:90%">Based on your deadlines: focus on PB138 Project 2 first (due Thu), then review your PB162 notes — you haven't touched them in 5 days.</div>
+          <div style="background:#e0f2fe;border-radius:6px 6px 6px 2px;padding:6px 8px;font-size:10px;color:#0369a1;align-self:flex-start;max-width:90%">Summarize my PB138 notes</div>
+          <div style="background:#fff;border-radius:6px 6px 2px 6px;padding:6px 8px;font-size:10px;color:#1e293b;border:1px solid #e0f2fe;align-self:flex-end;max-width:90%">📝 You have 3 notes in PB138. Key topics: REST APIs, ElysiaJS routing, Drizzle ORM. Want the full summary?</div>
+        </div>
+        <div style="background:#fff;border:1px solid #bae6fd;border-radius:6px;padding:5px 8px;font-size:10px;color:#94a3b8;display:flex;justify-content:space-between">
+          <span>Ask anything…</span><span style="color:#6366f1">↑</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode 3: Weekly plan -->
+    <div style="flex:1;min-width:180px">
+      <div style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">③ Weekly Plan Generator</div>
+      <div style="background:#f0f9ff;border:1.5px solid #38bdf8;border-radius:10px;padding:12px;font-size:11px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:10px;font-weight:700;color:#0284c7;letter-spacing:.06em">🤖 WEEKLY PLAN</div>
+        <div style="font-size:10px;color:#475569;margin-bottom:2px">Generated for May 19–25 based on your tasks, deadlines and free slots:</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="background:#fff;border-radius:6px;padding:5px 8px;border-left:3px solid #6366f1;font-size:10px">
+            <div style="font-weight:600">Mon AM</div>
+            <div style="color:#475569">PB138 Project 2 — start REST endpoints (2h)</div>
+          </div>
+          <div style="background:#fff;border-radius:6px;padding:5px 8px;border-left:3px solid #f59e0b;font-size:10px">
+            <div style="font-weight:600">Tue PM</div>
+            <div style="color:#475569">PB162 — review Week 8 lecture notes (1h)</div>
+          </div>
+          <div style="background:#fff;border-radius:6px;padding:5px 8px;border-left:3px solid #4ade80;font-size:10px">
+            <div style="font-weight:600">Wed AM</div>
+            <div style="color:#475569">PB138 Project 2 — testing + submit (2h)</div>
+          </div>
+          <div style="background:#fff;border-radius:6px;padding:5px 8px;border-left:3px solid #e2e8f0;font-size:10px;color:#94a3b8">
+            <div style="font-weight:600">Thu–Fri</div>
+            <div>Buffer + exam prep</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <div style="background:#6366f1;color:#fff;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer">Add to Timeline</div>
+          <div style="background:#f1f5f9;color:#475569;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer">Regenerate</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px">
+  <h3>What the AI knows (data it reads)</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="background:#f1f5f9;border-radius:6px;padding:6px 10px;font-size:11px">📅 Your tasks + due dates</div>
+    <div style="background:#f1f5f9;border-radius:6px;padding:6px 10px;font-size:11px">📚 Your enrolled courses</div>
+    <div style="background:#f1f5f9;border-radius:6px;padding:6px 10px;font-size:11px">📝 Your notes content</div>
+    <div style="background:#f1f5f9;border-radius:6px;padding:6px 10px;font-size:11px">📊 Task completion history</div>
+    <div style="background:#f1f5f9;border-radius:6px;padding:6px 10px;font-size:11px">📅 Timeline events</div>
+    <div style="background:#e0f2fe;border-radius:6px;padding:6px 10px;font-size:11px;color:#0369a1">🔒 Never shared with teachers</div>
+  </div>
+</div>
+
+<div style="margin-top:16px;background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 14px;font-size:12px;color:#713f12">
+  <strong>Implementation note:</strong> AI features call the Claude API (claude-sonnet-4-6). The backend adds a <code>/ai</code> route that accepts context (tasks, notes, deadlines) and a prompt, calls Claude, and streams the response back. Student data is <em>never</em> visible to teachers through AI.
+</div>

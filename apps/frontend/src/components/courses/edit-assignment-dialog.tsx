@@ -1,0 +1,411 @@
+import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Calendar,
+  ClipboardCheck,
+  Users,
+  ListTodo,
+  Check,
+  CheckCircle,
+  Circle,
+  Plus,
+  X,
+  Star,
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import DatePickerDialog from '@/components/tasks/date-picker-dialog';
+import { api } from '@/lib/api';
+
+interface AssignmentStudent {
+  taskId: number;
+  userId: number;
+  name: string | null;
+  email: string;
+  avatar: string | null;
+  status: 'TODO' | 'IN PROGRESS' | 'DONE';
+  evalScore: number | null;
+  evalFeedback: string | null;
+}
+
+interface AssignmentSubtask {
+  id: number;
+  assignmentId: number;
+  title: string;
+  sortOrder: number;
+}
+
+interface Props {
+  assignmentId: number;
+  courseId: string;
+  initialTitle: string;
+  initialDescription: string | null;
+  initialDueDate: string;
+  initialEvalType: 'none' | 'pass_fail' | 'graded';
+  onClose: () => void;
+  onEval: (
+    taskId: number,
+    evalScore: number | null,
+    evalFeedback: string | null,
+    evalType: 'pass_fail' | 'graded'
+  ) => void;
+}
+
+const EVAL_LABELS: Record<string, string> = {
+  none: 'No eval',
+  pass_fail: 'Pass/Fail',
+  graded: 'Graded',
+};
+
+export default function EditAssignmentDialog({
+  assignmentId,
+  courseId,
+  initialTitle,
+  initialDueDate,
+  initialEvalType,
+  onClose,
+  onEval,
+}: Props) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState(initialTitle);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(initialDueDate));
+  const [evalType, setEvalType] = useState(initialEvalType);
+  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [studentsExpanded, setStudentsExpanded] = useState(false);
+  const [subtasksExpanded, setSubtasksExpanded] = useState(false);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const initializedRef = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      initializedRef.current = true;
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    if (!initializedRef.current || !title.trim() || !selectedDate) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await api.patch(`/courses/${courseId}/assignments/${assignmentId}`, {
+          title: title.trim(),
+          dueDate: selectedDate.toISOString(),
+          evalType,
+        });
+        queryClient.invalidateQueries({ queryKey: ['courseAssignments', courseId] });
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      } catch {
+        /* silently ignore */
+      }
+    }, 600);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [title, selectedDate, evalType, assignmentId, courseId, queryClient]);
+
+  const { data: students = [] } = useQuery({
+    queryKey: ['assignmentStudents', assignmentId],
+    queryFn: () =>
+      api
+        .get<AssignmentStudent[]>(`/courses/${courseId}/assignments/${assignmentId}/students`)
+        .catch(() => []),
+    enabled: studentsExpanded,
+  });
+
+  const { data: subtasks = [], refetch: refetchSubtasks } = useQuery({
+    queryKey: ['assignmentSubtasks', assignmentId],
+    queryFn: () =>
+      api
+        .get<AssignmentSubtask[]>(`/courses/${courseId}/assignments/${assignmentId}/subtasks`)
+        .catch(() => []),
+    enabled: subtasksExpanded,
+  });
+
+  async function handleAddSubtask() {
+    if (!newSubtaskTitle.trim()) return;
+    setAddingSubtask(true);
+    try {
+      await api.post(`/courses/${courseId}/assignments/${assignmentId}/subtasks`, {
+        title: newSubtaskTitle.trim(),
+      });
+      setNewSubtaskTitle('');
+      refetchSubtasks();
+    } catch {
+      /* silently ignore */
+    } finally {
+      setAddingSubtask(false);
+    }
+  }
+
+  async function handleDeleteSubtask(subtaskId: number) {
+    try {
+      await api.delete(`/courses/${courseId}/assignments/${assignmentId}/subtasks/${subtaskId}`);
+      refetchSubtasks();
+    } catch {
+      /* silently ignore */
+    }
+  }
+
+  const totalStudents = students.length;
+  const doneCount = students.filter((s) => s.status === 'DONE').length;
+  const deadlinePassed = selectedDate !== null && selectedDate < new Date();
+
+  const pills = [
+    {
+      icon: Calendar,
+      label: selectedDate ? selectedDate.toLocaleDateString() : 'Deadline',
+      active: selectedDate !== null,
+      onClick: () => setIsDateOpen(true),
+    },
+  ];
+
+  return (
+    <>
+      <Dialog open onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="hidden">Edit Assignment</DialogTitle>
+          </DialogHeader>
+          <div className="px-6 py-6 space-y-0">
+            <Input
+              placeholder="Assignment name..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              autoFocus
+              className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
+            />
+
+            <div className="border-t" />
+
+            <div className="flex flex-wrap gap-2 pt-4">
+              {/* Deadline date pill */}
+              {pills.map((pill) => (
+                <button
+                  key={pill.label}
+                  onClick={pill.onClick}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    pill.active
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <pill.icon className="w-3.5 h-3.5" />
+                  {pill.label}
+                </button>
+              ))}
+
+              {/* Eval type dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                    evalType !== 'none'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  {EVAL_LABELS[evalType]}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {(['none', 'pass_fail', 'graded'] as const).map((type) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => setEvalType(type)}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      {EVAL_LABELS[type]}
+                      {evalType === type && <Check className="w-4 h-4 text-indigo-500" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Subtasks pill */}
+              <button
+                onClick={() => setSubtasksExpanded((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                  subtasksExpanded
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <ListTodo className="w-3.5 h-3.5" />
+                {subtasks.length > 0
+                  ? `${subtasks.length} subtask${subtasks.length !== 1 ? 's' : ''}`
+                  : 'Subtasks'}
+              </button>
+
+              {/* Students pill */}
+              <button
+                onClick={() => setStudentsExpanded((v) => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                  studentsExpanded
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                {totalStudents > 0 ? `${doneCount}/${totalStudents} done` : 'Students'}
+              </button>
+            </div>
+
+            {/* Subtasks section */}
+            {subtasksExpanded && (
+              <>
+                <div className="border-t my-3" />
+                <div className="space-y-1.5">
+                  {subtasks.map((s) => (
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
+                    >
+                      <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">
+                        {s.title}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteSubtask(s.id)}
+                        className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      placeholder="Add a subtask..."
+                      value={newSubtaskTitle}
+                      onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAddSubtask();
+                      }}
+                      className="text-sm h-8 flex-1"
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="w-8 h-8 shrink-0"
+                      onClick={handleAddSubtask}
+                      disabled={!newSubtaskTitle.trim() || addingSubtask}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Students expanded section */}
+            {studentsExpanded && (
+              <>
+                <div className="border-t my-3" />
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {students.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-2">No students assigned.</p>
+                  ) : (
+                    students.map((s) => {
+                      const initials = (s.name ?? s.email)
+                        .split(' ')
+                        .map((w: string) => w[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase();
+                      return (
+                        <div
+                          key={s.taskId}
+                          className="flex items-center gap-2 px-2 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm"
+                        >
+                          {s.avatar ? (
+                            <img
+                              src={s.avatar}
+                              alt=""
+                              className="w-6 h-6 rounded-full object-cover shrink-0"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                              <span className="text-[10px] font-bold text-indigo-600">
+                                {initials}
+                              </span>
+                            </div>
+                          )}
+                          <span className="flex-1 truncate text-gray-700 dark:text-gray-300">
+                            {s.name ?? s.email}
+                          </span>
+                          {s.status === 'DONE' ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : deadlinePassed ? (
+                            <Circle className="w-4 h-4 text-red-400 shrink-0" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-gray-300 shrink-0" />
+                          )}
+                          {evalType === 'none' ? (
+                            <span
+                              className="text-xs text-gray-300 dark:text-gray-600 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0 cursor-default"
+                              title={t('courses.setEvalTypeHint')}
+                            >
+                              Eval
+                            </span>
+                          ) : s.status === 'DONE' || deadlinePassed ? (
+                            <button
+                              onClick={() =>
+                                onEval(
+                                  s.taskId,
+                                  s.evalScore,
+                                  s.evalFeedback,
+                                  evalType as 'pass_fail' | 'graded'
+                                )
+                              }
+                              className="shrink-0 flex items-center gap-1"
+                            >
+                              {evalType === 'pass_fail' && s.evalScore !== null ? (
+                                s.evalScore === 1 ? (
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                    ✓ Pass
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                    ✗ Fail
+                                  </span>
+                                )
+                              ) : evalType === 'graded' && s.evalScore !== null ? (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300">
+                                  {s.evalScore} b.
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition-colors">
+                                  <Star className="w-3 h-3" />
+                                  {t('courses.evaluate')}
+                                </span>
+                              )}
+                            </button>
+                          ) : null}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DatePickerDialog
+        isOpen={isDateOpen}
+        onOpenChange={setIsDateOpen}
+        currentDate={selectedDate}
+        onDateSelect={setSelectedDate}
+      />
+    </>
+  );
+}

@@ -1,24 +1,51 @@
 export type TaskStatus = 'TODO' | 'IN PROGRESS' | 'DONE';
-export type RoleName = 'USER' | 'MENTOR' | 'ADMIN';
+export type RoleName = 'USER' | 'ADMIN' | 'TEACHER';
 
 export interface User {
   id: number;
   login: string;
   email: string;
   roles: RoleName[];
+  name: string;
+  avatarUrl: string;
+}
+
+export interface Mentor {
+  id: number;
+  name: string;
+  code: string;
+  avatarUrl: string;
 }
 
 export interface Task {
   id: number;
   userId: number;
   assignmentId: number | null;
+  courseId: number | null;
+  parentId: number | null;
   title: string;
   description: string | null;
-  dueDate: string;
+  dueDate: string | null;
+  assignmentDeadline?: string | null;
   status: TaskStatus;
   deletedAt: string | null;
+  subtasks?: Task[];
+  subtaskCount?: number;
+  doneSubtaskCount?: number;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | null;
+  tags?: string[];
   eval?: Eval;
 }
+
+export interface FeaturedTaskItem {
+  id: number;
+  title: string;
+  time: string;
+  location: string;
+  color: 'yellow' | 'green';
+}
+
+export type EventType = 'EVENT' | 'DEADLINE';
 
 export interface Event {
   id: number;
@@ -28,6 +55,8 @@ export interface Event {
   startDate: string;
   endDate: string;
   place: string | null;
+  type: EventType;
+  assignmentId: number | null;
   deletedAt: string | null;
 }
 
@@ -36,7 +65,33 @@ export interface Note {
   userId: number;
   title: string;
   description: string;
+  folderId?: number | null;
+  courseId?: number | null;
+  tags?: string[];
   deletedAt: string | null;
+}
+
+export type NoteModel = Note;
+
+export interface FolderModel {
+  id: number;
+  userId: number;
+  name: string;
+  tags?: string[];
+  deletedAt: string | null;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  href: string;
+}
+
+export interface UserSettings {
+  lightTheme: boolean;
+  notificationsEnabled: boolean;
+  language?: string;
+  customNav?: NavItem[];
 }
 
 export interface Group {
@@ -61,4 +116,64 @@ export interface Eval {
   feedback: string;
   score: number;
   evaluatedAt: string;
+}
+
+/** Študent v kurze (mock / neskôr z API) */
+export interface CourseStudent {
+  id: number;
+  name: string;
+  login: string;
+}
+
+/** Položka študijného materiálu v kurze */
+export interface CourseStudyMaterial {
+  id: string;
+  title: string;
+  description: string | null;
+  /** Voliteľný odkaz (PDF, video, …) */
+  url: string | null;
+}
+
+/** Úloha zobrazená v detaile kurzu */
+export interface CourseTaskListItem {
+  id: string;
+  title: string;
+  dueLabel: string;
+  subject: string | null;
+  /** Komu je úloha určená */
+  target: 'all' | 'one';
+  targetStudentName: string | null;
+}
+
+export interface AdminUser {
+  id: number;
+  login: string;
+  email: string;
+  name: string | null;
+  deletedAt: string | null;
+  roles: RoleName[];
+}
+
+export interface AdminAuditLog {
+  id: number;
+  actorId: number;
+  actorLogin: string | null;
+  description: string;
+  happenedAt: string;
+}
+
+export interface AdminRole {
+  id: number;
+  name: RoleName;
+  permissions: string[];
+}
+
+export interface PublicProfile {
+  id: number;
+  login: string;
+  name: string | null;
+  title: string | null;
+  avatar: string | null;
+  organization: string | null;
+  bio: string | null;
 }

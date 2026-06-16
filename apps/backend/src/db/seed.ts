@@ -17,7 +17,7 @@ async function seed() {
   console.log('  → Inserting roles...');
   const insertedRoles = await db
     .insert(roles)
-    .values([{ name: 'USER' }, { name: 'MENTOR' }, { name: 'ADMIN' }])
+    .values([{ name: 'USER' }, { name: 'ADMIN' }, { name: 'TEACHER' }])
     .onConflictDoNothing()
     .returning();
 
@@ -68,25 +68,38 @@ async function seed() {
   const permMap = Object.fromEntries(allPermissions.map((p) => [p.name, p.id]));
 
   const userPermissions = [
-    'CREATE_TASK', 'EDIT_TASK', 'DELETE_TASK',
-    'CREATE_EVENT', 'EDIT_EVENT', 'DELETE_EVENT',
-    'CREATE_NOTE', 'EDIT_NOTE', 'DELETE_NOTE',
+    'CREATE_TASK',
+    'EDIT_TASK',
+    'DELETE_TASK',
+    'CREATE_EVENT',
+    'EDIT_EVENT',
+    'DELETE_EVENT',
+    'CREATE_NOTE',
+    'EDIT_NOTE',
+    'DELETE_NOTE',
   ];
 
-  const mentorPermissions = [
+  const teacherPermissions = [
     ...userPermissions,
-    'MANAGE_GROUP', 'ADD_TO_GROUP', 'REMOVE_FROM_GROUP',
-    'ASSIGN_TASK', 'EVALUATE_TASK', 'SEARCH_USERS',
+    'MANAGE_GROUP',
+    'ADD_TO_GROUP',
+    'REMOVE_FROM_GROUP',
+    'ASSIGN_TASK',
+    'EVALUATE_TASK',
+    'SEARCH_USERS',
   ];
 
   const adminPermissions = [
-    ...mentorPermissions,
-    'MANAGE_USERS', 'MANAGE_ROLES', 'VIEW_LOGS', 'MANAGE_SYSTEM_SETTINGS',
+    ...teacherPermissions,
+    'MANAGE_USERS',
+    'MANAGE_ROLES',
+    'VIEW_LOGS',
+    'MANAGE_SYSTEM_SETTINGS',
   ];
 
   const mappings = [
     ...userPermissions.map((p) => ({ roleId: roleMap['USER'], permissionId: permMap[p] })),
-    ...mentorPermissions.map((p) => ({ roleId: roleMap['MENTOR'], permissionId: permMap[p] })),
+    ...teacherPermissions.map((p) => ({ roleId: roleMap['TEACHER'], permissionId: permMap[p] })),
     ...adminPermissions.map((p) => ({ roleId: roleMap['ADMIN'], permissionId: permMap[p] })),
   ];
 

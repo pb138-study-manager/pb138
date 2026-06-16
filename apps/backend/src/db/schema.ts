@@ -7,14 +7,22 @@ import {
   boolean,
   timestamp,
   primaryKey,
+  unique,
+  jsonb,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
 
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN']);
+export const roleNameEnum = pgEnum('role_name', ['USER', 'ADMIN', 'TEACHER']);
 export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
+export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
+export const eventTypeEnum = pgEnum('event_type', ['EVENT', 'DEADLINE']);
+export const evalTypeEnum = pgEnum('eval_type', ['none', 'pass_fail', 'graded']);
+export const taskPriorityEnum = pgEnum('task_priority', ['LOW', 'MEDIUM', 'HIGH']);
 
 // ---------------------------------------------------------------------------
 // User & Auth
@@ -25,7 +33,7 @@ export const users = pgTable('users', {
   authId: text('auth_id').unique(), // Supabase Auth UUID
   email: text('email').notNull().unique(),
   login: text('login').notNull().unique(),
-  pwdHash: text('pwd_hash').notNull().default(''),  // managed by Supabase Auth, kept for schema completeness
+  pwdHash: text('pwd_hash').notNull().default(''), // managed by Supabase Auth, kept for schema completeness
   activeSession: boolean('active_session').notNull().default(false),
   deletedAt: timestamp('deleted_at'),
 });
@@ -47,6 +55,9 @@ export const userSettings = pgTable('user_settings', {
     .references(() => users.id),
   notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
   lightTheme: boolean('light_theme').notNull().default(true),
+  language: text('language').notNull().default('en'),
+  customNav: jsonb('custom_nav'),
+  calendarToken: text('calendar_token'),
 });
 
 // ---------------------------------------------------------------------------
@@ -103,6 +114,7 @@ export const groups = pgTable('groups', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
+  type: groupTypeEnum('type').notNull().default('GROUP'),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -123,14 +135,46 @@ export const groupMembers = pgTable(
 
 export const assignments = pgTable('assignments', {
   id: serial('id').primaryKey(),
-  groupId: integer('group_id')
-    .notNull()
-    .references(() => groups.id),
+  groupId: integer('group_id').references(() => groups.id),
   title: text('title').notNull(),
   description: text('description'),
+  courseId: integer('course_id').references(() => courses.id),
   dueDate: timestamp('due_date').notNull(),
+  evalType: evalTypeEnum('eval_type').notNull().default('none'),
   deletedAt: timestamp('deleted_at'),
 });
+
+// ---------------------------------------------------------------------------
+// Courses
+// ---------------------------------------------------------------------------
+
+export const courses = pgTable('courses', {
+  id: serial('id').primaryKey(),
+  code: text('code').notNull().unique(),
+  name: text('name'),
+  semester: text('semester').notNull(),
+  color: text('color'),
+  lectureSchedule: text('lecture_schedule'),
+  seminarSchedule: text('seminar_schedule'),
+  lectureTeacherId: integer('lecture_teacher_id').references(() => users.id),
+  seminarTeacherId: integer('seminar_teacher_id').references(() => users.id),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const userCourses = pgTable(
+  'user_courses',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    courseId: integer('course_id')
+      .notNull()
+      .references(() => courses.id),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.courseId] }),
+  })
+);
 
 // ---------------------------------------------------------------------------
 // Tasks & Evaluations
@@ -142,10 +186,28 @@ export const tasks = pgTable('tasks', {
     .notNull()
     .references(() => users.id),
   assignmentId: integer('assignment_id').references(() => assignments.id),
+  courseId: integer('course_id').references(() => courses.id),
+  parentId: integer('parent_id').references((): AnyPgColumn => tasks.id),
   title: text('title').notNull(),
   description: text('description'),
-  dueDate: timestamp('due_date').notNull(),
+  dueDate: timestamp('due_date'),
   status: taskStatusEnum('status').notNull().default('TODO'),
+  completedAt: timestamp('completed_at'),
+  priority: taskPriorityEnum('priority'),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const assignmentSubtasks = pgTable('assignment_subtasks', {
+  id: serial('id').primaryKey(),
+  assignmentId: integer('assignment_id')
+    .notNull()
+    .references(() => assignments.id),
+  title: text('title').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -160,7 +222,7 @@ export const evals = pgTable('evals', {
 });
 
 // ---------------------------------------------------------------------------
-// Events & Notes
+// Events, Folders & Notes
 // ---------------------------------------------------------------------------
 
 export const events = pgTable('events', {
@@ -173,6 +235,22 @@ export const events = pgTable('events', {
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
   place: text('place'),
+  type: eventTypeEnum('type').notNull().default('EVENT'),
+  courseId: integer('course_id').references(() => courses.id),
+  assignmentId: integer('assignment_id').references(() => assignments.id),
+  deletedAt: timestamp('deleted_at'),
+});
+
+export const folders = pgTable('folders', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -182,7 +260,13 @@ export const notes = pgTable('notes', {
     .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
-  description: text('description').notNull(),
+  description: text('description'),
+  folderId: integer('folder_id').references(() => folders.id),
+  courseId: integer('course_id').references(() => courses.id),
+  tags: text('tags')
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   deletedAt: timestamp('deleted_at'),
 });
 
@@ -217,4 +301,46 @@ export const auditLogs = pgTable('audit_logs', {
     .references(() => users.id),
   happenedAt: timestamp('happened_at').notNull().defaultNow(),
   description: text('description').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// User Integrations
+// ---------------------------------------------------------------------------
+
+export const userIntegrations = pgTable(
+  'user_integrations',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    service: text('service').notNull(),
+    connected: boolean('connected').notNull().default(false),
+    connectedAt: timestamp('connected_at'),
+  },
+  (table) => ({
+    userServiceUnique: unique('user_integrations_user_service_unique').on(
+      table.userId,
+      table.service
+    ),
+  })
+);
+
+// ---------------------------------------------------------------------------
+// Study Materials
+// ---------------------------------------------------------------------------
+
+export const studyMaterials = pgTable('study_materials', {
+  id: serial('id').primaryKey(),
+  courseId: integer('course_id')
+    .notNull()
+    .references(() => courses.id),
+  createdBy: integer('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  url: text('url'),
+  storagePath: text('storage_path'),
+  description: text('description'),
+  deletedAt: timestamp('deleted_at'),
 });

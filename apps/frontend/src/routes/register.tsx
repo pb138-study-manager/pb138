@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { api } from '../lib/api';
 
 export const Route = createFileRoute('/register')({
   component: RegisterPage,
@@ -23,7 +24,7 @@ function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -31,6 +32,16 @@ function RegisterPage() {
         },
       });
       if (error) throw error;
+
+      // Sync the newly created user to our backend's public.users table
+      if (data?.user && data.user.email) {
+        await api.post('/auth/sync', {
+          email: data.user.email,
+          authId: data.user.id,
+          fullName: fullName,
+        });
+      }
+
       // Supabase sends a verification email — tell the user to check their inbox
       navigate({ to: '/verify-email' });
     } catch (err: unknown) {
@@ -42,9 +53,9 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-5">
-      <div className="bg-whte rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
-        <h1 className="text-3xl font-bold text-black text-center">Sign In</h1>
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center px-5">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">Register</h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -89,10 +100,13 @@ function RegisterPage() {
         </form>
 
         <div className="flex flex-col gap-3 items-center">
-          <div className="w-full h-px bg-gray-200" />
-          <p className="text-sm text-gray-700">
+          <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
+          <p className="text-sm text-gray-700 dark:text-gray-300">
             Already have an account?{' '}
-            <Link to="/login" className="underline text-black font-medium hover:text-gray-600">
+            <Link
+              to="/login"
+              className="underline text-gray-900 dark:text-white font-medium hover:text-gray-600 dark:hover:text-gray-300"
+            >
               Login
             </Link>
           </p>

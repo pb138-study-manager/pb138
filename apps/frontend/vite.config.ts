@@ -12,6 +12,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    watch: {
+      usePolling: true,
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -21,6 +24,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    setupFiles: ['./src/test-setup.ts'],
     exclude: ['e2e/**', 'node_modules/**'],
+    globals: true,
   },
 });

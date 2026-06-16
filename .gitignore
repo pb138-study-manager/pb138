@@ -140,3 +140,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# IDE
+.idea/
+
+# Superpowers brainstorm sessions
+.superpowers/
+
+# Playwright test artifacts
+apps/frontend/playwright-report/
+apps/frontend/test-results/

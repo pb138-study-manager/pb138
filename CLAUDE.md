@@ -1,43 +1,58 @@
-# CLAUDE.md — PB138 Study Manager
+# CLAUDE.md — PB138 Study Manager ("Student OS")
 
 > This file is the single source of truth for Claude Code working on this project.
 > Read this entire file before writing any code.
-> Also read and follow the operating manual at: `C:\Users\ASUS\Documents\OpenClaw\OpenClaw\99 - Templates\CLAUDE-MANUAL.md`
 
 ---
 
-## Project Overview
+## Project Vision
 
-**Study Manager** is a full-stack web app for university students to manage tasks, events, notes, and group assignments. It supports three roles: User, Mentor, Admin. Built as a university project (PB138 — Web Development Principles, MU Brno).
+**Student OS** — a full-stack web app where university students manage tasks, notes, courses, and events, and teachers manage classes, assignments, and grades. The guiding metaphor is an OS for academic life: role-aware navigation, AI copilot as connective tissue, everything in one coherent product.
 
-**Team:** 4 members — Peter Perveka (564577), Valéria Kvaššayová (550435), Jaroslav Svajčík (564578), + 1 unnamed
+**Architecture approach chosen:** AI-backbone — teacher portal and AI copilot ship together, unified by a persistent AI panel. Student data is never exposed to teachers through AI.
+
+**Team:** 4 members — Peter Perveka (564577), Valéria Kvaššayová (550435), Jaroslav Svajčík (564578), + 1 unnamed  
+**Course:** PB138 — Web Development Principles, MU Brno
 
 ---
 
-## Tech Stack (exact versions)
+## Tech Stack
 
 ### Backend
+
 - **Runtime:** Bun (latest)
 - **Framework:** ElysiaJS `^1.0.27`
 - **Language:** TypeScript `^5.4.5`
 - **ORM:** Drizzle ORM `^0.30.9` + `drizzle-kit ^0.21.1`
 - **DB driver:** `postgres ^3.4.4` (postgres.js)
-- **Database:** PostgreSQL 16 (via Docker)
-- **Auth:** JWT (to be added: `@elysiajs/jwt`, `@elysiajs/cookie`)
+- **Database:** PostgreSQL 16 (Supabase cloud — no local Docker needed)
+- **Auth:** Supabase Auth (JWT verified via JWKS — `jose` library, NOT @elysiajs/jwt)
+- **Validation:** Zod (`z.object()` + custom `zodBody()` helper in `src/lib/validation.ts`)
 - **CORS:** `@elysiajs/cors ^1.0.2`
 
 ### Frontend
+
 - **Framework:** React `^18.3.0` + TypeScript `^5.4.5`
 - **Build:** Vite `^5.2.12`
 - **Routing:** TanStack Router `^1.32.0` (file-based)
-- **Styling:** Tailwind CSS `^3.4.4`
+- **Auth:** Supabase client (`@supabase/supabase-js`) — handles register/login/verify/session
+- **Styling:** Tailwind CSS `^3.4.4` (dark mode: `class` strategy)
+- **i18n:** `react-i18next` with EN and CS locales (`src/locales/en.json`, `cs.json`)
 - **Testing:** Vitest `^1.6.0` + jsdom, Playwright `^1.44.0`
 
 ### Infrastructure
-- **Monorepo:** pnpm workspaces (also npm workspaces in root package.json)
-- **Containerization:** Docker Compose (postgres + backend + frontend/nginx)
+
+- **Monorepo:** pnpm workspaces
+- **Database hosting:** Supabase cloud (PostgreSQL 16) — no local Docker, DB_URL in `.env`
 - **CI/CD:** GitHub Actions (lint → test → build → e2e)
 - **Linting:** ESLint `^8.57.0` + Prettier `^3.2.5`
+
+### AI (Presentation Sprint)
+
+- **Provider:** E-infra LLM API (`https://llm.ai.e-infra.cz/v1/`) — OpenAI-compatible
+- **Package:** `openai` npm package (OpenAI SDK pointed at E-infra base URL)
+- **Env vars:** `E_INFRA_API_TOKEN`, `EINFRA_BASE_URL`, `EINFRA_MODEL`
+- **Default model:** `llama3.3:latest` (configurable via env)
 
 ---
 
@@ -48,74 +63,99 @@ pb138/
 ├── apps/
 │   ├── backend/
 │   │   ├── src/
-│   │   │   ├── index.ts              # Main ElysiaJS server entry
-│   │   │   ├── index.test.ts         # Bun unit tests
+│   │   │   ├── index.ts              # Main ElysiaJS server entry — all routes registered here
+│   │   │   ├── index.test.ts
 │   │   │   ├── db/
 │   │   │   │   ├── index.ts          # Drizzle client export
-│   │   │   │   └── schema.ts         # ALL table definitions (Drizzle)
-│   │   │   ├── routes/               # One file per resource
-│   │   │   │   ├── auth.ts
-│   │   │   │   ├── tasks.ts
-│   │   │   │   ├── events.ts
-│   │   │   │   ├── notes.ts
-│   │   │   │   ├── users.ts
-│   │   │   │   ├── groups.ts
-│   │   │   │   └── admin.ts
+│   │   │   │   ├── schema.ts         # ALL table definitions
+│   │   │   │   ├── seed.ts           # Seed roles, permissions, email templates
+│   │   │   │   └── seed-user.ts      # Dev user seeding helper
+│   │   │   ├── routes/
+│   │   │   │   ├── auth.ts           # /auth/sync (Supabase user sync), /auth/logout
+│   │   │   │   ├── tasks.ts          # Full CRUD + subtasks (parentId)
+│   │   │   │   ├── events.ts         # Full CRUD
+│   │   │   │   ├── notes.ts          # Full CRUD
+│   │   │   │   ├── folders.ts        # Folder CRUD for notes
+│   │   │   │   ├── users.ts          # /users/me profile + settings
+│   │   │   │   ├── groups.ts         # Groups + members + assignments
+│   │   │   │   └── courses.ts        # Courses + enrollment
 │   │   │   ├── middleware/
-│   │   │   │   └── auth.ts           # JWT verification + role guards
-│   │   │   └── services/
-│   │   │       ├── email.ts          # Email sending via SMTP
-│   │   │       └── scheduler.ts      # Deadline cron job
+│   │   │   │   └── auth.ts           # Supabase JWKS verification → { user: AuthUser | null }
+│   │   │   ├── services/
+│   │   │   │   └── audit.ts          # logAction() helper
+│   │   │   └── lib/
+│   │   │       └── validation.ts     # zodBody() helper for Zod + Elysia integration
 │   │   ├── drizzle/                  # Generated migration files (do not edit)
 │   │   ├── drizzle.config.ts
-│   │   ├── Dockerfile
-│   │   └── .env.example
+│   │   └── Dockerfile
 │   └── frontend/
 │       ├── src/
-│       │   ├── main.tsx              # React entry + RouterProvider
+│       │   ├── main.tsx              # React entry + RouterProvider + i18n init
 │       │   ├── index.css             # Tailwind directives
-│       │   ├── routeTree.gen.ts      # Auto-generated by TanStack Router (do not edit)
-│       │   ├── routes/               # File-based routing
-│       │   │   ├── __root.tsx        # Root layout (navbar)
+│       │   ├── routeTree.gen.ts      # Auto-generated (do not edit)
+│       │   ├── locales/
+│       │   │   ├── en.json           # English translations
+│       │   │   └── cs.json           # Czech translations
+│       │   ├── routes/
+│       │   │   ├── __root.tsx        # Root layout
 │       │   │   ├── index.tsx         # Landing page /
-│       │   │   ├── login.tsx         # /login
-│       │   │   ├── register.tsx      # /register
-│       │   │   ├── dashboard.tsx     # /dashboard (auth required)
-│       │   │   ├── tasks/
-│       │   │   │   ├── index.tsx     # /tasks
-│       │   │   │   ├── new.tsx       # /tasks/new
-│       │   │   │   └── $taskId.tsx   # /tasks/:taskId
-│       │   │   ├── events/
+│       │   │   ├── login.tsx         # /login (Supabase)
+│       │   │   ├── register.tsx      # /register (Supabase)
+│       │   │   ├── verify-email.tsx  # /verify-email
+│       │   │   ├── dashboard.tsx     # /dashboard
+│       │   │   ├── today/index.tsx   # /today — week strip + tasks (connected to API)
+│       │   │   ├── tasks/index.tsx   # /tasks — full task list
 │       │   │   ├── notes/
-│       │   │   ├── groups/
-│       │   │   ├── profile.tsx
-│       │   │   ├── settings.tsx
+│       │   │   │   ├── index.tsx     # /notes + folders
+│       │   │   │   └── $noteId.tsx   # /notes/:noteId
+│       │   │   ├── timeline/index.tsx # /timeline
+│       │   │   ├── courses/
+│       │   │   │   ├── index.tsx     # /courses — connected to API, colored cards + progress bar
+│       │   │   │   ├── new.tsx       # /courses/new
+│       │   │   │   └── $courseId.tsx # /courses/:courseId
+│       │   │   ├── teachers/
+│       │   │   │   ├── index.tsx     # /teachers — teacher portal (UI shell)
+│       │   │   │   └── new.tsx       # /teachers/new
+│       │   │   ├── profile/index.tsx # /profile
+│       │   │   ├── custom-nav.tsx    # Custom navigation editor
+│       │   │   ├── others/index.tsx  # Catch-all "More" drawer
 │       │   │   └── admin/
-│       │   ├── components/           # Shared UI components
-│       │   │   ├── ui/               # Base: Button, Input, Modal, Badge, etc.
-│       │   │   ├── tasks/            # Task-specific components
-│       │   │   ├── events/
-│       │   │   └── layout/           # Sidebar, Navbar, AuthGuard
-│       │   ├── hooks/                # Custom hooks (useAuth, useTasks, etc.)
+│       │   │       ├── index.tsx     # /admin
+│       │   │       ├── users.tsx     # /admin/users
+│       │   │       ├── roles.tsx     # /admin/roles
+│       │   │       ├── logs.tsx      # /admin/logs
+│       │   │       ├── settings.tsx  # /admin/settings
+│       │   │       └── database.tsx  # /admin/database
+│       │   ├── components/
+│       │   │   ├── ui/               # Button, Input, Modal, Badge, Calendar, Sidebar, etc.
+│       │   │   ├── tasks/            # TaskCard, TaskSection, NewTaskDialog, EditTaskDialog, SubtasksDialog
+│       │   │   ├── notes/            # NoteDetailView, NotesView, FoldersView, dialogs
+│       │   │   ├── courses/          # CourseTasks, CourseStudyMaterials
+│       │   │   ├── today/            # WeekCalendar
+│       │   │   ├── profile/          # UserCard, SettingsCard, ThemeSetting, etc.
+│       │   │   └── admin/            # AdminUsersManager, AdminLogsView, AdminRolesManager, etc.
+│       │   ├── hooks/
+│       │   │   ├── useTodayManager.ts    # Today page logic (connected to API)
+│       │   │   ├── useTasksManager.ts    # Tasks page logic (connected to API)
+│       │   │   ├── useNotesManager.ts    # Notes/folders logic (connected to API)
+│       │   │   ├── useProfileManager.ts  # Profile/settings logic
+│       │   │   └── useCustomNavManager.ts # Custom nav logic
 │       │   ├── lib/
-│       │   │   ├── api.ts            # Fetch wrapper / API client
-│       │   │   └── auth.tsx          # Auth context + provider
-│       │   └── types/                # Shared TypeScript types
-│       ├── e2e/                      # Playwright tests
+│       │   │   ├── api.ts            # Fetch wrapper (uses Supabase session token)
+│       │   │   ├── auth.tsx          # AuthProvider + useAuth() — Supabase session
+│       │   │   ├── courseColors.ts   # Deterministic color palette for course cards (id % 7)
+│       │   │   ├── courseColors.test.ts
+│       │   │   ├── supabase.ts       # Supabase client instance
+│       │   │   ├── i18n.ts           # i18next setup (EN/CS, persisted to localStorage)
+│       │   │   └── utils.ts
+│       │   └── types/
+│       │       └── index.ts          # Shared TypeScript types
+│       ├── e2e/
 │       ├── playwright.config.ts
 │       ├── vite.config.ts
 │       └── tailwind.config.js
 ├── docs/
-│   ├── PLAN.md                       # Implementation plan
-│   └── analysis/
-│       ├── diagrams/
-│       │   ├── erd.md                # Mermaid ERD
-│       │   └── use-case.puml         # PlantUML use case
-│       └── requirements/             # Detailed UC specs
-├── .github/workflows/ci.yml
 ├── docker-compose.yml
-├── .eslintrc.json
-├── .prettierrc
 └── package.json
 ```
 
@@ -123,337 +163,286 @@ pb138/
 
 ## Current State
 
-| File / Area | Status | Notes |
-|---|---|---|
-| `apps/backend/src/db/schema.ts` | ⚠️ INCOMPLETE | Only a placeholder `users` table — **must be replaced** |
-| `apps/backend/src/index.ts` | ⚠️ INCOMPLETE | Only `/health` route — routes must be added |
-| `apps/backend/src/db/index.ts` | ✅ OK | Drizzle client connected |
-| `apps/frontend/src/routes/__root.tsx` | ✅ OK | Basic layout with navbar |
-| `apps/frontend/src/routes/index.tsx` | ⚠️ INCOMPLETE | Static homepage, no auth |
-| `apps/frontend/src/main.tsx` | ✅ OK | RouterProvider wired |
-| Docker Compose | ✅ OK | postgres + backend + frontend |
-| CI/CD | ✅ OK | lint → test → build → e2e |
-| Auth | ❌ MISSING | JWT not implemented |
-| All CRUD routes | ❌ MISSING | |
-| All frontend pages | ❌ MISSING | |
+### Backend — ✅ Largely complete
+
+| Route file           | Status     | Notes                                                                                  |
+| -------------------- | ---------- | -------------------------------------------------------------------------------------- |
+| `db/schema.ts`       | ✅ Done    | All tables implemented, including subtasks (parentId), groupTypeEnum, userIntegrations |
+| `db/seed.ts`         | ✅ Done    | Seeds roles, permissions, email templates                                              |
+| `middleware/auth.ts` | ✅ Done    | Supabase JWKS verification                                                             |
+| `services/audit.ts`  | ✅ Done    | logAction() helper                                                                     |
+| `routes/auth.ts`     | ✅ Done    | /auth/sync + /auth/logout (Supabase handles register/login/verify)                     |
+| `routes/tasks.ts`    | ✅ Done    | Full CRUD + subtasks (parentId) + eval                                                 |
+| `routes/events.ts`   | ✅ Done    | Full CRUD                                                                              |
+| `routes/notes.ts`    | ✅ Done    | Full CRUD                                                                              |
+| `routes/folders.ts`  | ✅ Done    | Full CRUD                                                                              |
+| `routes/users.ts`    | ✅ Done    | /users/me profile + settings + password                                                |
+| `routes/groups.ts`   | ✅ Done    | Groups + members + assignments                                                         |
+| `routes/courses.ts`  | ✅ Done    | Courses + enrollment                                                                   |
+| Admin routes         | ❌ Missing | No `/admin` backend routes yet — not in demo scope                                     |
+| AI routes            | ❌ Missing | `/ai/*` to be implemented (Track 2 — E-infra LLM)                                      |
+| Study materials API  | ❌ Missing | Not in demo scope                                                                      |
+| Notifications        | ❌ Missing | Not in demo scope                                                                      |
+
+### Frontend — Presentation sprint state (2026-06-06)
+
+| Page / Area                                | Status      | Notes                                                                            |
+| ------------------------------------------ | ----------- | -------------------------------------------------------------------------------- |
+| Auth (login/register/verify)               | ✅ Done     | Supabase Auth                                                                    |
+| AuthGuard                                  | ✅ Done     | Implemented in `__root.tsx` — redirect to `/login` if `!isAuthenticated`         |
+| Today screen                               | ✅ Done     | Connected to API (tasks by date, week strip)                                     |
+| Tasks                                      | ✅ Done     | Connected to API (CRUD, subtasks, toggle)                                        |
+| Notes + Folders                            | ✅ Done     | Connected to API                                                                 |
+| Timeline                                   | ✅ Done     | Connected to API via `useTimelineManager`                                        |
+| Courses list                               | ✅ Done     | Connected to API, colored cards (id % 7 palette), progress bar                   |
+| Course detail                              | ⚠️ Partial  | Connected to API, needs visual polish                                            |
+| Profile + Settings                         | ✅ Done     | Theme, language, user info                                                       |
+| Admin panel                                | ⚠️ UI only  | Uses mock data — not in demo scope                                               |
+| Teachers portal                            | ⚠️ UI shell | Not in demo scope                                                                |
+| Dark mode                                  | ✅ Done     | Tailwind `class` strategy, toggled via settings                                  |
+| i18n (EN/CS)                               | ✅ Done     | react-i18next, language saved to localStorage                                    |
+| Visual polish (Today/Tasks/Notes/Timeline) | ✅ Done     | Greeting + progress bar, urgency badges, countdown, word count, skeleton loaders |
+| AI Copilot panel                           | ❌ Pending  | Track 4 — right sidebar, Brief + Chat tabs                                       |
+| Notes Quiz modal                           | ❌ Pending  | Track 4 — `QuizModal.tsx`, calls `/ai/notes/:id/quiz`                            |
+| Notes AI chat                              | ❌ Pending  | Track 4 — `NoteAIChat.tsx`, calls `/ai/notes/:id/chat`                           |
 
 ---
 
-## Database Schema (Complete — Drizzle ORM)
+## Information Architecture (from brainstorm)
 
-**Replace `apps/backend/src/db/schema.ts` with this exact schema.**
+### Student navigation
 
-Required imports from `drizzle-orm/pg-core`:
+- 🏠 **Today** — AI-curated daily view, week strip, tasks for today, upcoming deadlines
+- ✅ **Tasks** — personal tasks + subtasks + teacher-assigned tasks
+- 📚 **Courses** — enrolled courses, progress per course, study materials, course tasks
+- 📝 **Notes** — personal notes, folders, link notes to courses
+- 📅 **Timeline** — events, deadlines from courses
+- 🤖 **AI Copilot** — persistent right panel: proactive feed, chat mode, weekly plan generator
+- 👤 **Profile/Settings** — avatar, theme, notifications, language
+
+### Teacher navigation (role toggle in sidebar)
+
+- 🏫 **My Classes** — courses you teach, class roster, pending evaluations count
+- 📋 **Assignments** — create & manage assignments, assign to course, track submissions
+- 📊 **Evaluations** — grade submitted work, score + feedback
+- 📦 **Study Materials** — upload/link materials to courses, organized by topic
+- 👥 **Students** — enroll/remove per course, view per-student task status
+- 🤖 **AI Insights** — class performance, students at risk, AI-drafted assignment descriptions
+
+**Key principle:** Role toggle pill in the sidebar header — "STUDENT ⇄ TEACHER" — only visible if the user has both roles. No separate login.
+
+### App shell layout
+
+**Desktop:** Sidebar (left) + main content + collapsible AI panel (right)  
+**Mobile:** Bottom nav (5 slots) + AI tab  
+**Role toggle:** Small pill in sidebar header, switches entire nav set without logout
+
+---
+
+## Presentation Sprint — Remaining Work (2026-06-06)
+
+Demo flow: **Login → Today → Tasks → Notes → Timeline → Courses**
+
+### Track 2 — AI Backend ✅ Done
+
+- `openai` package installed, E-infra client configured (`qwen3.5` model)
+- `apps/backend/src/routes/ai.ts` registered at `/ai`
+- `POST /ai/brief`, `POST /ai/chat`, `POST /ai/notes/:id/quiz`, `POST /ai/notes/:id/chat` — all implemented
+- Rate limit: 10 req/min per user (in-memory Map)
+
+E-infra client setup (add to backend `.env`):
+
 ```
-pgTable, pgEnum, serial, integer, text, boolean, timestamp, primaryKey, unique
+E_INFRA_API_TOKEN=<token>
+EINFRA_BASE_URL=https://llm.ai.e-infra.cz/v1/
+EINFRA_MODEL=llama3.3:latest
 ```
 
-### Enums
+### Track 3 — Visual Polish ✅ Done
+
+- `/today` — greeting by time of day + daily progress bar + skeleton loader
+- `/tasks` — urgency badges (red/yellow/green), countdown text, strikethrough + opacity animation, skeleton loader
+- `/notes` — word count + reading time, `🧠 Quiz me` + `✦ Ask AI` buttons in toolbar
+- `/timeline` — skeleton loader (loading state)
+
+### Track 4 — AI Frontend
+
+12. `AIPanelContext.tsx` — isOpen state + toggle
+13. `AICopilotPanel.tsx` — 280px right sidebar, tabs: Brief / Chat
+14. `BriefTab.tsx` — calls `POST /ai/brief`, shimmer skeleton, refresh button
+15. `ChatTab.tsx` — local message history, Enter to send, auto-scroll
+16. `QuizModal.tsx` — `🧠 Quiz me` modal, 5 questions, colored correct/incorrect answers
+17. `NoteAIChat.tsx` — `✦ Ask AI` drawer for note context chat
+
+### Shared — Demo Seed Data
+
+18. Extend `seed-user.ts`: 3 courses, 10 tasks (mix of urgency), 5 events, 4 notes (200+ words each)
+19. Demo account: `demo@student.muni.cz` (set password in Supabase Admin)
+
+### Not in scope (YAGNI)
+
+- Teacher portal, admin panel API, AI streaming, persistent chat history, notifications, Pomodoro
+
+---
+
+## Backlog — Next features to implement
+
+### iCal export
+
+- `GET /events/ical` — returns iCal format (RFC 5545) of all user events + task deadlines
+- Frontend: "Add to Calendar" button on Timeline page → links to the endpoint
+- No auth token needed in URL (use signed URL or query param token)
+
+### Evaluation visibility for students
+
+- Student marks task DONE → teacher evaluates (score + feedback via POST /tasks/:id/eval)
+- Currently student can GET /tasks/:id/eval but there is no UI showing it
+- Add eval display on task detail / task card: score badge + feedback text
+- Teacher side: in course assignments view, list DONE tasks with "Evaluate" button
+
+### PDF reading for AI agent
+
+- Study materials often have PDF URLs; agent cannot read them
+- Add `read_material_content` tool: fetches PDF URL → extracts text → returns to model
+- Use `pdf-parse` npm package (works in Bun) for text extraction
+- Agent can then summarize, quiz, or answer questions about the PDF content
+- ✅ DONE (2026-06-13)
+
+### AI Copilot panel — remove Chat tab, keep only Brief + Agent
+
+- Chat tab (`ChatTab.tsx`) duplicates Agent tab functionality but with fewer features
+- Remove Chat tab from `AICopilotPanel.tsx`, update `type Tab = 'brief' | 'agent'`
+- Agent tab is the main AI interface going forward
+
+### Notes AI features — QuizModal + NoteAIChat
+
+- `QuizModal.tsx` — "🧠 Quiz me" button in notes toolbar → calls `POST /ai/notes/:id/quiz` → 5 MCQ questions, colored correct/incorrect answers. Backend endpoint exists.
+- `NoteAIChat.tsx` — "✦ Ask AI" button in notes toolbar → drawer with chat grounded in note context → calls `POST /ai/notes/:id/chat`. Backend endpoint exists.
+
+### MCP server
+
+- New Bun package `apps/mcp-server/` using `@modelcontextprotocol/sdk` (stdio transport)
+- Reads env `STUDENT_OS_API_URL`, `STUDENT_OS_TOKEN` (PAT)
+- Exposes same tools as AGENT_TOOLS, calls existing REST endpoints
+- Requires PAT auth system (Part A from original plan) to be implemented first
+- README: how to generate PAT in Profile + Claude Desktop config snippet
+
+---
+
+## Auth Architecture (IMPORTANT — differs from original spec)
+
+**Auth is handled by Supabase**, not custom JWT. This changes several patterns:
+
+### How auth works
+
+1. **Register/Login/Verify** → handled entirely by Supabase Auth on the frontend (`supabase.auth.signUp`, `supabase.auth.signInWithPassword`)
+2. **Session token** → Supabase issues a JWT; frontend stores it via Supabase SDK
+3. **Backend verification** → `middleware/auth.ts` verifies the Supabase JWT using JWKS (`jose` library)
+4. **User sync** → after first login, frontend calls `POST /auth/sync` to create a local `users` record linked by `auth_id`
+
+### Backend auth middleware pattern
+
 ```typescript
-export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN']);
-export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
+// middleware/auth.ts — actual implementation
+import { jwtVerify, createRemoteJWKSet } from 'jose';
+const JWKS = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`));
+
+export const authMiddleware = new Elysia({ name: 'auth-middleware' })
+  .derive(async ({ headers }) => {
+    const token = headers.authorization?.replace('Bearer ', '');
+    if (!token) return { user: null as AuthUser | null };
+    return { user: await resolveUser(token) };
+  })
+  .as('global');
 ```
 
-### User & Auth Tables
+### Protecting routes — always add this onBeforeHandle
 
-**`users`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| email | text | NOT NULL, UNIQUE |
-| login | text | NOT NULL, UNIQUE |
-| pwd_hash | text | NOT NULL |
-| active_session | boolean | NOT NULL, DEFAULT false |
-| deleted_at | timestamp | nullable (soft delete) |
+```typescript
+.onBeforeHandle(({ user, set }) => {
+  if (!user) {
+    set.status = 401;
+    return { error: 'UNAUTHORIZED', message: 'Invalid or missing token' };
+  }
+})
+```
 
-**`user_profiles`**
-| Column | Type | Constraints |
-|---|---|---|
-| user_id | integer | PK, FK → users.id |
-| name | text | nullable |
-| title | text | nullable |
-| avatar | text | nullable (URL) |
-| organization | text | nullable |
-| bio | text | nullable |
+### Frontend auth context
 
-**`user_settings`**
-| Column | Type | Constraints |
-|---|---|---|
-| user_id | integer | PK, FK → users.id |
-| notifications_enabled | boolean | NOT NULL, DEFAULT true |
-| light_theme | boolean | NOT NULL, DEFAULT true |
-
-### RBAC Tables
-
-**`roles`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| name | roleNameEnum | NOT NULL, UNIQUE |
-
-**`user_roles`** (junction)
-| Column | Type | Constraints |
-|---|---|---|
-| user_id | integer | FK → users.id |
-| role_id | integer | FK → roles.id |
-| PK | (user_id, role_id) | composite |
-
-**`permissions`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| name | text | NOT NULL, UNIQUE (e.g. 'CREATE_TASK', 'ADD_TO_GROUP', 'VIEW_LOGS', 'MANAGE_USERS') |
-
-**`role_permissions`** (junction)
-| Column | Type | Constraints |
-|---|---|---|
-| role_id | integer | FK → roles.id |
-| permission_id | integer | FK → permissions.id |
-| PK | (role_id, permission_id) | composite |
-
-### Content Tables
-
-**`groups`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| mentor_id | integer | NOT NULL, FK → users.id |
-| name | text | NOT NULL |
-| deleted_at | timestamp | nullable |
-
-**`group_members`** (junction)
-| Column | Type | Constraints |
-|---|---|---|
-| user_id | integer | FK → users.id |
-| group_id | integer | FK → groups.id |
-| PK | (user_id, group_id) | composite |
-
-**`assignments`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| group_id | integer | NOT NULL, FK → groups.id |
-| title | text | NOT NULL |
-| description | text | nullable |
-| due_date | timestamp | NOT NULL |
-| deleted_at | timestamp | nullable |
-
-**`tasks`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| assignment_id | integer | nullable, FK → assignments.id |
-| title | text | NOT NULL |
-| description | text | nullable |
-| due_date | timestamp | NOT NULL |
-| status | taskStatusEnum | NOT NULL, DEFAULT 'TODO' |
-| deleted_at | timestamp | nullable |
-
-**`evals`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| task_id | integer | NOT NULL, FK → tasks.id |
-| feedback | text | NOT NULL |
-| score | integer | NOT NULL |
-| evaluated_at | timestamp | NOT NULL, DEFAULT now() |
-
-**`events`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| title | text | NOT NULL |
-| description | text | nullable |
-| start_date | timestamp | NOT NULL |
-| end_date | timestamp | NOT NULL |
-| place | text | nullable |
-| deleted_at | timestamp | nullable |
-
-**`notes`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| user_id | integer | NOT NULL, FK → users.id |
-| title | text | NOT NULL |
-| description | text | NOT NULL |
-| deleted_at | timestamp | nullable |
-
-### Notification & Audit Tables
-
-**`email_templates`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| type | text | NOT NULL, UNIQUE |
-| subject | text | NOT NULL |
-| body | text | NOT NULL |
-
-Types (seed these): `REGISTRATION_VERIFY`, `PASSWORD_CHANGE`, `TASK_ASSIGNED`, `TASK_EVALUATED`, `GROUP_INVITE`, `GROUP_REMOVE`, `DEADLINE_REMINDER`
-
-**`emails`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| recipient_id | integer | NOT NULL, FK → users.id |
-| template_id | integer | NOT NULL, FK → email_templates.id |
-| sent_at | timestamp | NOT NULL, DEFAULT now() |
-| status | text | NOT NULL (e.g. 'SENT', 'FAILED', 'PENDING') |
-| deleted_at | timestamp | nullable |
-
-**`audit_logs`**
-| Column | Type | Constraints |
-|---|---|---|
-| id | serial | PK |
-| actor_id | integer | NOT NULL, FK → users.id |
-| happened_at | timestamp | NOT NULL, DEFAULT now() |
-| description | text | NOT NULL |
+```typescript
+// lib/auth.tsx — actual implementation
+// Uses Supabase session, NOT localStorage token
+// Provides: { session, user, isAuthenticated, isLoading, signOut }
+```
 
 ---
 
 ## Backend Conventions
 
+### Validation — use Zod, NOT Elysia t.Object
+
+```typescript
+import { z } from 'zod';
+import { zodBody } from '../lib/validation';
+
+const CreateSchema = z.object({
+  title: z.string().min(1),
+  dueDate: z.string(),
+  description: z.string().optional(),
+});
+
+// In route handler:
+.post('/', async ({ body, user }) => { ... }, zodBody(CreateSchema))
+```
+
 ### Route file structure (ElysiaJS)
 
-Every route file exports an Elysia instance that gets `.use()`d in `index.ts`:
-
 ```typescript
-// apps/backend/src/routes/tasks.ts
-import { Elysia, t } from 'elysia';
-import { db } from '../db';
-import { tasks } from '../db/schema';
-import { authMiddleware } from '../middleware/auth';
-import { logAction } from '../services/audit';
-import { eq, and, isNull } from 'drizzle-orm';
-
 export const tasksRoutes = new Elysia({ prefix: '/tasks' })
   .use(authMiddleware)
-  .get('/', async ({ user }) => {
-    return db.select().from(tasks)
-      .where(and(eq(tasks.userId, user.id), isNull(tasks.deletedAt)));
-  })
-  .post('/', async ({ body, user }) => {
-    const [task] = await db.insert(tasks).values({
-      userId: user.id,
-      title: body.title,
-      dueDate: new Date(body.dueDate),
-      description: body.description,
-    }).returning();
-    await logAction(db, user.id, `Created task ${task.id}: ${task.title}`);
-    return task;
-  }, {
-    body: t.Object({
-      title: t.String({ minLength: 1 }),
-      dueDate: t.String(),
-      description: t.Optional(t.String()),
-    })
-  });
-```
-
-Register in `index.ts`:
-```typescript
-import { tasksRoutes } from './routes/tasks';
-app.use(tasksRoutes);
-```
-
-### Auth Middleware pattern
-
-```typescript
-// apps/backend/src/middleware/auth.ts
-import { Elysia } from 'elysia';
-import { jwt } from '@elysiajs/jwt';
-
-export const authMiddleware = new Elysia()
-  .use(jwt({ name: 'jwt', secret: process.env.JWT_SECRET! }))
-  .derive(async ({ jwt, headers, set }) => {
-    const token = headers.authorization?.replace('Bearer ', '');
-    if (!token) { set.status = 401; throw new Error('Unauthorized'); }
-    const payload = await jwt.verify(token);
-    if (!payload) { set.status = 401; throw new Error('Unauthorized'); }
-    return { user: payload as { id: number; roles: string[] } };
-  });
-
-// Role guard helper
-export const requireRole = (role: string) =>
-  new Elysia().derive(({ user, set }) => {
-    if (!user.roles.includes(role)) {
-      set.status = 403;
-      throw new Error('Forbidden');
+  .onBeforeHandle(({ user, set }) => {
+    if (!user) {
+      set.status = 401;
+      return { error: 'UNAUTHORIZED', message: 'Invalid or missing token' };
     }
-    return {};
+  })
+  .get('/', async ({ user }) => {
+    const authUser = user as AuthUser;
+    return db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.userId, authUser.id), isNull(tasks.deletedAt)));
   });
+// ...
 ```
 
-### AuditLog helper
+### Audit logging
 
 ```typescript
-// apps/backend/src/services/audit.ts
-import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { auditLogs } from '../db/schema';
+import { logAction } from '../services/audit';
 
-export async function logAction(
-  db: PostgresJsDatabase,
-  actorId: number,
-  description: string
-) {
-  await db.insert(auditLogs).values({ actorId, description });
-}
+// Call on every INSERT, UPDATE, soft-DELETE:
+await logAction(db, authUser.id, `Created task ${task.id}: ${task.title}`);
 ```
 
-**Rule:** Every INSERT, UPDATE, and soft-DELETE must call `logAction`.
-
-### Soft delete pattern
-
-Never use hard DELETE. Always:
-```typescript
-await db.update(tasks)
-  .set({ deletedAt: new Date() })
-  .where(and(eq(tasks.id, id), eq(tasks.userId, user.id)));
-await logAction(db, user.id, `Deleted task ${id}`);
-```
-
-Every SELECT must filter: `.where(isNull(table.deletedAt))`
-
-### Error response format (standardized)
+### Soft delete — always
 
 ```typescript
-// Always return this shape for errors:
-{ error: 'ERROR_CODE', message: 'Human readable', fields?: { field: 'reason' } }
-
-// HTTP status codes:
-// 400 — validation error
-// 401 — not authenticated
-// 403 — forbidden (wrong role or ownership)
-// 404 — not found
-// 409 — conflict (duplicate email/login)
-// 500 — server error
+await db.update(tasks).set({ deletedAt: new Date() }).where(eq(tasks.id, id));
+// Every SELECT must include: isNull(table.deletedAt)
 ```
 
 ### Ownership check pattern
 
 ```typescript
-const [task] = await db.select().from(tasks)
-  .where(and(eq(tasks.id, id), eq(tasks.userId, user.id), isNull(tasks.deletedAt)));
-if (!task) {
+const [item] = await db
+  .select()
+  .from(tasks)
+  .where(and(eq(tasks.id, id), eq(tasks.userId, authUser.id), isNull(tasks.deletedAt)));
+if (!item) {
   set.status = 404;
-  throw new Error('Task not found or access denied');
+  return { error: 'NOT_FOUND', message: 'Not found or access denied' };
 }
-```
-
-### Environment variables (backend)
-
-From `.env.example`:
-```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pb138
-PORT=3001
-NODE_ENV=development
-JWT_SECRET=your_secret_here        # Add this
-JWT_EXPIRES_IN=7d                  # Add this
-SMTP_HOST=                         # Add for email
-SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
 ```
 
 ---
@@ -463,25 +452,8 @@ SMTP_PASS=
 ### API client
 
 ```typescript
-// apps/frontend/src/lib/api.ts
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw err;
-  }
-  return res.json();
-}
-
+// lib/api.ts — uses Supabase session token, NOT localStorage
+// The token comes from supabase.auth.getSession()
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body: unknown) =>
@@ -492,96 +464,67 @@ export const api = {
 };
 ```
 
-### Auth context
+### i18n usage
 
 ```typescript
-// apps/frontend/src/lib/auth.tsx
-// Provides: user, login(), logout(), isAuthenticated
-// Stores JWT in localStorage under key 'token'
-// User object shape: { id: number; login: string; email: string; roles: string[] }
+import { useTranslation } from 'react-i18next';
+const { t } = useTranslation();
+// Usage: t('nav.today'), t('tasks.loading'), etc.
+// Add new keys to both src/locales/en.json and src/locales/cs.json
 ```
 
-### Auth Guard (route protection)
-
-```typescript
-// apps/frontend/src/components/layout/AuthGuard.tsx
-import { useNavigate } from '@tanstack/react-router';
-import { useAuth } from '../../lib/auth';
-import { useEffect } from 'react';
-
-export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!isAuthenticated) navigate({ to: '/login' });
-  }, [isAuthenticated]);
-  return isAuthenticated ? <>{children}</> : null;
-}
-```
-
-### TanStack Router — file-based routing rules
+### TanStack Router — file-based routing
 
 - Files in `src/routes/` become routes automatically
-- `__root.tsx` = root layout wrapping all routes
-- `index.tsx` in a folder = `/folder/` route  
-- `$paramName.tsx` = dynamic segment `/folder/:paramName`
-- After adding any route file, run: `pnpm --filter @pb138/frontend dev` (the router plugin auto-generates `routeTree.gen.ts`)
+- `__root.tsx` = root layout
+- `$paramName.tsx` = dynamic segment
+- After adding any route file, run the dev server — TanStack Router auto-generates `routeTree.gen.ts`
 - **Do NOT manually edit `routeTree.gen.ts`**
 
-### Tailwind dark mode
+### Dark mode
 
-Config: `darkMode: 'class'` in `tailwind.config.js` (add if missing).
-
-Apply theme on app load:
 ```typescript
-// In main.tsx or auth context:
-const isDark = userSettings?.lightTheme === false;
-document.documentElement.classList.toggle('dark', isDark);
+// Already configured: darkMode: 'class' in tailwind.config.js
+// Toggle: document.documentElement.classList.toggle('dark', !lightTheme)
+// Use: className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
 ```
 
-Use `dark:` prefix: `className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white"`
+---
 
-### Component naming conventions
+## Database Schema (Actual — as implemented)
 
-- Components: `PascalCase.tsx`
-- Hooks: `useCamelCase.ts` in `src/hooks/`
-- Types: in `src/types/index.ts` or colocated
-
-### TypeScript types (shared shape)
+### Enums
 
 ```typescript
-// src/types/index.ts
-export type TaskStatus = 'TODO' | 'IN PROGRESS' | 'DONE';
-export type RoleName = 'USER' | 'MENTOR' | 'ADMIN';
+export const roleNameEnum = pgEnum('role_name', ['USER', 'MENTOR', 'ADMIN', 'TEACHER']);
+export const taskStatusEnum = pgEnum('task_status', ['TODO', 'IN PROGRESS', 'DONE']);
+export const groupTypeEnum = pgEnum('group_type', ['SEMINAR', 'GROUP']);
+```
 
-export interface User {
-  id: number; login: string; email: string; roles: RoleName[];
-}
-export interface Task {
-  id: number; userId: number; assignmentId: number | null;
-  title: string; description: string | null;
-  dueDate: string; status: TaskStatus; deletedAt: string | null;
-  eval?: Eval;
-}
-export interface Event {
-  id: number; userId: number; title: string;
-  description: string | null; startDate: string; endDate: string;
-  place: string | null; deletedAt: string | null;
-}
-export interface Note {
-  id: number; userId: number; title: string; description: string; deletedAt: string | null;
-}
-export interface Group {
-  id: number; mentorId: number; name: string; deletedAt: string | null;
-  members?: User[];
-}
-export interface Assignment {
-  id: number; groupId: number; title: string;
-  description: string | null; dueDate: string;
-}
-export interface Eval {
-  id: number; taskId: number; feedback: string; score: number; evaluatedAt: string;
-}
+### Tables implemented
+
+- `users` — with `auth_id` (Supabase UUID) field
+- `user_profiles`, `user_settings`
+- `roles`, `user_roles`, `permissions`, `role_permissions`
+- `groups` (with `group_type` enum), `group_members`
+- `assignments`
+- `courses`, `user_courses`
+- `tasks` — with `parent_id` (self-reference for subtasks)
+- `evals`
+- `events`
+- `folders`, `notes`
+- `email_templates`, `emails`
+- `audit_logs`
+- `user_integrations`
+
+### Tasks — subtask support
+
+```typescript
+// tasks table has:
+parentId: integer('parent_id').references((): AnyPgColumn => tasks.id);
+// Parent tasks have parentId = null
+// Subtasks have parentId = <parent task id>
+// GET /tasks returns only top-level tasks; subtasks fetched separately or nested
 ```
 
 ---
@@ -589,185 +532,115 @@ export interface Eval {
 ## API Endpoint Reference
 
 ### Auth (`/auth`)
-| Method | Path | Auth | Body | Description |
-|---|---|---|---|---|
-| POST | `/auth/register` | No | `{ login, email, password, name?, title?, organization? }` | Register |
-| POST | `/auth/verify-email` | No | `{ email, code }` | Verify email code |
-| POST | `/auth/login` | No | `{ login, password }` | Login → JWT |
-| POST | `/auth/logout` | Yes | — | Logout |
+
+| Method | Path           | Auth | Description                                             |
+| ------ | -------------- | ---- | ------------------------------------------------------- |
+| POST   | `/auth/sync`   | No   | Sync Supabase user to local DB (call after first login) |
+| POST   | `/auth/logout` | Yes  | Set active_session = false                              |
+
+> Register/login/verify-email are handled by Supabase Auth on the frontend — no backend endpoints needed.
 
 ### Tasks (`/tasks`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/tasks` | Yes | List own tasks. Query: `status`, `due_date_from`, `due_date_to`, `sort_by`, `order` |
-| POST | `/tasks` | Yes | Create task. Body: `{ title, dueDate, description? }` |
-| GET | `/tasks/:id` | Yes | Task detail + eval if exists |
-| PATCH | `/tasks/:id` | Yes | Update task. Body: `{ title?, description?, dueDate?, status? }` |
-| DELETE | `/tasks/:id` | Yes | Soft delete (own tasks only) |
-| PATCH | `/tasks/:id/toggle-done` | Yes | Toggle DONE ↔ TODO |
-| POST | `/tasks/:id/eval` | MENTOR | Create eval. Body: `{ score, feedback }` |
-| GET | `/tasks/:id/eval` | Yes | Get eval for task |
+
+| Method | Path                     | Auth   | Description                                                                     |
+| ------ | ------------------------ | ------ | ------------------------------------------------------------------------------- |
+| GET    | `/tasks`                 | Yes    | List own top-level tasks (parentId IS NULL)                                     |
+| POST   | `/tasks`                 | Yes    | Create task. Body: `{ title, dueDate, description?, assignmentId?, parentId? }` |
+| GET    | `/tasks/:id`             | Yes    | Task detail + subtasks + eval if exists                                         |
+| PATCH  | `/tasks/:id`             | Yes    | Update. Body: `{ title?, description?, dueDate?, status?, parentId? }`          |
+| DELETE | `/tasks/:id`             | Yes    | Soft delete                                                                     |
+| PATCH  | `/tasks/:id/toggle-done` | Yes    | Toggle DONE ↔ TODO                                                              |
+| POST   | `/tasks/:id/eval`        | MENTOR | Body: `{ score, feedback }`                                                     |
+| GET    | `/tasks/:id/eval`        | Yes    | Get eval                                                                        |
 
 ### Events (`/events`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/events` | Yes | List own events |
-| POST | `/events` | Yes | Body: `{ title, startDate, endDate, description?, place? }`. Validate: startDate ≤ endDate |
-| GET | `/events/:id` | Yes | Event detail |
-| PATCH | `/events/:id` | Yes | Update event |
-| DELETE | `/events/:id` | Yes | Soft delete |
 
-### Notes (`/notes`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/notes` | Yes | List own notes |
-| POST | `/notes` | Yes | Body: `{ title, description }` |
-| GET | `/notes/:id` | Yes | Note detail |
-| PATCH | `/notes/:id` | Yes | Update note |
-| DELETE | `/notes/:id` | Yes | Soft delete |
+| Method | Path          | Auth | Description                                                 |
+| ------ | ------------- | ---- | ----------------------------------------------------------- |
+| GET    | `/events`     | Yes  | List own events                                             |
+| POST   | `/events`     | Yes  | Body: `{ title, startDate, endDate, description?, place? }` |
+| GET    | `/events/:id` | Yes  | Event detail                                                |
+| PATCH  | `/events/:id` | Yes  | Update                                                      |
+| DELETE | `/events/:id` | Yes  | Soft delete                                                 |
+
+### Notes (`/notes`) + Folders (`/folders`)
+
+| Method | Path           | Auth | Description                                  |
+| ------ | -------------- | ---- | -------------------------------------------- |
+| GET    | `/notes`       | Yes  | List own notes                               |
+| POST   | `/notes`       | Yes  | Body: `{ title, description, folderId? }`    |
+| GET    | `/notes/:id`   | Yes  | Note detail                                  |
+| PATCH  | `/notes/:id`   | Yes  | Update                                       |
+| DELETE | `/notes/:id`   | Yes  | Soft delete                                  |
+| GET    | `/folders`     | Yes  | List own folders                             |
+| POST   | `/folders`     | Yes  | Body: `{ name }`                             |
+| DELETE | `/folders/:id` | Yes  | Soft delete (nullifies notes.folderId first) |
 
 ### Users (`/users`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/users/me` | Yes | Own profile + settings |
-| PATCH | `/users/me/profile` | Yes | Body: `{ name?, title?, avatar?, organization?, bio? }` |
-| PATCH | `/users/me/password` | Yes | Body: `{ currentPassword, newPassword }` → sends email |
-| GET | `/users/me/settings` | Yes | Get UserSettings |
-| PATCH | `/users/me/settings` | Yes | Body: `{ notificationsEnabled?, lightTheme? }` |
-| GET | `/users/search` | MENTOR | Query: `?q=string`. Search by login/email/name |
+
+| Method | Path                 | Auth   | Description                                             |
+| ------ | -------------------- | ------ | ------------------------------------------------------- |
+| GET    | `/users/me`          | Yes    | Own profile + settings                                  |
+| PATCH  | `/users/me/profile`  | Yes    | Body: `{ name?, title?, avatar?, organization?, bio? }` |
+| PATCH  | `/users/me/password` | Yes    | Body: `{ currentPassword, newPassword }`                |
+| GET    | `/users/me/settings` | Yes    | Get UserSettings                                        |
+| PATCH  | `/users/me/settings` | Yes    | Body: `{ notificationsEnabled?, lightTheme? }`          |
+| GET    | `/users/search`      | MENTOR | Query: `?q=string`                                      |
 
 ### Groups (`/groups`)
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/groups` | Yes | Groups where user is mentor or member |
-| POST | `/groups` | MENTOR | Body: `{ name, memberIds?: number[] }` |
-| GET | `/groups/:id` | Yes | Group detail + members |
-| DELETE | `/groups/:id` | MENTOR | Soft delete (own groups only) |
-| POST | `/groups/:id/members` | MENTOR | Body: `{ userIds: number[] }` → sends emails |
-| DELETE | `/groups/:id/members/:userId` | MENTOR | Remove member → sends email |
-| GET | `/groups/:id/assignments` | Yes | List assignments for group |
-| POST | `/groups/:id/assignments` | MENTOR | Assign task to all members. Body: `{ title, dueDate, description? }` |
 
-### Admin (`/admin`) — requires ADMIN role
-| Method | Path | Description |
-|---|---|---|
-| GET | `/admin/users` | All users (paginated). Query: `page`, `limit`, `q` |
-| POST | `/admin/users` | Create user |
-| PATCH | `/admin/users/:id` | Update user |
-| DELETE | `/admin/users/:id` | Soft delete / deactivate |
-| POST | `/admin/users/:id/roles` | Body: `{ roleId }` — assign role |
-| DELETE | `/admin/users/:id/roles/:roleId` | Remove role |
-| GET | `/admin/audit-logs` | Query: `userId`, `from`, `to`. Paginated |
-| GET | `/admin/settings` | Global system settings |
-| PATCH | `/admin/settings` | Update global settings |
+| Method | Path                          | Auth   | Description                              |
+| ------ | ----------------------------- | ------ | ---------------------------------------- |
+| GET    | `/groups`                     | Yes    | Groups where user is mentor or member    |
+| POST   | `/groups`                     | MENTOR | Body: `{ name, memberIds?: number[] }`   |
+| GET    | `/groups/:id`                 | Yes    | Group detail + members                   |
+| DELETE | `/groups/:id`                 | MENTOR | Soft delete                              |
+| POST   | `/groups/:id/members`         | MENTOR | Body: `{ userIds: number[] }`            |
+| DELETE | `/groups/:id/members/:userId` | MENTOR | Remove member                            |
+| GET    | `/groups/:id/assignments`     | Yes    | List assignments                         |
+| POST   | `/groups/:id/assignments`     | MENTOR | Body: `{ title, dueDate, description? }` |
 
----
+### Courses (`/courses`)
 
-## Database Commands
+| Method | Path                    | Auth    | Description                    |
+| ------ | ----------------------- | ------- | ------------------------------ |
+| GET    | `/courses`              | Yes     | Courses user is enrolled in    |
+| POST   | `/courses`              | TEACHER | Create course                  |
+| GET    | `/courses/:id`          | Yes     | Course detail + enrolled count |
+| PATCH  | `/courses/:id`          | TEACHER | Update course                  |
+| DELETE | `/courses/:id`          | TEACHER | Soft delete                    |
+| POST   | `/courses/:id/enroll`   | Yes     | Enroll current user            |
+| DELETE | `/courses/:id/enroll`   | Yes     | Unenroll current user          |
+| GET    | `/courses/:id/progress` | Yes     | Task completion stats          |
 
-```bash
-# From apps/backend/:
-bun run db:generate    # Generate SQL migrations from schema changes
-bun run db:migrate     # Apply migrations to DB
-bun run db:push        # Push schema directly (dev only, skips migration files)
+### AI (`/ai`) — Track 2, to be implemented
 
-# Seed script (create manually at apps/backend/src/db/seed.ts):
-bun run src/db/seed.ts
-```
+| Method | Path                 | Auth | Description                                                                               |
+| ------ | -------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| POST   | `/ai/brief`          | Yes  | Daily brief + top 3 priorities from user's tasks/events                                   |
+| POST   | `/ai/chat`           | Yes  | General chat with user context (tasks, courses). Body: `{ messages: [{role, content}] }`  |
+| POST   | `/ai/notes/:id/quiz` | Yes  | Generate 5 MCQ from note content. Returns `{ questions: [{question, options, correct}] }` |
+| POST   | `/ai/notes/:id/chat` | Yes  | Chat grounded in specific note. Body: `{ messages: [{role, content}] }`                   |
 
-**Migration workflow:**
-1. Edit `schema.ts`
-2. Run `bun run db:generate` → creates file in `drizzle/`
-3. Run `bun run db:migrate` → applies to DB
-4. Commit both `schema.ts` and the new file in `drizzle/`
+### Not in scope
 
----
-
-## Development Commands
-
-```bash
-# Root (from pb138/):
-pnpm install                              # Install all deps
-docker compose up --build                 # Start everything (recommended)
-docker compose up -d frontend             # Restart only frontend
-docker compose up -d backend              # Restart only backend
-docker compose stop                       # Stop containers
-docker compose down                       # Stop + remove containers
-
-# Frontend only (from apps/frontend/ or with filter):
-pnpm --filter @pb138/frontend dev         # Dev server on http://localhost:5173
-pnpm --filter @pb138/frontend test        # Vitest unit tests
-pnpm --filter @pb138/frontend test:e2e    # Playwright E2E
-
-# Backend only (from apps/backend/):
-bun run dev                               # Dev server on http://localhost:3001
-bun test                                  # Unit tests
-
-# Lint + format (from root):
-pnpm lint
-pnpm format
-```
-
----
-
-## Code Style Rules
-
-From `.eslintrc.json` and `.prettierrc`:
-- **Prettier:** `singleQuote: true`, `semi: true`, `tabWidth: 2`, `trailingComma: 'es5'`, `printWidth: 100`
-- **TypeScript:** strict mode, no `any` unless absolutely necessary
-- **React:** `plugin:react/jsx-runtime` (no need to import React in each file)
-- **Imports:** group: 1) node_modules, 2) internal `@pb138/`, 3) relative. Sorted alphabetically.
-- **Commit format:** `action: description` where action ∈ `feat`, `change`, `fix`
-
----
-
-## Use Case Summary (what must be implemented)
-
-### Unregistered User
-- `createAccount` → register with email verification
-- `logIn` → JWT auth
-
-### User (authenticated)
-- `manageTask` → CRUD tasks + mark done + filter/sort
-- `manageEvent` → CRUD events
-- `manageNotes` → CRUD notes
-- `changePersonalInfo` → edit profile
-- `changePassword` → with email notification
-- `settings` → toggle notifications, dark/light mode (`setMode`)
-- `seeGroups` → read-only view of groups they're in
-- `readEmails` → view received notifications
-- `logOut`
-
-### Mentor (extends User)
-- `manageGroup` → create/delete groups
-- `addUserToGroup` → search users, add/remove from group → email notifications
-- `assignTask` → create task for all group members at once
-- `evaluateTask` → score + feedback on DONE tasks → email notification
-
-### Admin
-- `manageUsers` → CRUD users
-- `manageRoles` → assign/remove roles
-- `manageSystemSettings` → global settings
-- `viewLogs` → audit log viewer
-
-### System (automated)
-- `checkDeadlines` → cron job every hour, find tasks/events within 24h of deadline
-- `sendNotification` → send email via SMTP, log in `emails` table
+- `/admin/*` — not in demo flow
+- `/study-materials/*` — not in demo scope
 
 ---
 
 ## Key Business Rules
 
-1. **Soft delete everywhere:** `deleted_at IS NULL` in all SELECTs, never hard DELETE
-2. **Audit every mutation:** every INSERT/UPDATE/soft-DELETE → `logAction(db, actorId, description)`
-3. **Ownership validation:** user can only modify their own tasks/events/notes
-4. **Mentor inherits User:** MENTOR role has all USER permissions + group management
-5. **Task status toggle:** Mark as Done on a DONE task → sets it back to TODO
-6. **Assignment creates N tasks:** one task record per group member, all linked to same `assignment_id`
-7. **Eval requires DONE status or past due_date:** cannot evaluate a task that is TODO and not overdue
-8. **Email verification on register:** account not active until code verified; 3 attempts max, expires in 3h
-9. **Active session tracking:** `active_session` set to `true` on login, `false` on logout
-10. **Dark mode persisted:** stored in `user_settings.light_theme`, applied via `dark` class on `<html>`
+1. **Soft delete everywhere** — `deleted_at IS NULL` in all SELECTs, never hard DELETE
+2. **Audit every mutation** — every INSERT/UPDATE/soft-DELETE → `logAction(db, actorId, description)`
+3. **Ownership validation** — user can only modify their own tasks/events/notes
+4. **Subtasks** — tasks can have `parentId`; GET /tasks returns only top-level (parentId IS NULL)
+5. **Task status toggle** — DONE → TODO, TODO/IN PROGRESS → DONE
+6. **Assignment creates N tasks** — one task per group member, all linked to same `assignment_id`
+7. **Auth via Supabase** — never store passwords manually; `pwd_hash` column kept for schema completeness but is empty string
+8. **Dark mode** — persisted in `user_settings.light_theme`, applied via `dark` class on `<html>`
+9. **i18n** — all user-facing strings must use `t()` from react-i18next; add keys to both `en.json` and `cs.json`
+10. **Role toggle** — users with TEACHER role see teacher nav; sidebar shows "STUDENT ⇄ TEACHER" pill
 
 ---
 
@@ -775,10 +648,50 @@ From `.eslintrc.json` and `.prettierrc`:
 
 - **Do NOT hard-delete any rows** — always soft-delete with `deleted_at`
 - **Do NOT skip audit logging** on any data mutation
-- **Do NOT edit `routeTree.gen.ts`** — it's auto-generated by TanStack Router plugin
-- **Do NOT edit files in `drizzle/`** — generated migration SQL, do not touch
-- **Do NOT store sensitive data in React state** that should be in DB (e.g., user roles)
-- **Do NOT use `any` TypeScript type** unless you can justify it
-- **Do NOT add routes without auth protection** for anything behind `/dashboard`, `/tasks`, etc.
+- **Do NOT edit `routeTree.gen.ts`** — auto-generated
+- **Do NOT edit files in `drizzle/`** — generated migration SQL
+- **Do NOT use `any` TypeScript type** unless justified
+- **Do NOT add routes without auth protection** (`onBeforeHandle` check for `!user`)
 - **Do NOT forget `isNull(table.deletedAt)`** in WHERE clauses
-- **Do NOT skip validation** — use Elysia's `t.Object()` schema for every POST/PATCH body
+- **Do NOT use Elysia `t.Object()`** for validation — use Zod + `zodBody()` instead
+- **Do NOT use `localStorage` for the auth token** — use Supabase session
+- **Do NOT add new i18n strings without adding to both `en.json` and `cs.json`**
+
+---
+
+## Development Commands
+
+```bash
+# Root:
+pnpm install
+
+# Frontend (from repo root):
+pnpm --filter @pb138/frontend dev    # http://localhost:5173
+pnpm --filter @pb138/frontend test
+pnpm --filter @pb138/frontend test:e2e
+
+# Backend (from apps/backend/):
+bun run dev                          # http://localhost:3001
+bun test
+
+# DB (from apps/backend/) — DB is Supabase cloud, no local Docker needed:
+bun run db:generate    # Generate migrations from schema changes
+bun run db:migrate     # Apply migrations
+bun run db:push        # Push schema directly (dev only)
+bun run src/db/seed.ts # Run seed
+bun run src/db/seed-user.ts # Seed demo user data
+
+# Lint + format:
+pnpm lint
+pnpm format
+```
+
+---
+
+## Code Style
+
+- **Prettier:** `singleQuote: true`, `semi: true`, `tabWidth: 2`, `trailingComma: 'es5'`, `printWidth: 100`
+- **TypeScript:** strict mode, no `any`
+- **Imports:** 1) node_modules, 2) internal `@pb138/`, 3) relative. Sorted alphabetically.
+- **Commit format:** `feat:`, `fix:`, `change:`, `docs:`
+- **No comments** unless the WHY is non-obvious

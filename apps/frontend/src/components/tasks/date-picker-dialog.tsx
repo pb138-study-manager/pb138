@@ -1,0 +1,204 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Calendar as CalendarIcon,
+  CalendarDays,
+  ArrowRight,
+  X,
+  Clock,
+  Timer,
+  ChevronDownIcon,
+} from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import { useDatePickerDialog } from '@/hooks/useDatePickerDialog';
+
+export default function DatePickerDialog({
+  isOpen,
+  onOpenChange,
+  currentDate,
+  currentEndDate,
+  onDateSelect,
+  onEndDateSelect,
+  showDuration = true,
+}: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentDate?: Date | null;
+  currentEndDate?: Date | null;
+  onDateSelect?: (date: Date | null) => void;
+  onEndDateSelect?: (date: Date) => void;
+  showDuration?: boolean;
+}) {
+  const {
+    date,
+    durationMinutes,
+    handleSave,
+    open,
+    setDate,
+    setDurationMinutes,
+    setOpen,
+    setTime,
+    setDateToNextWeek,
+    setDateToToday,
+    setDateToTomorrow,
+    clearDate,
+    time,
+  } = useDatePickerDialog({
+    isOpen,
+    currentDate,
+    currentEndDate,
+    onDateSelect,
+    onEndDateSelect,
+    onOpenChange,
+  });
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm gap-0 p-0 overflow-hidden rounded-2xl [&>button]:hidden">
+        {/* Hlavička */}
+        <DialogHeader className="flex flex-row items-center justify-between p-4 border-b border-border/50 bg-muted/20">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="font-normal text-muted-foreground hover:text-foreground"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <DialogTitle className="text-base font-semibold m-0">Date & Time</DialogTitle>
+          <Button
+            variant="default"
+            size="sm"
+            className="font-medium rounded-full px-4"
+            onClick={handleSave}
+          >
+            Done
+          </Button>
+        </DialogHeader>
+
+        <div className="p-5 space-y-6 bg-background">
+          {/* Rychlé volby (Grid) */}
+          <div className="grid grid-cols-4 gap-3">
+            <Button
+              variant="outline"
+              className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all"
+              onClick={setDateToToday}
+            >
+              <CalendarIcon className="w-5 h-5 text-blue-500" />
+              <span className="text-xs font-medium text-muted-foreground">Today</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all"
+              onClick={setDateToTomorrow}
+            >
+              <CalendarDays className="w-5 h-5 text-purple-500" />
+              <span className="text-xs font-medium text-muted-foreground">Tomorrow</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-green-500/50 hover:bg-green-500/5 transition-all"
+              onClick={setDateToNextWeek}
+            >
+              <ArrowRight className="w-5 h-5 text-green-500" />
+              <span className="text-xs font-medium text-muted-foreground">Next week</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto flex-col gap-2 py-4 px-2 rounded-xl border-border/60 hover:border-destructive/50 hover:bg-destructive/5 transition-all"
+              onClick={clearDate}
+            >
+              <X className="w-5 h-5 text-destructive/70" />
+              <span className="text-xs font-medium text-muted-foreground">No date</span>
+            </Button>
+          </div>
+
+          {/* Nastavení (List) */}
+          <div className="flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden shadow-sm">
+            {/* Date Row */}
+            <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none border-b border-border/60 hover:bg-muted/50 transition-colors group font-normal">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg dark:bg-blue-900/30 group-hover:scale-105 transition-transform">
+                  <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Date</span>
+              </div>
+
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'w-[160px] justify-between font-normal bg-transparent'
+                  )}
+                >
+                  {date ? date.toLocaleDateString() : 'No date selected'}
+                  <ChevronDownIcon className="w-4 h-4 opacity-50" />
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto min-w-[280px] p-3" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date ?? undefined}
+                    onSelect={(newDate) => {
+                      if (newDate) {
+                        setDate(newDate);
+                        setOpen(false);
+                      }
+                    }}
+                    initialFocus
+                    className="w-full"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Time Row */}
+            <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none border-b border-border/60 hover:bg-muted/50 transition-colors group font-normal">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-orange-100 rounded-lg dark:bg-orange-900/30 group-hover:scale-105 transition-transform">
+                  <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <span className="text-sm font-medium text-foreground">Time</span>
+              </div>
+              <input
+                type="time"
+                value={time.slice(0, 5)}
+                onChange={(e) => setTime(e.target.value + ':00')}
+                className="w-32 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            {/* Duration Row */}
+            {showDuration && (
+              <div className="w-full h-auto flex items-center justify-between p-3.5 rounded-none hover:bg-muted/50 transition-colors group font-normal">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg dark:bg-purple-900/30 group-hover:scale-105 transition-transform">
+                    <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">Duration</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[15, 30, 60, 90, 120].map((min) => (
+                    <button
+                      key={min}
+                      onClick={() => setDurationMinutes(min)}
+                      className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${durationMinutes === min ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                    >
+                      {min < 60 ? `${min}m` : `${min / 60}h`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

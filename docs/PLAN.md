@@ -8,18 +8,18 @@
 
 ## Aktuálny stav (čo je hotové)
 
-| Oblasť | Stav |
-|---|---|
-| Monorepo (pnpm workspaces) | ✅ hotové |
-| Docker Compose (postgres + backend + frontend) | ✅ hotové |
-| CI/CD pipeline (GitHub Actions: lint → test → build → e2e) | ✅ hotové |
-| Backend: ElysiaJS server + `/health` route | ✅ hotové |
-| Backend: Drizzle ORM pripojenie na PostgreSQL | ✅ hotové |
-| DB schema: iba tabuľka `users` (placeholder) | ⚠️ neúplné |
-| Frontend: React + TanStack Router + Tailwind | ✅ hotové |
-| Frontend: iba prázdna homepage | ⚠️ neúplné |
-| Playwright E2E setup | ✅ hotové |
-| ESLint + Prettier | ✅ hotové |
+| Oblasť                                                     | Stav       |
+| ---------------------------------------------------------- | ---------- |
+| Monorepo (pnpm workspaces)                                 | ✅ hotové  |
+| Docker Compose (postgres + backend + frontend)             | ✅ hotové  |
+| CI/CD pipeline (GitHub Actions: lint → test → build → e2e) | ✅ hotové  |
+| Backend: ElysiaJS server + `/health` route                 | ✅ hotové  |
+| Backend: Drizzle ORM pripojenie na PostgreSQL              | ✅ hotové  |
+| DB schema: iba tabuľka `users` (placeholder)               | ⚠️ neúplné |
+| Frontend: React + TanStack Router + Tailwind               | ✅ hotové  |
+| Frontend: iba prázdna homepage                             | ⚠️ neúplné |
+| Playwright E2E setup                                       | ✅ hotové  |
+| ESLint + Prettier                                          | ✅ hotové  |
 
 ---
 
@@ -40,6 +40,7 @@ Súbor: `apps/backend/src/db/schema.ts`
 Tabuľky na implementáciu v tomto poradí (kvôli závislostiam na foreign keys):
 
 **Blok A — Používatelia a RBAC:**
+
 - [ ] `users` — id, email (unique), login (unique), pwd_hash, active_session, deleted_at
 - [ ] `user_profiles` — user_id (PK, FK), name, title, avatar, organization, bio
 - [ ] `user_settings` — user_id (PK, FK), notifications_enabled (default true), light_theme (default true)
@@ -49,6 +50,7 @@ Tabuľky na implementáciu v tomto poradí (kvôli závislostiam na foreign keys
 - [ ] `role_permissions` — role_id (FK), permission_id (FK)
 
 **Blok B — Obsah (Tasks, Events, Notes):**
+
 - [ ] `assignments` — id, group_id (FK), title, description, due_date, deleted_at
 - [ ] `tasks` — id, user_id (FK), assignment_id (nullable FK), title, description, due_date, status (enum: 'TODO'|'IN PROGRESS'|'DONE'), deleted_at
 - [ ] `evals` — id, task_id (FK), feedback, score, evaluated_at
@@ -56,10 +58,12 @@ Tabuľky na implementáciu v tomto poradí (kvôli závislostiam na foreign keys
 - [ ] `notes` — id, user_id (FK), title, description, deleted_at
 
 **Blok C — Skupiny:**
+
 - [ ] `groups` — id, mentor_id (FK na users), name, deleted_at
 - [ ] `group_members` — user_id (FK), group_id (FK)
 
 **Blok D — Notifikácie a logy:**
+
 - [ ] `email_templates` — id, type (unique), subject, body
 - [ ] `emails` — id, recipient_id (FK), sent_at, status, deleted_at
 - [ ] `audit_logs` — id, actor_id (FK na users), happened_at, description
@@ -448,11 +452,11 @@ Súbor: `apps/frontend/e2e/`
 
 > Toto je odporúčanie — upravte podľa silných stránok každého člena.
 
-| Člen | Hlavná zodpovednosť |
-|---|---|
-| **Peter** | Backend auth (Fáza 2) + DB schéma (Fáza 1) + Tasks backend (Fáza 3.1) |
-| **Člen 2** | Frontend UI — Dashboard, Tasks, Events (Fázy 3.2, 4.2, 10) |
-| **Valéria** | Mentor funkcie — backend + frontend (Fáza 7) + Notifications (Fáza 9) |
+| Člen         | Hlavná zodpovednosť                                                                 |
+| ------------ | ----------------------------------------------------------------------------------- |
+| **Peter**    | Backend auth (Fáza 2) + DB schéma (Fáza 1) + Tasks backend (Fáza 3.1)               |
+| **Člen 2**   | Frontend UI — Dashboard, Tasks, Events (Fázy 3.2, 4.2, 10)                          |
+| **Valéria**  | Mentor funkcie — backend + frontend (Fáza 7) + Notifications (Fáza 9)               |
 | **Jaroslav** | Events backend (Fáza 4.1) + Notes (Fáza 5) + Admin panel (Fáza 8) + profil (Fáza 6) |
 
 **Dôležité:** Fáza 1 (DB schéma) a Fáza 2 (Auth) musia byť hotové **pred tým**, ako ktokoľvek začína s CRUD operáciami.
@@ -474,27 +478,35 @@ Týždeň 5: Fáza 11 (Testy) + bug fixes + finalizácia
 ## Technické rozhodnutia a poznámky
 
 ### JWT vs. sessions
+
 Odporúčam JWT (stateless, vhodné pre SPA + Bun backend). Uloženie v httpOnly cookie je bezpečnejšie ako localStorage (ochrana pred XSS).
 
 ### Soft delete pattern
+
 Všetky entity používajú `deleted_at` namiesto fyzického mazania. Každý GET query musí obsahovať `WHERE deleted_at IS NULL`.
 
 ### AuditLog
+
 Každá mutácia (INSERT/UPDATE/DELETE) musí zapísať záznam do `audit_logs`. Odporúčam centralizovaný helper:
+
 ```typescript
 await logAction(db, actorId, 'CREATED_TASK', `Task ${taskId} created`);
 ```
 
 ### Prístupové práva (RBAC)
+
 - MENTOR dedí všetky oprávnenia USER (viz use case diagram: `mentor -|> user`)
 - ADMIN má špeciálne systémové oprávnenia nezávisle od bežných user akcií
 - Middleware by mal kontrolovať aj ownership (napr. user môže mazať iba vlastné tasky)
 
 ### Správa theme (dark/light mode)
+
 Tailwind JIT mode + CSS trieda `dark` na `<html>` elemente. Pri načítaní aplikácie prečítaj `UserSettings.light_theme` a nastav triedu.
 
 ### Error handling
+
 Štandardizovaný formát chybových odpovedí:
+
 ```json
 { "error": "VALIDATION_FAILED", "message": "...", "fields": { "email": "..." } }
 ```

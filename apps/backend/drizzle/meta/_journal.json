@@ -8,6 +8,104 @@
       "when": 1776692241457,
       "tag": "0000_tiny_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1776972878078,
+      "tag": "0001_square_killraven",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1776983274247,
+      "tag": "0002_salty_micromax",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777058275830,
+      "tag": "0003_thin_leech",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1777221293102,
+      "tag": "0004_volatile_dracula",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1777717927229,
+      "tag": "0005_woozy_groot",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1778280238709,
+      "tag": "0006_milky_harrier",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778951904832,
+      "tag": "0007_damp_meltdown",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1778963977284,
+      "tag": "0008_bouncy_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1779013770833,
+      "tag": "0009_sad_mimic",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1779049910580,
+      "tag": "0010_early_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1779123180283,
+      "tag": "0011_square_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1781346670324,
+      "tag": "0012_jittery_slayback",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1781544151270,
+      "tag": "0013_cool_hammerhead",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1781569915966,
+      "tag": "0014_goofy_madripoor",
+      "breakpoints": true
     }
   ]
 }

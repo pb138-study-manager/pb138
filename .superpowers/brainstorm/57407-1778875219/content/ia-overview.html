@@ -1,0 +1,83 @@
+<h2>Information Architecture</h2>
+<p class="subtitle">Section 1 of 5 — How the app is organized for each role. Does this structure feel right?</p>
+
+<div class="split" style="gap:24px;align-items:flex-start">
+
+  <!-- STUDENT -->
+  <div style="flex:1;min-width:260px">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6366f1;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <span style="background:#6366f1;color:#fff;border-radius:999px;padding:2px 10px;font-size:11px">STUDENT</span> Navigation
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+
+      <div style="background:#6366f1;color:#fff;border-radius:10px;padding:8px 14px;font-weight:600">🏠 Today
+        <div style="font-size:11px;font-weight:400;opacity:.85;margin-top:2px">AI-curated daily view · week strip · tasks for today · upcoming deadlines</div>
+      </div>
+
+      <div style="background:#f1f5f9;border-radius:10px;padding:8px 14px">✅ Tasks
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Personal tasks · subtasks · AI priority scoring · teacher-assigned tasks visible here too</div>
+      </div>
+
+      <div style="background:#f1f5f9;border-radius:10px;padding:8px 14px">📚 Courses
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Enrolled courses · progress per course · study materials from teacher · course tasks</div>
+      </div>
+
+      <div style="background:#f1f5f9;border-radius:10px;padding:8px 14px">📝 Notes
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Personal notes · folders · link notes to courses · AI summarization</div>
+      </div>
+
+      <div style="background:#f1f5f9;border-radius:10px;padding:8px 14px">📅 Timeline
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Events · deadlines from courses · AI-suggested study blocks</div>
+      </div>
+
+      <div style="background:#e0f2fe;border-radius:10px;padding:8px 14px;border:1.5px solid #38bdf8">🤖 AI Copilot
+        <div style="font-size:11px;color:#0369a1;margin-top:2px">Chat interface · weekly plan generation · workload warnings · note summaries</div>
+      </div>
+
+      <div style="background:#f8fafc;border-radius:10px;padding:8px 14px;border:1px solid #e2e8f0">👤 Profile / Settings
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Avatar · password · theme · notifications · language</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEACHER -->
+  <div style="flex:1;min-width:260px">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f59e0b;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <span style="background:#f59e0b;color:#fff;border-radius:999px;padding:2px 10px;font-size:11px">TEACHER</span> Navigation
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:13px">
+
+      <div style="background:#f59e0b;color:#fff;border-radius:10px;padding:8px 14px;font-weight:600">🏫 My Classes
+        <div style="font-size:11px;font-weight:400;opacity:.9;margin-top:2px">Courses you teach · class roster · today's sessions · pending evaluations count</div>
+      </div>
+
+      <div style="background:#fef3c7;border-radius:10px;padding:8px 14px">📋 Assignments
+        <div style="font-size:11px;color:#92400e;margin-top:2px">Create & manage assignments · assign to course · set due dates · track submission status</div>
+      </div>
+
+      <div style="background:#fef3c7;border-radius:10px;padding:8px 14px">📊 Evaluations
+        <div style="font-size:11px;color:#92400e;margin-top:2px">Grade submitted work · score + feedback · view per-student progress across course</div>
+      </div>
+
+      <div style="background:#fef3c7;border-radius:10px;padding:8px 14px">📦 Study Materials
+        <div style="font-size:11px;color:#92400e;margin-top:2px">Upload/link materials to courses · visible to enrolled students · organize by topic</div>
+      </div>
+
+      <div style="background:#fef3c7;border-radius:10px;padding:8px 14px">👥 Students
+        <div style="font-size:11px;color:#92400e;margin-top:2px">Enroll / remove students per course · search by name/email · view per-student task status</div>
+      </div>
+
+      <div style="background:#e0f2fe;border-radius:10px;padding:8px 14px;border:1.5px solid #38bdf8">🤖 AI Insights
+        <div style="font-size:11px;color:#0369a1;margin-top:2px">Class performance overview · students at risk · AI-drafted assignment descriptions</div>
+      </div>
+
+      <div style="background:#f8fafc;border-radius:10px;padding:8px 14px;border:1px solid #e2e8f0">👤 Profile / Settings
+        <div style="font-size:11px;color:#64748b;margin-top:2px">Same as student profile section</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;background:#f0fdf4;border:1.5px solid #4ade80;border-radius:10px;padding:12px 16px;font-size:12px;color:#166534">
+  <strong>Key principle:</strong> A teacher who is also a student (e.g. a PhD student) sees <em>both</em> nav sets — a role toggle at the top of the sidebar switches context. No separate login needed.
+</div>

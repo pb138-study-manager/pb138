@@ -1,0 +1,65 @@
+<h2>Čo budujeme — feature mapa</h2>
+<p class="subtitle">Sekcia 1 z 4 — Schváľ pred tým ako pôjdeme ďalej</p>
+
+<div class="section">
+  <h3>🔧 Track 1 — Fundament (Deň 1)</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+    <div style="padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+      <div class="label">AuthGuard</div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Wrapper komponent — redirect na /login ak nie je session. Wrap-ne všetky chránené routes.</p>
+    </div>
+    <div style="padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+      <div class="label">Courses → API</div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Vymeniť course-mock-data.ts za reálne volania na <code>/courses</code> endpointy. Hook useCourseManager.</p>
+    </div>
+    <div style="padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+      <div class="label">Bug hunt</div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Prejsť celý student flow manuálne, zdokumentovať + opraviť kritické bugy pred prezentáciou.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🤖 Track 2 — AI Backend (Deň 2)</h3>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-top: 0.75rem;">
+    <div style="padding: 0.75rem; background: var(--surface); border-radius: 8px; border: 1px solid #6366f1; font-size: 0.85rem;">
+      <div class="label">POST /ai/brief</div>
+      <p style="margin: 0.4rem 0 0;">Načíta tasks + events usera → OpenAI → vráti denný brief ako text</p>
+    </div>
+    <div style="padding: 0.75rem; background: var(--surface); border-radius: 8px; border: 1px solid #6366f1; font-size: 0.85rem;">
+      <div class="label">POST /ai/chat</div>
+      <p style="margin: 0.4rem 0 0;">Všeobecný chat s kontextom usera (tasks, kurzy)</p>
+    </div>
+    <div style="padding: 0.75rem; background: var(--surface); border-radius: 8px; border: 1px solid #10b981; font-size: 0.85rem;">
+      <div class="label">POST /ai/notes/:id/quiz</div>
+      <p style="margin: 0.4rem 0 0;">Obsah poznámky → OpenAI → vráti pole otázok + odpovedí</p>
+    </div>
+    <div style="padding: 0.75rem; background: var(--surface); border-radius: 8px; border: 1px solid #10b981; font-size: 0.85rem;">
+      <div class="label">POST /ai/notes/:id/chat</div>
+      <p style="margin: 0.4rem 0 0;">Otázka + obsah poznámky → OpenAI → odpoveď na základe textu poznámky</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🎨 Track 3 — Visual Polish + AI Frontend (Deň 2–3)</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
+    <div style="padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+      <div class="label">AI Copilot Panel</div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Pravý collapsible sidebar. <strong>Daily brief tab</strong> (AI summary tvojho dňa) + <strong>Chat tab</strong> (všeobecný). Dostupný z každej stránky.</p>
+    </div>
+    <div style="padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
+      <div class="label">Notes AI features</div>
+      <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">V detail view poznámky: tlačidlo <strong>"Quiz me"</strong> + tlačidlo <strong>"Ask AI"</strong>. Oboje otvára modal/panel.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>✨ Deň 4 — Final polish + demo run</h3>
+  <p style="font-size: 0.9rem;">Chat s poznámkami dokončiť, prejsť celý flow end-to-end, opraviť edge casy, posledný vizuálny lesk.</p>
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; border: 1px solid #6366f1;">
+  <strong>Vyzerá to dobre?</strong> Odpovedaj v termináli — potom ukážem mockup AI Copilot panelu a Notes AI features.
+</div>

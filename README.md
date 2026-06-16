@@ -1,162 +1,200 @@
-# PB138
+# Student OS — PB138
 
-Project for PB138: Webdev principles - Study Manager.
+> An all-in-one hub for university student life, powered by an AI copilot and a first-class teacher-student communication layer.
 
-# Setup (WIP)
+Built as a university project for PB138 — Web Development Principles, Masaryk University Brno.
 
-<!-- TODO -->
+---
+
+## What is this?
+
+Student OS is the single app a student opens every morning and a teacher opens before every class. Three things make it different from a plain study tracker:
+
+1. **Everything in one place** — tasks, notes, courses, timeline, and teacher-assigned work unified in a single shell
+2. **AI copilot** — an AI that knows your deadlines, workload, and notes, and proactively helps you manage your week
+3. **Teacher-student channel** — teachers assign students to courses, publish study materials, create assignments for the whole class, and evaluate submitted work
+
+---
+
+## What it can do
+
+### As a Student
+
+- **Today view** — personalized daily screen: week strip, tasks for today, upcoming deadlines, AI summary of your week
+- **Tasks** — personal tasks + subtasks, filter by status/due date, AI priority scoring; teacher-assigned tasks appear here automatically tagged with the course
+- **Courses** — enrolled courses with progress tracking; each course opens a tabbed detail view:
+  - _Overview_ — schedule, teacher info, next class, upcoming deadlines
+  - _Tasks_ — all tasks linked to this course
+  - _Materials_ — study materials uploaded by the teacher (links + descriptions)
+  - _My Grades_ — all evaluations for this course with score + feedback
+- **Notes** — personal notes organized in folders, linkable to courses, AI can summarize them on demand
+- **Timeline** — calendar view of events and deadlines, AI-suggested study blocks pushed directly from the plan generator
+- **AI Copilot** — persistent right-side panel with three modes:
+  - _Proactive feed_ — polished cards that warn you about overload, nudge high-priority tasks, celebrate progress
+  - _Chat_ — ask anything ("What should I study today?", "Summarize my PB138 notes")
+  - _Weekly plan generator_ — AI reads your tasks and calendar, generates a day-by-day study schedule, one click pushes it to Timeline
+- **Notifications** — bell icon in the header (unread badge) for hard notifications: new assignment, new material, evaluation received; clicking navigates directly to the relevant resource; AI panel handles contextual nudges separately
+- **Global search** — CMD+K command palette searches across tasks, notes, courses, and study materials at once; results grouped by type
+- **More** — catch-all drawer: Profile/Settings, Groups, Pomodoro timer, About/Help
+
+### As a Teacher
+
+- **My Classes** — all courses you teach, class roster, today's sessions, count of pending evaluations
+- **Assignments** — create assignments for a course, set due date and description (AI can draft it), publish to all enrolled students at once; students cannot self-enroll — teachers control the roster entirely
+- **Evaluations** — grade submitted student work with score + feedback, view per-student progress across a course
+- **Study Materials** — attach links and descriptions to a course; enrolled students see them in the Materials tab of the course detail
+- **Students** — enroll and remove students per course, search by name/email, view each student's task completion status
+- **AI Insights** — class performance overview, which students are falling behind, aggregate submission stats
+
+### Role toggle
+
+A user can hold both Student and Teacher roles (e.g. PhD students). A small pill in the sidebar switches the entire navigation context without logging out. On mobile, the same 5-slot bottom nav shifts meaning on role toggle (Today→Classes, Tasks→Assign, Courses→Grades, Notes→Students, More→More).
+
+New users are always **Student** by default. The **Teacher** role is granted exclusively by an Admin via the admin panel — no self-declaration.
+
+---
+
+## How it works
 
 ```
+Browser
+  └── React + TanStack Router (file-based routing)
+        ├── Sidebar (role-aware nav) + AI panel strip
+        ├── Student screens: Today, Tasks, Courses, Notes, Timeline
+        ├── Teacher screens: My Classes, Assignments, Evaluations, Materials, Students
+        └── AI Copilot panel (proactive feed / chat / plan generator)
+
+ElysiaJS API (Bun)
+  ├── /auth        — register, verify email, login, logout
+  ├── /tasks       — CRUD + subtasks + toggle done + eval
+  ├── /events      — CRUD events
+  ├── /notes       — CRUD notes + folders
+  ├── /courses     — enroll, course detail, progress
+  │   └── /materials — study materials per course
+  ├── /groups      — mentor groups + assignments
+  ├── /users       — profile, settings, password
+  ├── /admin       — user management, roles, audit logs
+  └── /ai          — chat (streaming), weekly plan, note summarize, teacher insights
+
+PostgreSQL via Supabase (Drizzle ORM)
+  └── users, tasks, events, notes, courses, assignments, evals,
+      study_materials, audit_logs, emails, ...
+
+E-infra AI API (university AI infrastructure)
+  └── Powers /ai routes — context assembled server-side from user's own data
+      Student data is never visible to teachers through AI
+```
+
+---
+
+## Key design decisions
+
+- **Soft delete everywhere** — `deleted_at` column, never hard DELETE
+- **Audit log on every mutation** — INSERT/UPDATE/soft-DELETE → `audit_logs`
+- **Ownership enforced server-side** — users can only read/modify their own data
+- **AI context is scoped** — the AI only sees the authenticated user's data; teacher AI insights use aggregate stats only
+- **Teacher assignments auto-create tasks** — publishing an assignment creates one task per enrolled student, linked to the assignment and course
+- **Role toggle, not separate logins** — one account can hold multiple roles
+
+---
+
+## Tech Stack
+
+| Layer      | Technology                                     |
+| ---------- | ---------------------------------------------- |
+| Frontend   | React 18 + TypeScript + Vite + TanStack Router |
+| Styling    | Tailwind CSS (dark mode via `class`)           |
+| Validation | Zod                                            |
+| Backend    | Bun + ElysiaJS + TypeScript                    |
+| Database   | PostgreSQL via Supabase                        |
+| ORM        | Drizzle ORM                                    |
+| Auth       | JWT (`@elysiajs/jwt`)                          |
+| AI         | E-infra API (university AI infrastructure)     |
+| Testing    | Vitest + Playwright                            |
+| CI/CD      | GitHub Actions                                 |
+
+---
+
+## Setup
+
+```bash
 pnpm install
-pnpm dev #backend
-pnpm --filter @pb138/frontend dev #frontend
+pnpm --filter @pb138/frontend dev   # frontend on http://localhost:5173
+bun run dev                          # backend on http://localhost:3001 (from apps/backend/)
 ```
 
-or better
+Database is hosted on Supabase — set `DATABASE_URL` in `apps/backend/.env` (see `.env.example`).
 
-```
-pnpm install
-docker compose up --build
-```
+### Database
 
-to restart only frontend or backend
-
-```
-docker compose up -d [frontend/backend]
+```bash
+# From apps/backend/:
+bun run db:generate   # generate migration from schema changes
+bun run db:migrate    # apply migrations
+bun run db:push       # push schema directly (dev only)
 ```
 
-then
+### Run tests
 
-```
-docker compose [stop/down]
-```
-
-# Commit Conventions (WIP)
-
-<!-- TODO -->
-
-Message in format:
-
-```
-"action: description"
+```bash
+pnpm --filter @pb138/frontend test       # Vitest unit tests
+pnpm --filter @pb138/frontend test:e2e   # Playwright E2E
+bun test                                  # Backend unit tests (from apps/backend/)
 ```
 
-Action examples: feat, change, fix.
+---
 
-# Team Members
-
-<!-- Insert your name and uco -->
-
-- Valéria Kvaššayová (550435)
-- Jaroslav Svajčík (564578)
-- Peter Perveka (564577)
-- 
-
-# Description
-
-<!-- >I created this description for PB175, feel free to change it. -->
-
-Study Manager is a web application that allows users to manage various tasks and events that they create themselves or are assigned to them. They can view these in the form of a to-do list, schedule, timetable, calendar, and filter them. The application includes a notification system and a pomodoro timer with a history of launches.
-
-The functional interface is only accessible to logged in users, who can also manage their profile.
-
-The application is primarily created and adapted for university students, but it is universally usable outside of the academic environment.
-
-# Tech stack
-
-<!-- Also previously created for PB175 - feel free to change. -->
-
-- Frontend: React + TypeScript + Tailwind CSS + TanStack Start
-- Backend: Bun + ElysiaJS + TypeScript
-- Database: PostgreSQL
-- ORM: Drizzle
-- Testing: Playwright
-- CI/CD: GitHub Actions
-- Other: Docker, ESLint, Prettier, Mermaid, PlantUML, Jira
-
-# Use Case Diagram
-
-![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
-
-# Entity Realtionship Diagram
-
-![ER Diagram](./docs/analysis/diagrams/entity-relationship.png)
-
-<!--
-# Copilot Setup Prompt
-Create a monorepo structure for a web application using:
-- frontend: React + TypeScript + Tailwind + TanStack Start
-- backend: ElysiaJS
-- database: PostgreSQL
-- ORM: Drizzle
-- containerization: Docker
-
-Set it up with apps/frontend and apps/backend folders.
-Include basic package.json files and scripts.
-
-Create a docker-compose.yml for:
-- PostgreSQL
-- backend (ElysiaJS)
-- frontend (React)
-
-Include environment variables and volumes.
-
-Initialize a basic ElysiaJS server with:
-- TypeScript
-- Drizzle ORM connected to PostgreSQL
-- example route /health
-- environment variable config
-
-Create a React app using TypeScript and Tailwind CSS.
-Include TanStack Router or TanStack Start setup.
-Add a simple homepage.
-
-Set up ESLint and Prettier for a monorepo with React and Node.js.
-Ensure consistent formatting and linting rules.
-
-Create a GitHub Actions pipeline that:
-- installs dependencies
-- runs lint
-- runs tests
-- builds frontend and backend
-
-Set up Playwright for end-to-end testing in a React app.
-Include a basic test for the homepage.
--->
-
-# Setup Structure
+## Repository Structure
 
 ```
 pb138/
 ├── apps/
-│   ├── backend/          # ElysiaJS + TypeScript + Drizzle ORM
-│   │   ├── src/
-│   │   │   ├── index.ts          # Main server with /health route
-│   │   │   ├── index.test.ts     # Bun unit tests
-│   │   │   └── db/               # Drizzle ORM (schema + client)
-│   │   ├── drizzle.config.ts
-│   │   ├── Dockerfile
-│   │   └── .env.example
-│   └── frontend/         # React 18 + TypeScript + Tailwind + TanStack Router
-│       ├── src/
-│       │   ├── main.tsx          # App entry with RouterProvider
-│       │   ├── routes/           # File-based routing
-│       │   └── routeTree.gen.ts  # TanStack Router generated tree
-│       ├── e2e/                  # Playwright E2E tests (3 tests for homepage)
-│       ├── playwright.config.ts
-│       ├── vite.config.ts        # Vite + vitest (jsdom environment)
-│       ├── tailwind.config.js
-│       ├── Dockerfile
-│       └── nginx.conf
+│   ├── backend/
+│   │   └── src/
+│   │       ├── index.ts           # ElysiaJS server entry
+│   │       ├── db/
+│   │       │   ├── schema.ts      # All table definitions
+│   │       │   └── index.ts       # Drizzle client
+│   │       ├── routes/            # One file per resource
+│   │       ├── middleware/auth.ts # JWT + role guards
+│   │       └── services/          # Email, audit log, scheduler, AI
+│   └── frontend/
+│       └── src/
+│           ├── routes/            # File-based routing (TanStack Router)
+│           ├── components/        # Shared UI components
+│           ├── hooks/             # Custom hooks
+│           └── lib/               # API client, auth context, i18n
 ├── docs/
-│   └── analysis/
-│       ├── diagrams/
-│       │   ├── erd.md            # Mermaid Entity Relationship Diagram
-│       │   └── use-case.puml     # Simplified PlantUML Use Case Diagram
-│       └── requirements/
-├── .github/workflows/ci.yml      # CI: lint → test → build → e2e
-├── docker-compose.yml            # PostgreSQL + backend + frontend
-├── .eslintrc.json                # ESLint (react/jsx-runtime for modern React)
-├── .prettierrc
-└── package.json                  # npm workspaces root
+│   ├── superpowers/specs/         # Design specs per feature
+│   └── analysis/                  # ERD, use case diagrams
+├── docker-compose.yml
+└── .github/workflows/ci.yml       # lint → test → build → e2e
 ```
+
+---
+
+## Commit conventions
+
+```
+feat: description     # new feature
+change: description   # modification to existing feature
+fix: description      # bug fix
+```
+
+---
+
+## Team
+
+| Name               | UCO    |
+| ------------------ | ------ |
+| Peter Perveka      | 564577 |
+| Valéria Kvaššayová | 550435 |
+| Jaroslav Svajčík   | 564578 |
+| Martin Boucník     | 564157 |
+
+---
+
+## Diagrams
+
+![Use Case Diagram](./docs/analysis/diagrams/use-case.png)
+![ER Diagram](./docs/analysis/diagrams/entity-relationship.png)

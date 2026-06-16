@@ -1,0 +1,273 @@
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { Elysia } from 'elysia';
+import { db } from '../db';
+import {
+  users,
+  userRoles,
+  userProfiles,
+  userSettings,
+  userCourses,
+  courses,
+  userIntegrations,
+  auditLogs,
+} from '../db/schema';
+import { usersRoutes } from './users';
+import { eq, and } from 'drizzle-orm';
+import { SignJWT } from 'jose';
+
+const RND = crypto.randomUUID();
+const TEST_SECRET = process.env.SUPABASE_JWT_SECRET || 'users-test-jwt-secret';
+const USER_AUTH_ID = `users-test-user-uuid-${RND}`;
+process.env.SUPABASE_JWT_SECRET = TEST_SECRET;
+
+async function makeToken(authId: string): Promise<string> {
+  const secret = new TextEncoder().encode(TEST_SECRET);
+  return new SignJWT({ sub: authId }).setProtectedHeader({ alg: 'HS256' }).sign(secret);
+}
+
+let userId: number;
+let userAuth: string;
+const testApp = new Elysia().use(usersRoutes);
+
+function req(url: string, init: RequestInit = {}): Request {
+  // Use a plain object for headers to prevent Elysia/Bun cloning drops in CI
+  const headers = { ...(init.headers as Record<string, string>) };
+  if (!headers.Authorization && !headers.authorization) {
+    headers.Authorization = userAuth;
+  }
+
+  return new Request(url, { ...init, headers });
+}
+
+beforeAll(async () => {
+  const [existing] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.authId, USER_AUTH_ID));
+  if (existing) {
+    await db.delete(auditLogs).where(eq(auditLogs.actorId, existing.id));
+    await db.delete(userIntegrations).where(eq(userIntegrations.userId, existing.id));
+    await db.delete(userCourses).where(eq(userCourses.userId, existing.id));
+    await db.delete(userSettings).where(eq(userSettings.userId, existing.id));
+    await db.delete(userProfiles).where(eq(userProfiles.userId, existing.id));
+    await db.delete(userRoles).where(eq(userRoles.userId, existing.id));
+    await db.delete(users).where(eq(users.id, existing.id));
+  }
+
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: `users-test-${RND}@example.com`,
+      login: `users-test-user-${RND}`,
+      pwdHash: '',
+      authId: USER_AUTH_ID,
+    })
+    .returning();
+  userId = user.id;
+  userAuth = `Bearer ${await makeToken(USER_AUTH_ID)}`;
+});
+
+afterAll(async () => {
+  await db.delete(auditLogs).where(eq(auditLogs.actorId, userId));
+  await db.delete(userIntegrations).where(eq(userIntegrations.userId, userId));
+  await db.delete(userCourses).where(eq(userCourses.userId, userId));
+  await db.delete(userSettings).where(eq(userSettings.userId, userId));
+  await db.delete(userProfiles).where(eq(userProfiles.userId, userId));
+  await db.delete(userRoles).where(eq(userRoles.userId, userId));
+  await db.delete(users).where(eq(users.id, userId));
+});
+
+describe('GET /users/me', () => {
+  it('returns correct shape for a new user with no profile/settings/courses', async () => {
+    const res = await testApp.handle(req('http://localhost/users/me'));
+    expect(res.status).toBe(200);
+    const body = await res.json().catch(() => ({}));
+    expect(body.id).toBe(userId);
+    expect(body.email).toBe(`users-test-${RND}@example.com`);
+    expect(body.login).toBe(`users-test-user-${RND}`);
+    expect(Array.isArray(body.roles)).toBe(true);
+    expect(body.profile?.name ?? null).toBeNull();
+    expect(body.settings?.notificationsEnabled ?? true).toBe(true);
+    expect(body.settings?.lightTheme ?? true).toBe(true);
+    expect(Array.isArray(body.enrolledCourses)).toBe(true);
+    expect(body.enrolledCourses.length).toBe(0);
+    expect(Array.isArray(body.integrations)).toBe(true);
+  });
+
+  it('returns 401 without authorization header', async () => {
+    const res = await testApp.handle(new Request('http://localhost/users/me'));
+    expect(res.status).toBe(401);
+  });
+
+  it('returns enrolled courses with lecture and seminar teachers', async () => {
+    const teacherRnd = crypto.randomUUID();
+    const [teacher] = await db
+      .insert(users)
+      .values({
+        email: `teacher-me-${teacherRnd}@example.com`,
+        login: `teacher-me-${teacherRnd}`,
+        pwdHash: '',
+        authId: `teacher-me-uuid-${teacherRnd}`,
+      })
+      .returning();
+    const [course] = await db
+      .insert(courses)
+      .values({
+        code: `ME-TEST-${teacherRnd.substring(0, 8)}`,
+        semester: 'Spring 2026',
+        lectureTeacherId: teacher.id,
+        seminarTeacherId: teacher.id,
+      })
+      .returning();
+    await db.insert(userCourses).values({ userId, courseId: course.id });
+
+    try {
+      const res = await testApp.handle(req('http://localhost/users/me'));
+      const body = await res.json().catch(() => ({}));
+      const enrolled = body.enrolledCourses?.find(
+        (c: { courseId: number }) => c.courseId === course.id
+      );
+      expect(enrolled).toBeDefined();
+      expect(enrolled?.code).toBe(`ME-TEST-${teacherRnd.substring(0, 8)}`);
+      expect(enrolled?.lectureTeacher).not.toBeNull();
+      expect(enrolled?.lectureTeacher?.id).toBe(teacher.id);
+      expect(enrolled?.seminarTeacher).not.toBeNull();
+    } finally {
+      // cleanup guaranteed to run
+      await db
+        .delete(userCourses)
+        .where(and(eq(userCourses.userId, userId), eq(userCourses.courseId, course.id)));
+      await db.delete(courses).where(eq(courses.id, course.id));
+      await db.delete(users).where(eq(users.id, teacher.id));
+    }
+  });
+});
+
+describe('PATCH /users/me/profile', () => {
+  it('creates profile on first call (upsert)', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test User', organization: 'MU Brno' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Test User');
+    expect(body.organization).toBe('MU Brno');
+  });
+
+  it('updates profile on second call', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Updated Name' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.name).toBe('Updated Name');
+  });
+});
+
+describe('GET /users/me/settings', () => {
+  it('returns defaults when no settings row exists', async () => {
+    const freshRnd = crypto.randomUUID();
+    const freshAuthId = `fresh-settings-${freshRnd}`;
+    const [freshUser] = await db
+      .insert(users)
+      .values({
+        email: `fresh-${freshRnd}@example.com`,
+        login: `fresh-${freshRnd}`,
+        pwdHash: '',
+        authId: freshAuthId,
+      })
+      .returning();
+    const freshAuth = `Bearer ${await makeToken(freshAuthId)}`;
+
+    try {
+      const res = await testApp.handle(
+        req('http://localhost/users/me/settings', { headers: { Authorization: freshAuth } })
+      );
+      expect(res.status).toBe(200);
+      const body = await res.json().catch(() => ({}));
+      expect(body.notificationsEnabled).toBe(true);
+      expect(body.lightTheme).toBe(true);
+    } finally {
+      await db.delete(users).where(eq(users.id, freshUser.id));
+    }
+  });
+});
+
+describe('PATCH /users/me/settings', () => {
+  it('upserts settings and returns updated values', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lightTheme: false, notificationsEnabled: false }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json().catch(() => ({}));
+    expect(body.lightTheme).toBe(false);
+    expect(body.notificationsEnabled).toBe(false);
+  });
+});
+
+describe('GET /users/search', () => {
+  it('returns matching user by login', async () => {
+    const res = await testApp.handle(req(`http://localhost/users/search?q=users-test-user-${RND}`));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.some((u: { id: number }) => u.id === userId)).toBe(true);
+  });
+
+  it('returns empty array when no match', async () => {
+    const res = await testApp.handle(req('http://localhost/users/search?q=zzz-no-match-xyz'));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(0);
+  });
+
+  it('returns 400 when query is under 2 chars', async () => {
+    const res = await testApp.handle(req('http://localhost/users/search?q=x'));
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /users/me/integrations/:service', () => {
+  it('marks service as connected and appears in GET /users/me', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/google_calendar', { method: 'POST' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+
+    const meRes = await testApp.handle(req('http://localhost/users/me'));
+    const me = await meRes.json().catch(() => ({ integrations: [] }));
+    expect(me.integrations.some((i: { service: string }) => i.service === 'google_calendar')).toBe(
+      true
+    );
+  });
+});
+
+describe('DELETE /users/me/integrations/:service', () => {
+  it('marks service as disconnected', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/google_calendar', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).success).toBe(true);
+  });
+
+  it('returns 404 when service was never connected', async () => {
+    const res = await testApp.handle(
+      req('http://localhost/users/me/integrations/nonexistent_service', { method: 'DELETE' })
+    );
+    expect(res.status).toBe(404);
+  });
+});

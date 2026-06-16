@@ -1,0 +1,84 @@
+<h2>AI Copilot Panel — kde žije?</h2>
+<p class="subtitle">Sekcia 2 — vyber layout pred tým ako ideme hlbšie do obsahu</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 1rem; background: #0f172a; border-radius: 6px; font-family: monospace; font-size: 0.75rem; color: #94a3b8;">
+      <div style="display: flex; gap: 8px; height: 160px;">
+        <div style="width: 48px; background: #1e293b; border-radius: 4px; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 8px;">
+          <div style="width: 28px; height: 28px; background: #6366f1; border-radius: 6px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+        </div>
+        <div style="flex: 1; background: #1e293b; border-radius: 4px; padding: 8px;">
+          <div style="width: 60%; height: 8px; background: #334155; border-radius: 2px; margin-bottom: 6px;"></div>
+          <div style="width: 80%; height: 4px; background: #334155; border-radius: 2px; margin-bottom: 4px;"></div>
+          <div style="width: 70%; height: 4px; background: #334155; border-radius: 2px;"></div>
+        </div>
+        <div style="width: 110px; background: #1e293b; border-radius: 4px; padding: 8px; border-left: 2px solid #6366f1;">
+          <div style="font-size: 0.6rem; color: #6366f1; margin-bottom: 4px;">🤖 AI Copilot</div>
+          <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+            <div style="flex: 1; background: #6366f1; border-radius: 3px; height: 14px; font-size: 0.5rem; color: white; display: flex; align-items: center; justify-content: center;">Brief</div>
+            <div style="flex: 1; background: #334155; border-radius: 3px; height: 14px; font-size: 0.5rem; color: #94a3b8; display: flex; align-items: center; justify-content: center;">Chat</div>
+          </div>
+          <div style="width: 90%; height: 3px; background: #334155; border-radius: 1px; margin-bottom: 3px;"></div>
+          <div style="width: 70%; height: 3px; background: #334155; border-radius: 1px; margin-bottom: 3px;"></div>
+          <div style="width: 80%; height: 3px; background: #334155; border-radius: 1px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Pravý sidebar (collapsible)</h3>
+      <p>Vždy prítomný, otvárateľný tlačidlom v hlavičke. Brief + Chat taby. Na mobile skrytý — dostupný cez "More" tab.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 1rem; background: #0f172a; border-radius: 6px; font-family: monospace; font-size: 0.75rem; color: #94a3b8;">
+      <div style="display: flex; gap: 8px; height: 160px; position: relative;">
+        <div style="width: 48px; background: #1e293b; border-radius: 4px;"></div>
+        <div style="flex: 1; background: #1e293b; border-radius: 4px; padding: 8px;">
+          <div style="width: 60%; height: 8px; background: #334155; border-radius: 2px; margin-bottom: 6px;"></div>
+          <div style="width: 80%; height: 4px; background: #334155; border-radius: 2px;"></div>
+        </div>
+        <div style="position: absolute; bottom: 12px; right: 12px; width: 32px; height: 32px; background: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 4px 12px rgba(99,102,241,0.5);">🤖</div>
+        <div style="position: absolute; bottom: 52px; right: 8px; width: 130px; background: #1e293b; border-radius: 8px; padding: 8px; border: 1px solid #6366f1; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+          <div style="font-size: 0.6rem; color: #6366f1; margin-bottom: 4px;">🤖 AI Copilot</div>
+          <div style="width: 90%; height: 3px; background: #334155; border-radius: 1px; margin-bottom: 3px;"></div>
+          <div style="width: 70%; height: 3px; background: #334155; border-radius: 1px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Floating button → Drawer</h3>
+      <p>FAB tlačidlo vpravo dole, kliknutie otvorí panel zdola alebo z pravej strany. Menej rušivé, vždy dostupné.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 1rem; background: #0f172a; border-radius: 6px; font-family: monospace; font-size: 0.75rem; color: #94a3b8;">
+      <div style="display: flex; gap: 8px; height: 160px;">
+        <div style="width: 48px; background: #1e293b; border-radius: 4px; display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 8px;">
+          <div style="width: 28px; height: 28px; background: #334155; border-radius: 6px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+          <div style="width: 28px; height: 4px; background: #334155; border-radius: 2px;"></div>
+          <div style="width: 28px; height: 28px; background: #6366f1; border-radius: 6px; margin-top: auto; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">🤖</div>
+        </div>
+        <div style="flex: 1; background: #1e293b; border-radius: 4px; padding: 8px;">
+          <div style="width: 60%; height: 8px; background: #334155; border-radius: 2px; margin-bottom: 6px;"></div>
+          <div style="width: 80%; height: 4px; background: #334155; border-radius: 2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>AI ako samostatná route</h3>
+      <p>/ai stránka v navigácii — dedikovaný fullscreen AI copilot. Brief + Chat + Notes chat všetko na jednom mieste.</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(99, 102, 241, 0.08); border-radius: 8px; border: 1px solid rgba(99,102,241,0.3); font-size: 0.9rem;">
+  <strong>Moje odporúčanie: A (Pravý sidebar)</strong> — je to to čo robí produkty ako Notion AI, Linear, GitHub Copilot. Vždy prítomný, neruší flow. Najlepšie vyzerá v live demo.
+</div>

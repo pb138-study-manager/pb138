@@ -1,0 +1,117 @@
+<h2>Mobile Teacher Nav</h2>
+<p class="subtitle">Gap 5 — Teachers have 6 sections, mobile bottom nav fits ~5 icons comfortably. Which approach?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>5 icons, "More" drawer for the rest</h3>
+      <p>Most-used teacher sections get a dedicated icon. Everything else lives in a "More" drawer (same as student "More").</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Teacher bottom nav</div>
+        <div class="mockup-body" style="padding:0">
+          <div style="display:flex;background:#1c1917;padding:10px 4px 6px;gap:2px;border-radius:0 0 8px 8px">
+            <div style="flex:1;text-align:center;color:#fff">
+              <div style="font-size:18px">🏫</div>
+              <div style="font-size:9px;color:#fbbf24;font-weight:600;margin-top:2px">Classes</div>
+            </div>
+            <div style="flex:1;text-align:center;color:#a8a29e">
+              <div style="font-size:18px">📋</div>
+              <div style="font-size:9px;margin-top:2px">Tasks</div>
+            </div>
+            <div style="flex:1;text-align:center;color:#a8a29e">
+              <div style="font-size:18px">📊</div>
+              <div style="font-size:9px;margin-top:2px">Grades</div>
+            </div>
+            <div style="flex:1;text-align:center;color:#a8a29e">
+              <div style="font-size:18px">👥</div>
+              <div style="font-size:9px;margin-top:2px">Students</div>
+            </div>
+            <div style="flex:1;text-align:center;color:#a8a29e">
+              <div style="font-size:18px">⋯</div>
+              <div style="font-size:9px;margin-top:2px">More</div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#64748b;padding:6px 8px;text-align:center">Materials + AI Insights → inside "More"</div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Pros</h4><ul><li>Clean, consistent with student nav</li><li>Most-used actions always visible</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Materials buried in More</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Same 5 student icons, teacher content inside <span style="font-size:11px;background:#6366f1;color:#fff;border-radius:999px;padding:2px 8px;vertical-align:middle">Recommended</span></h3>
+      <p>Role toggle switches the meaning of the nav icons, not just the content. "Today" becomes "Classes", "Tasks" becomes "Assignments", etc. Same muscle memory, role-aware labels.</p>
+      <div class="mockup" style="margin-top:10px">
+        <div class="mockup-header">Same positions, different labels when teacher</div>
+        <div class="mockup-body" style="padding:0">
+          <div style="display:flex;gap:0">
+            <div style="flex:1">
+              <div style="font-size:9px;text-align:center;color:#6366f1;font-weight:700;padding:4px;background:#eef2ff;border-radius:4px 4px 0 0">STUDENT</div>
+              <div style="display:flex;background:#1e1b4b;padding:8px 2px 4px;gap:1px">
+                <div style="flex:1;text-align:center;color:#fff">
+                  <div style="font-size:16px">🏠</div>
+                  <div style="font-size:8px;color:#818cf8;margin-top:1px">Today</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d80">
+                  <div style="font-size:16px">✅</div>
+                  <div style="font-size:8px;margin-top:1px">Tasks</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d80">
+                  <div style="font-size:16px">📚</div>
+                  <div style="font-size:8px;margin-top:1px">Courses</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d80">
+                  <div style="font-size:16px">📝</div>
+                  <div style="font-size:8px;margin-top:1px">Notes</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d80">
+                  <div style="font-size:16px">⋯</div>
+                  <div style="font-size:8px;margin-top:1px">More</div>
+                </div>
+              </div>
+            </div>
+            <div style="width:2px;background:#e2e8f0"></div>
+            <div style="flex:1">
+              <div style="font-size:9px;text-align:center;color:#d97706;font-weight:700;padding:4px;background:#fffbeb;border-radius:4px 4px 0 0">TEACHER</div>
+              <div style="display:flex;background:#1c1917;padding:8px 2px 4px;gap:1px">
+                <div style="flex:1;text-align:center;color:#fff">
+                  <div style="font-size:16px">🏫</div>
+                  <div style="font-size:8px;color:#fbbf24;margin-top:1px">Classes</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d60">
+                  <div style="font-size:16px">📋</div>
+                  <div style="font-size:8px;margin-top:1px">Assign</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d60">
+                  <div style="font-size:16px">📊</div>
+                  <div style="font-size:8px;margin-top:1px">Grades</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d60">
+                  <div style="font-size:16px">👥</div>
+                  <div style="font-size:8px;margin-top:1px">Students</div>
+                </div>
+                <div style="flex:1;text-align:center;color:#6d6d60">
+                  <div style="font-size:16px">⋯</div>
+                  <div style="font-size:8px;margin-top:1px">More</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#64748b;padding:6px 8px;text-align:center">Materials + AI Insights → inside "More" for teacher</div>
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Pros</h4><ul><li>Consistent nav structure across roles</li><li>Same 5-slot muscle memory</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Icon positions change meaning on role switch — could confuse briefly</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>

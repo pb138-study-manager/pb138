@@ -1,9 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/dashboard')({
-  component: DashboardPage,
+  beforeLoad: () => {
+    throw redirect({ to: '/today' });
+  },
+  component: () => null,
 });
-
-export function DashboardPage() {
-  return <div>Dashboard</div>;
-}

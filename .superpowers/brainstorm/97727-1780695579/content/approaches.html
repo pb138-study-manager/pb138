@@ -1,0 +1,50 @@
+<h2>3 prístupy — 4-dňový sprint</h2>
+<p class="subtitle">Vyber prístup ktorý ti sedí, alebo kombinuj</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Solid First</h3>
+      <p><strong>Dni 1–2:</strong> Všetky bugy, Courses → API, AuthGuard, vizuálny lesk na kľúčových stránkach</p>
+      <p><strong>Dni 3–4:</strong> Základný AI Copilot panel (daily brief) + quiz z poznámok</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Demo bez padania</li><li>Architektúra obhájiteľná</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>AI features môžu byť plytké</li><li>Menej "wow"</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>AI First</h3>
+      <p><strong>Dni 1–2:</strong> AI Copilot panel (daily brief + chat) + quiz/chat s poznámkami</p>
+      <p><strong>Dni 3–4:</strong> Bug fixes, Courses → API, polish kľúčových stránok</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Wow feature je hlboká a polished</li><li>Diferenciátor je silný</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Riziko nestability v demo</li><li>Courses stále mock data</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Paralelné trackery ⭐ Odporúčam</h3>
+      <p><strong>Deň 1:</strong> Bug fixes + AuthGuard + Courses → API <em>(1–2 ľudia)</em></p>
+      <p><strong>Deň 2:</strong> AI backend routes + OpenAI integrácia <em>(1 človek)</em> + visual polish today/tasks/notes <em>(1 človek)</em></p>
+      <p><strong>Deň 3:</strong> AI Copilot panel frontend + quiz UI v Notes</p>
+      <p><strong>Deň 4:</strong> Chat s poznámkami + full demo run + posledný polish</p>
+      <div class="pros-cons" style="margin-top: 0.75rem;">
+        <div class="pros"><h4>Pros</h4><ul><li>Využíva 4-členný tím</li><li>Solid základ + deep AI features</li><li>Demo flow kompletný</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Vyžaduje koordináciu</li><li>Merge konflikty</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 1.5rem; padding: 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem;">
+  <strong>Wow feature stack (všetky prístupy):</strong>
+  AI Copilot panel (pravý sidebar) · Daily brief z tvojich taskov/deadlinov · Chat s poznámkami · Quiz generátor z poznámok
+</div>
