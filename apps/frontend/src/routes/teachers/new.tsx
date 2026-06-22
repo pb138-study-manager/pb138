@@ -22,14 +22,7 @@ function AddTeacherPage() {
 
     setIsLoading(true);
     try {
-      // TODO: API call to add teacher/mentor
-      // POST /api/users/me/mentors with { mentorLogin: mentorLogin }
-      console.log('Adding mentor:', mentorLogin);
-
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Navigate back to teachers page
       navigate({ to: '/teachers' });
     } catch (error) {
       console.error('Error adding mentor:', error);

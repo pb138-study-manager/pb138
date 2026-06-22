@@ -3,9 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyFn = (...args: any[]) => any;
-
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | null;
 
 export interface Course {
@@ -66,7 +63,7 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
-  const onSaveRef = useRef<AnyFn>(onSave);
+  const onSaveRef = useRef<typeof onSave>(onSave);
   useEffect(() => {
     onSaveRef.current = onSave;
   });
