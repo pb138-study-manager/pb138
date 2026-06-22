@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { supabase } from '../lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,93 +11,108 @@ export const Route = createFileRoute('/register')({
   component: RegisterPage,
 });
 
+const registerSchema = z.object({
+  fullName: z.string().min(1, { message: 'Full name is required' }),
+  email: z.string().email({ message: 'Enter a valid email address' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+});
+
+type RegisterForm = z.infer<typeof registerSchema>;
+
 function RegisterPage() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const isFilled = email.length > 0 && password.length >= 5 && fullName.length > 0;
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting, isValid, isDirty },
+  } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    mode: 'onChange',
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-        },
-      });
-      if (error) throw error;
+  async function onSubmit(data: RegisterForm) {
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: { full_name: data.fullName },
+      },
+    });
 
-      // Sync the newly created user to our backend's public.users table
-      if (data?.user && data.user.email) {
-        await api.post('/auth/sync', {
-          email: data.user.email,
-          authId: data.user.id,
-          fullName: fullName,
-        });
-      }
-
-      // Supabase sends a verification email — tell the user to check their inbox
-      navigate({ to: '/verify-email' });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Registration failed. Please try again.';
-      setError(msg);
-    } finally {
-      setLoading(false);
+    if (error) {
+      setError('root', { message: error.message });
+      return;
     }
+
+    if (authData?.user && authData.user.email) {
+      await api.post('/auth/sync', {
+        email: authData.user.email,
+        authId: authData.user.id,
+        fullName: data.fullName,
+      });
+    }
+
+    navigate({ to: '/verify-email' });
   }
+
+  const isFilled = isValid && isDirty;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center px-5">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] w-full max-w-sm p-8 flex flex-col gap-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">Register</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+          {errors.root && (
+            <p className="text-red-500 text-sm text-center">{errors.root.message}</p>
+          )}
 
-          <Input
-            type="text"
-            placeholder="Full name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            className="w-full h-11 px-4"
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              type="text"
+              placeholder="Full name"
+              {...register('fullName')}
+              className="w-full h-11 px-4"
+            />
+            {errors.fullName && (
+              <p className="text-xs text-red-500 px-1">{errors.fullName.message}</p>
+            )}
+          </div>
 
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full h-11 px-4"
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              type="email"
+              placeholder="Email"
+              {...register('email')}
+              className="w-full h-11 px-4"
+            />
+            {errors.email && (
+              <p className="text-xs text-red-500 px-1">{errors.email.message}</p>
+            )}
+          </div>
 
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full h-11 px-4"
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              type="password"
+              placeholder="Password"
+              {...register('password')}
+              className="w-full h-11 px-4"
+            />
+            {errors.password && (
+              <p className="text-xs text-red-500 px-1">{errors.password.message}</p>
+            )}
+          </div>
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className={`w-full text-white rounded-lg h-11 px-4 transition-colors ${
               isFilled ? 'bg-[#555555] hover:bg-[#333333]' : 'bg-[#C4C4C4] hover:bg-[#b0b0b0]'
             }`}
           >
-            {loading ? 'Creating account...' : 'Register'}
+            {isSubmitting ? 'Creating account...' : 'Register'}
           </Button>
         </form>
 

@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { supabase } from '../lib/supabase';
 import { api } from '../lib/api';
 import { Button } from '@/components/ui/button';
@@ -9,78 +11,96 @@ export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Enter a valid email address' }),
+  password: z.string().min(5, { message: 'Password must be at least 5 characters' }),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
 function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const isFilled = email.length > 0 && password.length >= 5;
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting, isValid, isDirty },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onChange',
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+  async function onSubmit(data: LoginForm) {
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
 
-      if (data?.user) {
-        try {
-          await api.post('/auth/sync', {
-            email: data.user.email!,
-            authId: data.user.id,
-            fullName: data.user.user_metadata?.full_name ?? '',
-          });
-        } catch {
-          // sync is best-effort; login still proceeds
-        }
-      }
-
-      navigate({ to: '/dashboard' });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(msg);
-    } finally {
-      setLoading(false);
+    if (error) {
+      setError('root', { message: error.message });
+      return;
     }
+
+    if (authData?.user) {
+      try {
+        await api.post('/auth/sync', {
+          email: authData.user.email!,
+          authId: authData.user.id,
+          fullName: authData.user.user_metadata?.full_name ?? '',
+        });
+      } catch {
+        // sync is best-effort; login still proceeds
+      }
+    }
+
+    navigate({ to: '/dashboard' });
   }
+
+  const isFilled = isValid && isDirty;
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center px-5">
       <div className="w-full max-w-[362px] bg-white dark:bg-gray-800 rounded-2xl shadow-[0px_10px_30px_0px_rgba(0,0,0,0.1)] p-8 flex flex-col gap-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">Login</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+          {errors.root && (
+            <p className="text-sm text-red-500 text-center">{errors.root.message}</p>
+          )}
 
-          <Input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full h-11 px-4"
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              type="email"
+              placeholder="Email"
+              {...register('email')}
+              className="w-full h-11 px-4"
+            />
+            {errors.email && (
+              <p className="text-xs text-red-500 px-1">{errors.email.message}</p>
+            )}
+          </div>
 
-          <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full h-11 px-4"
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              type="password"
+              placeholder="Password"
+              {...register('password')}
+              className="w-full h-11 px-4"
+            />
+            {errors.password && (
+              <p className="text-xs text-red-500 px-1">{errors.password.message}</p>
+            )}
+          </div>
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className={`w-full text-white rounded-lg h-11 px-4 transition-colors ${
               isFilled ? 'bg-[#555555] hover:bg-[#333333]' : 'bg-[#C4C4C4] hover:bg-[#b0b0b0]'
             }`}
           >
-            {loading ? 'Logging in...' : 'Continue'}
+            {isSubmitting ? 'Logging in...' : 'Continue'}
           </Button>
         </form>
 
