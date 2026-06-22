@@ -110,7 +110,18 @@
     "mdCode": "`kód`",
     "newFolder": "Nová složka",
     "addTag": "Přidat štítek...",
-    "tags": "Štítky"
+    "tags": "Štítky",
+    "quizGenerating": "Generuji otázky...",
+    "quizError": "Nepodařilo se vygenerovat otázky.",
+    "quizRetry": "Zkusit znovu",
+    "quizCorrect": "správně",
+    "quizPerfect": "Perfektní!",
+    "quizGoodJob": "Dobrá práce!",
+    "quizReview": "Přečti si poznámku znovu.",
+    "quizQuestion": "Otázka {{current}} z {{total}}",
+    "quizPrev": "Předchozí",
+    "quizNext": "Další",
+    "quizFinish": "Dokončit"
   },
   "ai": {
     "error": "Nastala chyba. Zkuste to znovu.",
