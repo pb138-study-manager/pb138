@@ -18,8 +18,8 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useRoleMode } from '@/lib/roleMode';
-import { useAIPanel } from '@/context/AIPanelContext';
+import { useRoleMode } from '@/lib/role-mode';
+import { useAIPanel } from '@/context/ai-panel-context';
 
 export default function Sidebar({ activeTab }: { activeTab: string }) {
   const [isCollapsed, setIsCollapsed] = useState(false);

@@ -1,5 +1,5 @@
 import { GraduationCap } from 'lucide-react';
-import { useRoleMode } from '@/lib/roleMode';
+import { useRoleMode } from '@/lib/role-mode';
 
 export default function RoleModeSetting() {
   const { mode, toggle } = useRoleMode();

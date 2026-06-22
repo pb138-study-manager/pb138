@@ -3,7 +3,7 @@ import { ArrowUp, Camera } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import AvatarUploadDialog from './AvatarUploadDialog';
+import AvatarUploadDialog from './avatar-upload-dialog';
 
 interface UserCardProps {
   login: string;

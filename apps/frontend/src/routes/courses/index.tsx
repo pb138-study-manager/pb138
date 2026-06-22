@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useRoleMode } from '@/lib/roleMode';
-import { getCourseColor } from '@/lib/courseColors';
+import { useRoleMode } from '@/lib/role-mode';
+import { getCourseColor } from '@/lib/course-colors';
 import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/courses/')({

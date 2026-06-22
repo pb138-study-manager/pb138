@@ -4,7 +4,7 @@ import { RefreshCw, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { UrgencyDot } from '@/components/shared/UrgencyPill';
+import { UrgencyDot } from '@/components/shared/urgency-pill';
 
 interface Priority {
   title: string;

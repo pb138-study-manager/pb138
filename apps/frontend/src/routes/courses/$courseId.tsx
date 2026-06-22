@@ -11,8 +11,8 @@ import {
   Users,
   Plus,
 } from 'lucide-react';
-import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
-import { useRoleMode } from '@/lib/roleMode';
+import { FilterControl, type FilterGroup } from '@/components/shared/filter-control';
+import { useRoleMode } from '@/lib/role-mode';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';

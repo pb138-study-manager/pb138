@@ -5,9 +5,9 @@ import Sidebar from '@/components/ui/sidebar';
 import '@/lib/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { RoleModeProvider } from '@/lib/roleMode';
-import { AIPanelProvider, useAIPanel } from '@/context/AIPanelContext';
-import { AICopilotPanel } from '@/components/ai/AICopilotPanel';
+import { RoleModeProvider } from '@/lib/role-mode';
+import { AIPanelProvider, useAIPanel } from '@/context/ai-panel-context';
+import { AICopilotPanel } from '@/components/ai/ai-copilot-panel';
 
 const queryClient = new QueryClient({
   defaultOptions: {

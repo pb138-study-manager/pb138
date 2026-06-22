@@ -6,8 +6,8 @@ import { Task, TaskStatus } from '@/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { getUrgency, getCountdown } from '@/lib/task-utils';
-import { UrgencyPill } from '@/components/shared/UrgencyPill';
-import { PriorityPill } from '@/components/shared/PriorityPill';
+import { UrgencyPill } from '@/components/shared/urgency-pill';
+import { PriorityPill } from '@/components/shared/priority-pill';
 
 interface TaskCardProps {
   task: Task;

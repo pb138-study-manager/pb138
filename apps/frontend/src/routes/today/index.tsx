@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Sparkles, CheckSquare, CalendarDays, Plus, Clock } from 'lucide-react';
 import TaskSection from '@/components/tasks/tasks-section';
-import { FilterControl, FilterGroup } from '@/components/shared/FilterControl';
+import { FilterControl, FilterGroup } from '@/components/shared/filter-control';
 import { useTranslation } from 'react-i18next';
 import { useTodayManager } from '@/hooks/useTodayManager';
 import { SegmentedTabs, type TabItem } from '@/components/ui/segmented-tabs';
-import { AiSummaryView } from '@/components/ai/AiSummaryView';
+import { AiSummaryView } from '@/components/ai/ai-summary-view';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
 
 export const Route = createFileRoute('/today/')({

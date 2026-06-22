@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getCourseColor } from './courseColors';
+import { getCourseColor } from './course-colors';
 
 describe('getCourseColor', () => {
   it('vráti vždy rovnakú farbu pre rovnaké ID', () => {

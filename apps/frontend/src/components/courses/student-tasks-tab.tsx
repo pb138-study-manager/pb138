@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/tasks/tasks-card';
-import { EntityFormDialog } from '@/components/shared/EntityFormDialog';
+import { EntityFormDialog } from '@/components/shared/entity-form-dialog';
 
 export default function StudentTasksTab({
   courseId,

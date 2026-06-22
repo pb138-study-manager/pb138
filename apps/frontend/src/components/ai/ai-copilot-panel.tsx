@@ -1,6 +1,6 @@
 import { X, Sparkles } from 'lucide-react';
-import { useAIPanel } from '@/context/AIPanelContext';
-import { AgentTab } from './AgentTab';
+import { useAIPanel } from '@/context/ai-panel-context';
+import { AgentTab } from './agent-tab';
 
 interface AICopilotPanelProps {
   inline?: boolean;
