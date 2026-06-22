@@ -23,27 +23,27 @@ interface AiSummaryViewProps {
 
 export function AiSummaryView({ active }: AiSummaryViewProps) {
   const { t, i18n } = useTranslation();
-  const [summary, set_summary] = useState<string | null>(null);
-  const [priorities, set_priorities] = useState<Priority[]>([]);
-  const [is_loading, set_is_loading] = useState(false);
-  const [has_error, set_has_error] = useState(false);
-  const in_flight = useRef(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [priorities, setPriorities] = useState<Priority[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const inFlight = useRef(false);
 
   async function load(force = false) {
-    if (in_flight.current) return;
+    if (inFlight.current) return;
     if (summary !== null && !force) return;
-    in_flight.current = true;
-    set_is_loading(true);
-    set_has_error(false);
+    inFlight.current = true;
+    setIsLoading(true);
+    setHasError(false);
     try {
       const result = await api.post<BriefData>('/ai/brief', { lang: i18n.language });
-      set_summary(result.brief);
-      set_priorities(result.priorities ?? []);
+      setSummary(result.brief);
+      setPriorities(result.priorities ?? []);
     } catch {
-      set_has_error(true);
+      setHasError(true);
     } finally {
-      set_is_loading(false);
-      in_flight.current = false;
+      setIsLoading(false);
+      inFlight.current = false;
     }
   }
 
@@ -52,7 +52,7 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
-  if (is_loading) {
+  if (isLoading) {
     return (
       <div className="px-4 py-6 space-y-3">
         <div className="h-5 w-40 rounded bg-gray-200 dark:bg-gray-800 animate-pulse" />
@@ -68,7 +68,7 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
     );
   }
 
-  if (has_error) {
+  if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 px-4 py-12">
         <p className="text-sm text-gray-400 text-center">{t('ai.briefError')}</p>
@@ -153,7 +153,7 @@ export function AiSummaryView({ active }: AiSummaryViewProps) {
         size="sm"
         className="w-full gap-2 dark:border-gray-600 dark:text-gray-300"
         onClick={() => load(true)}
-        disabled={is_loading}
+        disabled={isLoading}
       >
         <Sparkles size={14} />
         {t('ai.refresh')}
