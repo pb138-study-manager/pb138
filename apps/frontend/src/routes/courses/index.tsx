@@ -113,7 +113,7 @@ function CoursesPage() {
             return (
               <div
                 key={course.id}
-                onClick={() => navigate({ to: `/courses/${course.id}` })}
+                onClick={() => navigate({ to: '/courses/$courseId', params: { courseId: String(course.id) } })}
                 className="flex gap-3 rounded-2xl p-4 cursor-pointer active:scale-95 transition border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md"
               >
                 {/* Left color accent bar */}
