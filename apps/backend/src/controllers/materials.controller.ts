@@ -72,14 +72,16 @@ export async function uploadMaterial(user: AuthUser, courseId: number, request: 
 }
 
 export async function downloadMaterial(user: AuthUser, courseId: number, matId: number) {
+  const course = await requireCourse(courseId);
+
   const [material] = await db
     .select()
     .from(studyMaterials)
     .where(and(eq(studyMaterials.id, matId), isNull(studyMaterials.deletedAt)));
   if (!material) throw new NotFoundError('Material not found');
+  if (material.courseId !== course.id) throw new NotFoundError('Material not found in this course');
   if (!material.storagePath) throw new BadRequestError('Material has no uploaded file');
 
-  await requireCourse(courseId);
   try {
     const url = await getSignedUrl(COURSE_MATERIALS_BUCKET, material.storagePath);
     await logAction(db, user.id, `Downloaded material ${material.id} from course ${courseId}`);
