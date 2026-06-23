@@ -18,7 +18,7 @@ import { AppError } from './lib/errors';
 const PORT = process.env.PORT ?? 3001;
 
 const app = new Elysia()
-  .use(cors())
+  .use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' }))
   .onError(({ error, set }) => {
     if (error instanceof AppError) {
       set.status = error.status;
