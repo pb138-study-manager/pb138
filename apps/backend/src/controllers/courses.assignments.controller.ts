@@ -71,10 +71,10 @@ export async function updateCourseAssignment(user: AuthUser, courseId: number, a
   const [updated] = await db
     .update(assignments)
     .set({
-      ...(body.title && { title: body.title }),
+      ...(body.title !== undefined && { title: body.title }),
       ...(body.description !== undefined && { description: body.description }),
-      ...(body.dueDate && { dueDate: new Date(body.dueDate) }),
-      ...(body.evalType && { evalType: body.evalType }),
+      ...(body.dueDate !== undefined && { dueDate: new Date(body.dueDate) }),
+      ...(body.evalType !== undefined && { evalType: body.evalType }),
     })
     .where(eq(assignments.id, assignmentId))
     .returning();
