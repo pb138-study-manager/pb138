@@ -9,6 +9,7 @@ import {
   primaryKey,
   unique,
   jsonb,
+  index,
   type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -180,26 +181,33 @@ export const userCourses = pgTable(
 // Tasks & Evaluations
 // ---------------------------------------------------------------------------
 
-export const tasks = pgTable('tasks', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id),
-  assignmentId: integer('assignment_id').references(() => assignments.id),
-  courseId: integer('course_id').references(() => courses.id),
-  parentId: integer('parent_id').references((): AnyPgColumn => tasks.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  dueDate: timestamp('due_date'),
-  status: taskStatusEnum('status').notNull().default('TODO'),
-  completedAt: timestamp('completed_at'),
-  priority: taskPriorityEnum('priority'),
-  tags: text('tags')
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
-  deletedAt: timestamp('deleted_at'),
-});
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    assignmentId: integer('assignment_id').references(() => assignments.id),
+    courseId: integer('course_id').references(() => courses.id),
+    parentId: integer('parent_id').references((): AnyPgColumn => tasks.id),
+    title: text('title').notNull(),
+    description: text('description'),
+    dueDate: timestamp('due_date'),
+    status: taskStatusEnum('status').notNull().default('TODO'),
+    completedAt: timestamp('completed_at'),
+    priority: taskPriorityEnum('priority'),
+    tags: text('tags')
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (table) => ({
+    userIdIdx: index('tasks_user_id_idx').on(table.userId),
+    dueDateIdx: index('tasks_due_date_idx').on(table.dueDate),
+  })
+);
 
 export const assignmentSubtasks = pgTable('assignment_subtasks', {
   id: serial('id').primaryKey(),
@@ -225,50 +233,69 @@ export const evals = pgTable('evals', {
 // Events, Folders & Notes
 // ---------------------------------------------------------------------------
 
-export const events = pgTable('events', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  startDate: timestamp('start_date').notNull(),
-  endDate: timestamp('end_date').notNull(),
-  place: text('place'),
-  type: eventTypeEnum('type').notNull().default('EVENT'),
-  courseId: integer('course_id').references(() => courses.id),
-  assignmentId: integer('assignment_id').references(() => assignments.id),
-  deletedAt: timestamp('deleted_at'),
-});
+export const events = pgTable(
+  'events',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    title: text('title').notNull(),
+    description: text('description'),
+    startDate: timestamp('start_date').notNull(),
+    endDate: timestamp('end_date').notNull(),
+    place: text('place'),
+    type: eventTypeEnum('type').notNull().default('EVENT'),
+    courseId: integer('course_id').references(() => courses.id),
+    assignmentId: integer('assignment_id').references(() => assignments.id),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (table) => ({
+    userIdIdx: index('events_user_id_idx').on(table.userId),
+    startDateIdx: index('events_start_date_idx').on(table.startDate),
+  })
+);
 
-export const folders = pgTable('folders', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id),
-  name: text('name').notNull(),
-  tags: text('tags')
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
-  deletedAt: timestamp('deleted_at'),
-});
+export const folders = pgTable(
+  'folders',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    name: text('name').notNull(),
+    tags: text('tags')
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (table) => ({
+    userIdIdx: index('folders_user_id_idx').on(table.userId),
+  })
+);
 
-export const notes = pgTable('notes', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .notNull()
-    .references(() => users.id),
-  title: text('title').notNull(),
-  description: text('description'),
-  folderId: integer('folder_id').references(() => folders.id),
-  courseId: integer('course_id').references(() => courses.id),
-  tags: text('tags')
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
-  deletedAt: timestamp('deleted_at'),
-});
+export const notes = pgTable(
+  'notes',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    title: text('title').notNull(),
+    description: text('description'),
+    folderId: integer('folder_id').references(() => folders.id),
+    courseId: integer('course_id').references(() => courses.id),
+    tags: text('tags')
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (table) => ({
+    userIdIdx: index('notes_user_id_idx').on(table.userId),
+  })
+);
 
 // ---------------------------------------------------------------------------
 // Notifications & Audit
@@ -294,14 +321,21 @@ export const emails = pgTable('emails', {
   deletedAt: timestamp('deleted_at'),
 });
 
-export const auditLogs = pgTable('audit_logs', {
-  id: serial('id').primaryKey(),
-  actorId: integer('actor_id')
-    .notNull()
-    .references(() => users.id),
-  happenedAt: timestamp('happened_at').notNull().defaultNow(),
-  description: text('description').notNull(),
-});
+export const auditLogs = pgTable(
+  'audit_logs',
+  {
+    id: serial('id').primaryKey(),
+    actorId: integer('actor_id')
+      .notNull()
+      .references(() => users.id),
+    happenedAt: timestamp('happened_at').notNull().defaultNow(),
+    description: text('description').notNull(),
+  },
+  (table) => ({
+    actorIdIdx: index('audit_logs_actor_id_idx').on(table.actorId),
+    happenedAtIdx: index('audit_logs_happened_at_idx').on(table.happenedAt),
+  })
+);
 
 // ---------------------------------------------------------------------------
 // User Integrations
