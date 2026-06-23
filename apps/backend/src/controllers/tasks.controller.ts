@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { tasks, evals, assignments, users } from '../db/schema';
+import { tasks, evals, assignments, users, courses } from '../db/schema';
 import { type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
@@ -161,9 +161,22 @@ export async function toggleDone(user: AuthUser, id: number) {
 export async function createEval(user: AuthUser, id: number, body: EvalInput) {
   if (!user.roles.includes('TEACHER')) throw new ForbiddenError('Only teachers can evaluate tasks');
 
-  const [task] = await db.select().from(tasks).where(and(eq(tasks.id, id), isNull(tasks.deletedAt)));
+  const [task] = await db
+    .select()
+    .from(tasks)
+    .where(and(eq(tasks.id, id), isNull(tasks.deletedAt)));
   if (!task) throw new NotFoundError('Task not found');
-  if (task.status !== 'DONE') throw new BadRequestError('Task must be DONE before it can be evaluated');
+  if (!task.assignmentId || !task.courseId)
+    throw new ForbiddenError('Only assignment tasks linked to a course can be evaluated');
+  if (task.status !== 'DONE')
+    throw new BadRequestError('Task must be DONE before it can be evaluated');
+
+  const [course] = await db
+    .select({ lectureTeacherId: courses.lectureTeacherId })
+    .from(courses)
+    .where(eq(courses.id, task.courseId));
+  if (!course || course.lectureTeacherId !== user.id)
+    throw new ForbiddenError('You do not teach the course this task belongs to');
 
   const [existing] = await db.select().from(evals).where(eq(evals.taskId, task.id));
   if (existing) {
@@ -177,7 +190,12 @@ export async function createEval(user: AuthUser, id: number, body: EvalInput) {
   }
   const [created] = await db
     .insert(evals)
-    .values({ taskId: task.id, score: body.score, feedback: body.feedback, evaluatedAt: new Date() })
+    .values({
+      taskId: task.id,
+      score: body.score,
+      feedback: body.feedback,
+      evaluatedAt: new Date(),
+    })
     .returning();
   await logAction(db, user.id, `Created eval for task ${task.id}`);
   return created;

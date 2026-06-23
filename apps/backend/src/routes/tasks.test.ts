@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Elysia } from 'elysia';
 import { db } from '../db';
-import { tasks, users, auditLogs, evals, roles, userRoles } from '../db/schema';
+import { tasks, users, auditLogs, evals, roles, userRoles, assignments, courses } from '../db/schema';
 import { tasksRoutes } from './tasks';
 import { eq } from 'drizzle-orm';
 import { SignJWT } from 'jose';
@@ -304,6 +304,8 @@ describe('PATCH /tasks/:id/toggle-done', () => {
 describe('POST /tasks/:id/eval', () => {
   let evalTaskId: number;
   let evalTeacherUserId: number;
+  let evalCourseId: number;
+  let evalAssignmentId: number;
   let teacherToken: string;
   const TEACHER_AUTH = `tasks-eval-teacher-uuid-${RND}`;
 
@@ -324,12 +326,6 @@ describe('POST /tasks/:id/eval', () => {
       await db.delete(users).where(eq(users.id, staleTeacher.id));
     }
 
-    const [task] = await db
-      .insert(tasks)
-      .values({ userId: testUserId, title: 'Eval task', dueDate: new Date(), status: 'DONE' })
-      .returning();
-    evalTaskId = task.id;
-
     const [teacher] = await db
       .insert(users)
       .values({
@@ -344,6 +340,31 @@ describe('POST /tasks/:id/eval', () => {
     const [role] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
     if (role) await db.insert(userRoles).values({ userId: evalTeacherUserId, roleId: role.id });
 
+    const [course] = await db
+      .insert(courses)
+      .values({ code: `EVALTEST-${RND}`, semester: '2026', lectureTeacherId: evalTeacherUserId })
+      .returning();
+    evalCourseId = course.id;
+
+    const [asgn] = await db
+      .insert(assignments)
+      .values({ courseId: course.id, title: 'Test asgn', dueDate: new Date('2026-12-31') })
+      .returning();
+    evalAssignmentId = asgn.id;
+
+    const [task] = await db
+      .insert(tasks)
+      .values({
+        userId: testUserId,
+        title: 'Eval task',
+        dueDate: new Date(),
+        status: 'DONE',
+        courseId: course.id,
+        assignmentId: asgn.id,
+      })
+      .returning();
+    evalTaskId = task.id;
+
     const secret = new TextEncoder().encode(TEST_SECRET);
     const token = await new SignJWT({ sub: TEACHER_AUTH })
       .setProtectedHeader({ alg: 'HS256' })
@@ -354,6 +375,8 @@ describe('POST /tasks/:id/eval', () => {
   afterAll(async () => {
     if (evalTaskId) await db.delete(evals).where(eq(evals.taskId, evalTaskId));
     if (evalTaskId) await db.delete(tasks).where(eq(tasks.id, evalTaskId));
+    if (evalAssignmentId) await db.delete(assignments).where(eq(assignments.id, evalAssignmentId));
+    if (evalCourseId) await db.delete(courses).where(eq(courses.id, evalCourseId));
     if (evalTeacherUserId)
       await db.delete(auditLogs).where(eq(auditLogs.actorId, evalTeacherUserId));
     if (evalTeacherUserId)
@@ -394,6 +417,8 @@ describe('POST /tasks/:id/eval', () => {
         title: 'Not done task for eval',
         dueDate: new Date(),
         status: 'TODO',
+        courseId: evalCourseId,
+        assignmentId: evalAssignmentId,
       })
       .returning();
     const res = await testApp.handle(
@@ -491,5 +516,113 @@ describe('GET /tasks/:id/eval', () => {
   it('returns 404 for nonexistent task', async () => {
     const res = await testApp.handle(await req('http://localhost/tasks/999999/eval'));
     expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /tasks/:id/eval — ownership', () => {
+  let teacherUserId: number;
+  let teacherAuth: string;
+  let studentTaskId: number;
+  let otherCourseTaskId: number;
+  let courseId: number;
+  let otherCourseId: number;
+  let asgnId: number;
+  let otherAsgnId: number;
+  const TEACHER_AUTH_ID = `eval-teacher-own-${RND}`;
+
+  beforeAll(async () => {
+    // Create teacher user
+    const [teacher] = await db
+      .insert(users)
+      .values({
+        email: `eval-teacher-${RND}@test.com`,
+        login: `eval-teacher-${RND}`,
+        pwdHash: '',
+        authId: TEACHER_AUTH_ID,
+      })
+      .returning();
+    teacherUserId = teacher.id;
+
+    // Give TEACHER role
+    const [teacherRole] = await db.select().from(roles).where(eq(roles.name, 'TEACHER'));
+    if (teacherRole)
+      await db.insert(userRoles).values({ userId: teacherUserId, roleId: teacherRole.id });
+
+    teacherAuth = `Bearer ${await new SignJWT({ sub: TEACHER_AUTH_ID }).setProtectedHeader({ alg: 'HS256' }).sign(new TextEncoder().encode(TEST_SECRET))}`;
+
+    // Course where teacher IS the lecturer
+    const [course] = await db
+      .insert(courses)
+      .values({ code: `EVALOWN-${RND}`, semester: '2026', lectureTeacherId: teacherUserId })
+      .returning();
+    courseId = course.id;
+
+    const [asgn] = await db
+      .insert(assignments)
+      .values({ courseId: course.id, title: 'Test asgn', dueDate: new Date('2026-12-31') })
+      .returning();
+    asgnId = asgn.id;
+
+    const [t] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Eval task', status: 'DONE', courseId: course.id, assignmentId: asgn.id })
+      .returning();
+    studentTaskId = t.id;
+
+    // Different course (teacher is NOT the teacher here)
+    const [otherCourse] = await db
+      .insert(courses)
+      .values({ code: `EVALOTHER-${RND}`, semester: '2026', lectureTeacherId: testUserId })
+      .returning();
+    otherCourseId = otherCourse.id;
+
+    const [otherAsgn] = await db
+      .insert(assignments)
+      .values({ courseId: otherCourse.id, title: 'Other asgn', dueDate: new Date('2026-12-31') })
+      .returning();
+    otherAsgnId = otherAsgn.id;
+
+    const [ot] = await db
+      .insert(tasks)
+      .values({ userId: testUserId, title: 'Other task', status: 'DONE', courseId: otherCourse.id, assignmentId: otherAsgn.id })
+      .returning();
+    otherCourseTaskId = ot.id;
+  });
+
+  afterAll(async () => {
+    if (studentTaskId) await db.delete(evals).where(eq(evals.taskId, studentTaskId));
+    if (studentTaskId) await db.delete(tasks).where(eq(tasks.id, studentTaskId));
+    if (otherCourseTaskId) await db.delete(tasks).where(eq(tasks.id, otherCourseTaskId));
+    if (asgnId) await db.delete(assignments).where(eq(assignments.id, asgnId));
+    if (otherAsgnId) await db.delete(assignments).where(eq(assignments.id, otherAsgnId));
+    if (courseId) await db.delete(courses).where(eq(courses.id, courseId));
+    if (otherCourseId) await db.delete(courses).where(eq(courses.id, otherCourseId));
+    if (teacherUserId) await db.delete(userRoles).where(eq(userRoles.userId, teacherUserId));
+    if (teacherUserId) await db.delete(auditLogs).where(eq(auditLogs.actorId, teacherUserId));
+    if (teacherUserId) await db.delete(users).where(eq(users.id, teacherUserId));
+  });
+
+  it('returns 403 when teacher tries to eval a task from a course they do not teach', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${otherCourseTaskId}/eval`, {
+        method: 'POST',
+        headers: { Authorization: teacherAuth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: 90, feedback: 'Good' }),
+      })
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it('teacher can eval a task from their own course', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${studentTaskId}/eval`, {
+        method: 'POST',
+        headers: { Authorization: teacherAuth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score: 85, feedback: 'Nice work' }),
+      })
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.score).toBe(85);
   });
 });
