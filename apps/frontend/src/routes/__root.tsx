@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+﻿import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import BottomNav from '@/components/ui/bottom-nav';
 import Sidebar from '@/components/ui/sidebar';
@@ -62,9 +62,7 @@ function RootLayout() {
             ? 'profile'
             : pathname.startsWith('/others')
               ? 'others'
-              : pathname.startsWith('/dashboard')
-                ? 'dashboard'
-                : pathname === '/teachers' || pathname.startsWith('/teachers/')
+              : pathname === '/teachers' || pathname.startsWith('/teachers/')
                   ? 'teachers'
                   : 'tasks';
 

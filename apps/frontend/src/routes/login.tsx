@@ -54,7 +54,7 @@ function LoginPage() {
       }
     }
 
-    navigate({ to: '/dashboard' });
+    navigate({ to: '/today' });
   }
 
   const isFilled = isValid && isDirty;
