@@ -13,7 +13,7 @@ export const Route = createFileRoute('/login')({
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' }),
-  password: z.string().min(5, { message: 'Password must be at least 5 characters' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
