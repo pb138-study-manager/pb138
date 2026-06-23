@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Task, TaskStatus } from '@/types';
@@ -40,8 +43,25 @@ const PRIORITY_STYLES: Record<Exclude<Priority, null>, string> = {
   HIGH: 'bg-red-100 text-red-700',
 };
 
+const schema = z.object({
+  title: z.string().min(1, { message: 'Task name is required' }),
+});
+
+type TaskForm = z.infer<typeof schema>;
+
 export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogProps) {
-  const [title, setTitle] = useState(task.title);
+  const {
+    register,
+    watch,
+    reset: resetForm,
+    getValues,
+  } = useForm<TaskForm>({
+    resolver: zodResolver(schema),
+    defaultValues: { title: task.title },
+  });
+
+  const title = watch('title');
+
   const [description, setDescription] = useState(task.description ?? '');
   const [status] = useState<TaskStatus>(task.status);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -106,7 +126,7 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     }
 
     // Snapshot task at open time — do NOT re-run when task updates mid-session
-    setTitle(task.title);
+    resetForm({ title: task.title });
     setDescription(task.description ?? '');
     setSelectedDate(task.dueDate ? new Date(task.dueDate) : null);
     setPriority((task.priority as Priority) ?? null);
@@ -127,20 +147,16 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
       clearTimeout(timeout);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]); // intentionally omit `task` — we only init on open, not on every task update
+  }, [isOpen]); // intentionally omit `task` and `resetForm` — we only init on open
 
   useEffect(() => {
-    if (tagInputOpen) {
-      tagInputRef.current?.focus();
-    }
+    if (tagInputOpen) tagInputRef.current?.focus();
   }, [tagInputOpen]);
 
   useEffect(() => {
     if (!initializedRef.current || !title.trim() || !selectedDate) return;
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(() => {
       onSaveRef.current({
@@ -157,9 +173,7 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     }, 800);
 
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // onSaveRef is stable — intentionally excluded from deps
   }, [title, description, selectedDate, status, priority, tags, selectedCourse]);
@@ -202,10 +216,11 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
   const totalSubtasks = existingSubs.length + newSubTitles.length;
 
   const saveSubtasks = useCallback(async () => {
-    if (!title.trim()) return;
+    const currentTitle = getValues('title');
+    if (!currentTitle.trim()) return;
 
     await onSave({
-      title: title.trim(),
+      title: currentTitle.trim(),
       dueDate: selectedDate?.toISOString(),
       description: description.trim() || undefined,
       status,
@@ -227,12 +242,11 @@ export function useEditTaskDialog({ task, isOpen, onSave }: UseEditTaskDialogPro
     selectedDate,
     status,
     tags,
-    title,
+    getValues,
   ]);
 
   return {
-    title,
-    setTitle,
+    register,
     description,
     setDescription,
     status,

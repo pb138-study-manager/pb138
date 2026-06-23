@@ -50,8 +50,7 @@ export default function EditTaskDialog({
   const isAssignmentTask = task.assignmentId !== null;
 
   const {
-    title,
-    setTitle,
+    register,
     selectedDate,
     setSelectedDate,
     isDateOpen,
@@ -108,9 +107,8 @@ export default function EditTaskDialog({
           <div className="px-6 py-6 space-y-0">
             <Input
               placeholder={t('tasks.namePlaceholder')}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               autoFocus
+              {...register('title')}
               className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
 

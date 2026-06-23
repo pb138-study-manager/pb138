@@ -32,8 +32,8 @@ export default function NewTaskDialog({
 }) {
   const { t } = useTranslation();
   const {
-    taskName,
-    setTaskName,
+    register,
+    isValid,
     isDateOpen,
     setIsDateOpen,
     selectedDate,
@@ -78,9 +78,8 @@ export default function NewTaskDialog({
           <div className="px-6 py-6 space-y-0">
             <Input
               placeholder={t('tasks.namePlaceholder')}
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
               autoFocus
+              {...register('title')}
               className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
 
@@ -221,7 +220,7 @@ export default function NewTaskDialog({
             <div className="flex justify-end pt-4">
               <Button
                 onClick={handleSubmit}
-                disabled={!taskName.trim() || saving}
+                disabled={!isValid || saving}
                 className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-40 p-0"
               >
                 <ArrowUp className="w-4 h-4" />

@@ -1,6 +1,15 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+
+const schema = z.object({
+  score: z.number().min(0).max(100),
+  feedback: z.string(),
+});
+
+type EvalForm = z.infer<typeof schema>;
 
 interface Props {
   taskId: number;
@@ -19,44 +28,46 @@ export default function EvalDialog({
   onClose,
   onSubmit,
 }: Props) {
-  const [score, setScore] = useState<number | null>(currentScore);
-  const [feedback, setFeedback] = useState(currentFeedback);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<EvalForm>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      ...(currentScore !== null ? { score: currentScore } : {}),
+      feedback: currentFeedback,
+    },
+  });
 
-  async function handleSubmit() {
-    if (score === null) return;
-    setSaving(true);
-    setError(null);
+  const score = watch('score');
+
+  async function onFormSubmit(data: EvalForm) {
     try {
-      await onSubmit(taskId, score, feedback);
+      await onSubmit(taskId, data.score, data.feedback);
       onClose();
     } catch (err: unknown) {
-      console.error('Eval submit error:', err);
       const e = err as { error?: string; message?: string };
-      setError(e?.message ?? e?.error ?? 'Failed to save evaluation.');
-    } finally {
-      setSaving(false);
+      setError('root', { message: e?.message ?? e?.error ?? 'Failed to save evaluation.' });
     }
   }
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Evaluate</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 py-2">
           {evalType === 'pass_fail' ? (
             <div className="flex gap-3">
               <button
-                onClick={() => setScore(1)}
+                type="button"
+                onClick={() => setValue('score', 1, { shouldValidate: true })}
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   score === 1
                     ? 'bg-green-500 text-white border-green-500'
@@ -66,7 +77,8 @@ export default function EvalDialog({
                 ✓ Pass
               </button>
               <button
-                onClick={() => setScore(0)}
+                type="button"
+                onClick={() => setValue('score', 0, { shouldValidate: true })}
                 className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-colors ${
                   score === 0
                     ? 'bg-red-500 text-white border-red-500'
@@ -86,11 +98,11 @@ export default function EvalDialog({
                 min={0}
                 max={100}
                 className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 bg-transparent dark:text-gray-200"
-                value={score ?? ''}
-                onChange={(e) =>
-                  setScore(e.target.value === '' ? null : Math.round(Number(e.target.value)))
-                }
+                {...register('score', { valueAsNumber: true })}
               />
+              {errors.score && (
+                <p className="text-xs text-red-500">{errors.score.message}</p>
+              )}
             </div>
           )}
 
@@ -98,21 +110,20 @@ export default function EvalDialog({
             className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm outline-none focus:border-indigo-400 resize-none bg-transparent dark:text-gray-200"
             placeholder="Feedback (optional)"
             rows={3}
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
+            {...register('feedback')}
           />
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {errors.root && <p className="text-xs text-red-500">{errors.root.message}</p>}
 
           <div className="flex gap-2">
-            <Button variant="ghost" className="flex-1" onClick={onClose}>
+            <Button type="button" variant="ghost" className="flex-1" onClick={onClose}>
               Cancel
             </Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={saving || score === null}>
-              {saving ? 'Saving…' : 'Save'}
+            <Button type="submit" className="flex-1" disabled={isSubmitting || score === undefined}>
+              {isSubmitting ? 'Saving…' : 'Save'}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
