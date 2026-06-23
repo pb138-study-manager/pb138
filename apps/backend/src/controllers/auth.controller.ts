@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { users, userProfiles, roles, userRoles } from '../db/schema';
 import { type AuthUser } from '../middleware/auth';
+import { logAction } from '../services/audit';
 import { eq } from 'drizzle-orm';
 
 type NewUser = typeof users.$inferInsert;
@@ -12,7 +13,7 @@ export async function syncUser(body: { email: string; authId: string; fullName?:
   if (existing.length > 0) return existing[0];
 
   const login = email.split('@')[0] + '_' + authId.substring(0, 4);
-  const newUserData: NewUser = { email, login, pwdHash: '', authId };
+  const newUserData: typeof users.$inferInsert = { email, login, pwdHash: '', authId };
   const [newUser] = await db.insert(users).values(newUserData).returning();
 
   await db.insert(userProfiles).values({ userId: newUser.id, name: fullName || null });
@@ -22,6 +23,7 @@ export async function syncUser(body: { email: string; authId: string; fullName?:
     await db.insert(userRoles).values({ userId: newUser.id, roleId: userRole.id });
   }
 
+  await logAction(db, newUser.id, `New user registered: ${newUser.email}`);
   return newUser;
 }
 
