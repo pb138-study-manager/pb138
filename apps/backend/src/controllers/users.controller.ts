@@ -4,7 +4,13 @@ import { type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
 import { eq, and, isNull, ilike, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import { NotFoundError, BadRequestError, ConflictError, InternalError } from '../lib/errors';
+import {
+  NotFoundError,
+  BadRequestError,
+  ConflictError,
+  InternalError,
+  UploadError,
+} from '../lib/errors';
 import { uploadFile, getPublicUrl, AVATARS_BUCKET } from '../services/storage';
 import type { UpdateProfileInput, UpdateSettingsInput, ChangePasswordInput } from '../routes/users';
 
@@ -105,7 +111,7 @@ export async function uploadAvatar(user: AuthUser, request: Request) {
   try {
     await uploadFile(AVATARS_BUCKET, storagePath, file);
   } catch (e) {
-    throw new BadRequestError((e as Error).message);
+    throw new UploadError((e as Error).message);
   }
 
   const avatarUrl = getPublicUrl(AVATARS_BUCKET, storagePath);
