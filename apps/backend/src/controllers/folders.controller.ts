@@ -51,7 +51,9 @@ export async function deleteFolder(user: AuthUser, id: number) {
   await db
     .update(notes)
     .set({ folderId: null })
-    .where(and(eq(notes.folderId, existing.id), eq(notes.userId, user.id)));
+    .where(
+      and(eq(notes.folderId, existing.id), eq(notes.userId, user.id), isNull(notes.deletedAt))
+    );
   await db.update(folders).set({ deletedAt: new Date() }).where(eq(folders.id, existing.id));
   await logAction(db, user.id, `Deleted folder ${existing.id}`);
   return { success: true };
