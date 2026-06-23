@@ -1,12 +1,12 @@
 import { db } from '../db';
 import { type AuthUser } from '../middleware/auth';
 import { logAction } from '../services/audit';
-import { RateLimitError } from '../lib/errors';
+import { RateLimitError, BadRequestError } from '../lib/errors';
 import { getToolsForRole, TOOL_MUTATES } from '../ai/tools';
 import { executeTool } from '../ai/executor';
 import { client, MODEL, checkRateLimit } from './ai.controller';
-import type OpenAI from 'openai';
 import type { AgentInput } from '../routes/ai';
+import OpenAI from 'openai';
 
 const LIST_DISPLAY_TOOLS: Record<string, 'tasks' | 'events' | 'notes' | 'courses'> = {
   list_tasks: 'tasks',
@@ -64,10 +64,31 @@ export async function agent(user: AuthUser, body: AgentInput, authHeader: string
   ];
 
   if (body.confirm) {
-    const confirmResult = await executeTool(body.confirm.name, body.confirm.args as Record<string, unknown>, authHeader);
+    if (!(body.confirm.name in TOOL_MUTATES)) {
+      throw new BadRequestError(`Unknown tool: ${body.confirm.name}`);
+    }
+    const confirmResult = await executeTool(
+      body.confirm.name,
+      body.confirm.args as Record<string, unknown>,
+      authHeader
+    );
     await logAction(db, user.id, `AI agent executed tool: ${body.confirm.name}`);
-    messages.push({ role: 'assistant' as const, content: null, tool_calls: [{ id: 'confirmed', type: 'function' as const, function: { name: body.confirm.name, arguments: JSON.stringify(body.confirm.args) } }] });
-    messages.push({ role: 'tool' as const, tool_call_id: 'confirmed', content: JSON.stringify(confirmResult) });
+    messages.push({
+      role: 'assistant' as const,
+      content: null,
+      tool_calls: [
+        {
+          id: 'confirmed',
+          type: 'function' as const,
+          function: { name: body.confirm.name, arguments: JSON.stringify(body.confirm.args) },
+        },
+      ],
+    });
+    messages.push({
+      role: 'tool' as const,
+      tool_call_id: 'confirmed',
+      content: JSON.stringify(confirmResult),
+    });
   }
 
   let lastDisplay: { type: 'tasks' | 'events' | 'notes' | 'courses'; items: unknown[] } | undefined;
@@ -88,7 +109,12 @@ export async function agent(user: AuthUser, body: AgentInput, authHeader: string
 
     const toolCall = msg.tool_calls[0];
     const toolName = toolCall.function.name;
-    const toolArgs = JSON.parse(toolCall.function.arguments ?? '{}');
+    let toolArgs: Record<string, unknown>;
+    try {
+      toolArgs = JSON.parse(toolCall.function.arguments ?? '{}');
+    } catch {
+      return { reply: 'Nastala chyba pri spracovaní odpovede AI.', display: lastDisplay };
+    }
 
     if (TOOL_MUTATES[toolName]) {
       await logAction(db, user.id, `AI agent pending action: ${toolName}`);
