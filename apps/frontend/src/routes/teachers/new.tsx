@@ -29,7 +29,7 @@ function AddTeacherPage() {
     defaultValues: { login: '' },
   });
 
-  async function onFormSubmit(_data: TeacherForm) {
+  async function onFormSubmit() {
     await new Promise((resolve) => setTimeout(resolve, 500));
     navigate({ to: '/teachers' });
   }

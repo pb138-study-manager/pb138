@@ -97,7 +97,7 @@ function AppShell({
 
   useEffect(() => {
     if (isAdminRoute) close();
-  }, [isAdminRoute]);
+  }, [isAdminRoute, close]);
 
   return (
     <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row overflow-hidden">
