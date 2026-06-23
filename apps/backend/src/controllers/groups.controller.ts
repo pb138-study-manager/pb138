@@ -99,14 +99,13 @@ export async function listAssignments(user: AuthUser, groupId: number) {
   return db.select().from(assignments).where(and(eq(assignments.groupId, groupId), isNull(assignments.deletedAt)));
 }
 
-export async function createAssignment(user: AuthUser, groupId: number, body: CreateAssignmentInput) {
+export async function createAssignment(
+  user: AuthUser,
+  groupId: number,
+  body: CreateAssignmentInput
+) {
   await requireGroupAccess(groupId, user.id, true);
   if (isNaN(new Date(body.dueDate).getTime())) throw new BadRequestError('Invalid dueDate format');
-
-  const [assignment] = await db
-    .insert(assignments)
-    .values({ groupId, title: body.title, description: body.description, dueDate: new Date(body.dueDate) })
-    .returning();
 
   const memberRows = await db
     .select({ userId: groupMembers.userId })
@@ -114,28 +113,39 @@ export async function createAssignment(user: AuthUser, groupId: number, body: Cr
     .innerJoin(users, and(eq(groupMembers.userId, users.id), isNull(users.deletedAt)))
     .where(eq(groupMembers.groupId, groupId));
 
-  if (memberRows.length > 0) {
-    await db.insert(tasks).values(
-      memberRows.map((m) => ({
-        userId: m.userId,
-        assignmentId: assignment.id,
-        title: body.title,
-        description: body.description,
-        dueDate: new Date(body.dueDate),
-      }))
-    );
-    await db.insert(events).values(
-      memberRows.map((m) => ({
-        userId: m.userId,
-        assignmentId: assignment.id,
-        title: body.title,
-        description: body.description ?? null,
-        startDate: new Date(body.dueDate),
-        endDate: new Date(body.dueDate),
-        type: 'DEADLINE' as const,
-      }))
-    );
-  }
+  const deadline = new Date(body.dueDate);
+
+  const assignment = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(assignments)
+      .values({ groupId, title: body.title, description: body.description, dueDate: deadline })
+      .returning();
+
+    if (memberRows.length > 0) {
+      await tx.insert(tasks).values(
+        memberRows.map((m) => ({
+          userId: m.userId,
+          assignmentId: created.id,
+          title: body.title,
+          description: body.description,
+          dueDate: deadline,
+        }))
+      );
+      await tx.insert(events).values(
+        memberRows.map((m) => ({
+          userId: m.userId,
+          assignmentId: created.id,
+          title: body.title,
+          description: body.description ?? null,
+          startDate: deadline,
+          endDate: deadline,
+          type: 'DEADLINE' as const,
+        }))
+      );
+    }
+
+    return created;
+  });
 
   await logAction(db, user.id, `Created assignment ${assignment.id} for group ${groupId}`);
   return { assignment, tasksCreated: memberRows.length };
