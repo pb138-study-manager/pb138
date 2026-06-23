@@ -98,10 +98,18 @@ export async function updateTask(user: AuthUser, id: number, body: UpdateTaskInp
   if (!existing) throw new NotFoundError('Task not found or access denied');
 
   if (body.parentId !== undefined && body.parentId !== null) {
+    if (body.parentId === id) throw new BadRequestError('A task cannot be its own parent');
     const [parent] = await db
       .select()
       .from(tasks)
-      .where(and(eq(tasks.id, body.parentId), eq(tasks.userId, user.id), isNull(tasks.deletedAt), isNull(tasks.parentId)));
+      .where(
+        and(
+          eq(tasks.id, body.parentId),
+          eq(tasks.userId, user.id),
+          isNull(tasks.deletedAt),
+          isNull(tasks.parentId)
+        )
+      );
     if (!parent) throw new NotFoundError('Parent task not found or is itself a subtask');
   }
 

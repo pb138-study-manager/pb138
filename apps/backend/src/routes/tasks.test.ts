@@ -299,6 +299,17 @@ describe('PATCH /tasks/:id/toggle-done', () => {
     );
     expect(res.status).toBe(404);
   });
+
+  it('returns 400 when parentId equals the task id (self-cycle)', async () => {
+    const res = await testApp.handle(
+      await req(`http://localhost/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parentId: taskId }),
+      })
+    );
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('POST /tasks/:id/eval', () => {
