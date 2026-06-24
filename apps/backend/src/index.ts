@@ -19,11 +19,19 @@ const PORT = process.env.PORT ?? 3001;
 
 const app = new Elysia()
   .use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' }))
-  .onError(({ error, set }) => {
+  .onRequest(({ request }) => {
+    console.log(`→ ${request.method} ${new URL(request.url).pathname}`);
+  })
+  .onError(({ error, code, set }) => {
     if (error instanceof AppError) {
       set.status = error.status;
       return { error: error.code, message: error.message };
     }
+    if (code === 'NOT_FOUND') {
+      set.status = 404;
+      return { error: 'NOT_FOUND', message: 'Route not found' };
+    }
+    console.error('[500]', code, error);
     set.status = 500;
     return { error: 'INTERNAL_SERVER_ERROR', message: 'Something went wrong' };
   })
