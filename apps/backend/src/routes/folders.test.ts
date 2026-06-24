@@ -173,4 +173,35 @@ describe('DELETE /folders/:id', () => {
     );
     expect(res.status).toBe(404);
   });
+
+  it('does not nullify folderId on already-deleted notes', async () => {
+    // Create folder and a note in it
+    const [f] = await db
+      .insert(folders)
+      .values({ userId: testUserId, name: 'TmpFolder' })
+      .returning();
+    const [n] = await db
+      .insert(notes)
+      .values({ userId: testUserId, title: 'Deleted note', description: '', folderId: f.id })
+      .returning();
+
+    // Soft-delete the note BEFORE deleting the folder
+    await db.update(notes).set({ deletedAt: new Date() }).where(eq(notes.id, n.id));
+
+    // Delete the folder
+    const res = await testApp.handle(
+      await req(`http://localhost/folders/${f.id}`, { method: 'DELETE' })
+    );
+    expect(res.status).toBe(200);
+
+    // The deleted note should still have its folderId intact (not nullified)
+    const [noteAfter] = await db
+      .select({ folderId: notes.folderId })
+      .from(notes)
+      .where(eq(notes.id, n.id));
+    expect(noteAfter.folderId).toBe(f.id);
+
+    // Cleanup
+    await db.delete(notes).where(eq(notes.id, n.id));
+  });
 });
