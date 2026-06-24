@@ -3,13 +3,13 @@ import { NavItem } from '@/types';
 import { useProfileManager } from '@/hooks/useProfileManager';
 
 export const AVAILABLE_ITEMS = [
-  { id: 'today', label: 'nav.today', href: '/today' },
-  { id: 'tasks', label: 'nav.tasks', href: '/tasks' },
-  { id: 'courses', label: 'nav.courses', href: '/courses' },
-  { id: 'notes', label: 'nav.notes', href: '/notes' },
-  { id: 'timeline', label: 'nav.timeline', href: '/timeline' },
-  { id: 'profile', label: 'nav.profile', href: '/profile' },
-  { id: 'others', label: 'nav.others', href: '/others' },
+  { id: 'today', label: 'nav.today', href: '/today' as const },
+  { id: 'tasks', label: 'nav.tasks', href: '/tasks' as const },
+  { id: 'courses', label: 'nav.courses', href: '/courses' as const },
+  { id: 'notes', label: 'nav.notes', href: '/notes' as const },
+  { id: 'timeline', label: 'nav.timeline', href: '/timeline' as const },
+  { id: 'profile', label: 'nav.profile', href: '/profile' as const },
+  { id: 'others', label: 'nav.others', href: '/others' as const },
 ];
 
 export function useCustomNavManager() {
@@ -63,7 +63,7 @@ export function useCustomNavManager() {
     try {
       const navItemsToSave = selectedIds
         .map((id) => AVAILABLE_ITEMS.find((item) => item.id === id))
-        .filter((item): item is NavItem => item !== undefined);
+        .filter((item) => item !== undefined) as NavItem[];
 
       await updateCustomNav(navItemsToSave);
       return true;

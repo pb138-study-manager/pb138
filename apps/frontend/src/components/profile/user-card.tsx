@@ -1,9 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { ArrowUp, Camera } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import AvatarUploadDialog from './AvatarUploadDialog';
+import AvatarUploadDialog from './avatar-upload-dialog';
+
+const schema = z.object({
+  name: z.string(),
+  title: z.string(),
+  bio: z.string(),
+});
+
+type ProfileForm = z.infer<typeof schema>;
 
 interface UserCardProps {
   login: string;
@@ -32,28 +43,35 @@ export default function UserCard({
 }: UserCardProps) {
   const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
-  const [form, setForm] = useState({ name: name ?? '', title: title ?? '', bio: bio ?? '' });
-  const [isSaving, setIsSaving] = useState(false);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
 
   const avatarSrc = avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${login}`;
 
-  const handleSave = async () => {
-    if (!onProfileUpdated) return;
-    setIsSaving(true);
-    try {
-      await onProfileUpdated({
-        name: form.name || null,
-        title: form.title || null,
-        bio: form.bio || null,
-      });
-      setEditOpen(false);
-    } catch (err) {
-      console.error('Failed to update profile:', err);
-    } finally {
-      setIsSaving(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<ProfileForm>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: name ?? '', title: title ?? '', bio: bio ?? '' },
+  });
+
+  useEffect(() => {
+    if (editOpen) {
+      reset({ name: name ?? '', title: title ?? '', bio: bio ?? '' });
     }
-  };
+  }, [editOpen, name, title, bio, reset]);
+
+  async function onFormSubmit(data: ProfileForm) {
+    if (!onProfileUpdated) return;
+    await onProfileUpdated({
+      name: data.name.trim() || null,
+      title: data.title.trim() || null,
+      bio: data.bio.trim() || null,
+    });
+    setEditOpen(false);
+  }
 
   return (
     <>
@@ -95,55 +113,49 @@ export default function UserCard({
         </CardContent>
       </Card>
 
-      {/* Edit profile dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent
           showCloseButton={false}
           className="sm:max-w-lg p-0 gap-0 overflow-hidden rounded-2xl"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSave();
-          }}
         >
-          <div className="px-5 pt-5 pb-3 space-y-3">
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full border-none text-lg font-semibold bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
-              placeholder={t('profile.namePlaceholder', 'Your name...')}
-              autoFocus
-            />
-          </div>
+          <form onSubmit={handleSubmit(onFormSubmit)}>
+            <div className="px-5 pt-5 pb-3 space-y-3">
+              <input
+                type="text"
+                {...register('name')}
+                className="w-full border-none text-lg font-semibold bg-transparent text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+                placeholder={t('profile.namePlaceholder', 'Your name...')}
+                autoFocus
+              />
+            </div>
 
-          <div className="border-t border-gray-100 dark:border-gray-800" />
+            <div className="border-t border-gray-100 dark:border-gray-800" />
 
-          <div className="px-5 py-3 space-y-3">
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              className="w-full text-sm bg-transparent text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none border-b border-gray-100 dark:border-gray-700 pb-2"
-              placeholder={t('profile.titlePlaceholder', 'Title / role...')}
-            />
-            <textarea
-              value={form.bio}
-              onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-              rows={3}
-              className="w-full text-sm bg-transparent text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none resize-none"
-              placeholder={t('profile.bioPlaceholder', 'Short bio...')}
-            />
-          </div>
+            <div className="px-5 py-3 space-y-3">
+              <input
+                type="text"
+                {...register('title')}
+                className="w-full text-sm bg-transparent text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none border-b border-gray-100 dark:border-gray-700 pb-2"
+                placeholder={t('profile.titlePlaceholder', 'Title / role...')}
+              />
+              <textarea
+                rows={3}
+                {...register('bio')}
+                className="w-full text-sm bg-transparent text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none resize-none"
+                placeholder={t('profile.bioPlaceholder', 'Short bio...')}
+              />
+            </div>
 
-          <div className="flex justify-end px-5 py-3 border-t border-gray-100 dark:border-gray-800">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-gray-900 disabled:opacity-40 transition-colors"
-            >
-              <ArrowUp size={16} />
-            </button>
-          </div>
+            <div className="flex justify-end px-5 py-3 border-t border-gray-100 dark:border-gray-800">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-900 dark:bg-white hover:bg-gray-700 dark:hover:bg-gray-100 text-white dark:text-gray-900 disabled:opacity-40 transition-colors"
+              >
+                <ArrowUp size={16} />
+              </button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 

@@ -1,9 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Calendar, AlignLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import DatePickerDialog from '@/components/tasks/date-picker-dialog';
 import { Event, EventType } from '@/types';
+
+const schema = z.object({
+  title: z.string().min(1, { message: 'Event name is required' }),
+  description: z.string(),
+});
+
+type EventForm = z.infer<typeof schema>;
 
 export default function EditEventDialog({
   event,
@@ -23,30 +33,35 @@ export default function EditEventDialog({
     type: EventType;
   }) => Promise<void>;
 }) {
-  const [title, setTitle] = useState(event.title);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [type, setType] = useState<EventType>('EVENT');
-  const [description, setDescription] = useState(event.description ?? '');
   const place = event.place ?? '';
   const [isDateOpen, setIsDateOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
+
+  const { register, watch, reset } = useForm<EventForm>({
+    resolver: zodResolver(schema),
+    defaultValues: { title: event.title, description: event.description ?? '' },
+  });
+
+  const title = watch('title');
+  const description = watch('description');
 
   useEffect(() => {
     if (!isOpen) {
       initializedRef.current = false;
       return;
     }
-    setTitle(event.title);
+    reset({ title: event.title, description: event.description ?? '' });
     setStartDate(new Date(event.startDate));
     setEndDate(new Date(event.endDate));
     setType(event.type ?? 'EVENT');
-    setDescription(event.description ?? '');
     setTimeout(() => {
       initializedRef.current = true;
     }, 100);
-  }, [isOpen, event]);
+  }, [isOpen, event, reset]);
 
   const computedEndDate = type === 'DEADLINE' ? startDate : endDate;
 
@@ -66,7 +81,7 @@ export default function EditEventDialog({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [title, startDate, endDate, type, description, computedEndDate, onSave, place]);
+  }, [title, description, startDate, endDate, type, computedEndDate, onSave, place]);
 
   return (
     <>
@@ -78,6 +93,7 @@ export default function EditEventDialog({
           <div className="px-6 py-6 space-y-0">
             <div className="flex gap-2 mb-3">
               <button
+                type="button"
                 onClick={() => setType('EVENT')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${type === 'EVENT' ? 'bg-green-100 text-green-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
               >
@@ -85,6 +101,7 @@ export default function EditEventDialog({
                 Event
               </button>
               <button
+                type="button"
                 onClick={() => setType('DEADLINE')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${type === 'DEADLINE' ? 'bg-red-100 text-red-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
               >
@@ -95,9 +112,8 @@ export default function EditEventDialog({
 
             <Input
               placeholder="Event name..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               autoFocus
+              {...register('title')}
               className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
 
@@ -105,6 +121,7 @@ export default function EditEventDialog({
 
             <div className="flex flex-wrap gap-2 pt-4">
               <button
+                type="button"
                 onClick={() => setIsDateOpen(true)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   startDate
@@ -130,8 +147,7 @@ export default function EditEventDialog({
                 <input
                   type="text"
                   placeholder="Note"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  {...register('description')}
                   className="bg-transparent border-none outline-none text-sm font-medium w-28 placeholder:text-gray-400"
                 />
               </label>

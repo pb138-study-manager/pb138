@@ -23,7 +23,7 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [done, setDone] = useState(false);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const {
     data: questions = [],
@@ -114,7 +114,7 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
         <div className="flex-1 overflow-y-auto p-5">
           {isLoading && (
             <div className="space-y-3 py-4">
-              <p className="text-center text-sm text-gray-400 mb-4">Generujem otázky...</p>
+              <p className="text-center text-sm text-gray-400 mb-4">{t('notes.quizGenerating')}</p>
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
@@ -126,9 +126,9 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
 
           {!isLoading && questions.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-gray-400 text-sm">Nepodarilo sa vygenerovať otázky.</p>
+              <p className="text-gray-400 text-sm">{t('notes.quizError')}</p>
               <Button onClick={load} className="mt-4" size="sm">
-                Skúsiť znova
+                {t('notes.quizRetry')}
               </Button>
             </div>
           )}
@@ -143,17 +143,17 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
                     : '📚'}
               </p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {score}/{questions.length} správnych
+                {score}/{questions.length} {t('notes.quizCorrect')}
               </p>
               <p className="text-sm text-gray-400">
                 {score === questions.length
-                  ? 'Perfektné!'
+                  ? t('notes.quizPerfect')
                   : score >= questions.length * 0.5
-                    ? 'Dobrá práca!'
-                    : 'Prečítaj si poznámku znova.'}
+                    ? t('notes.quizGoodJob')
+                    : t('notes.quizReview')}
               </p>
               <Button onClick={restart} className="mt-2">
-                Skúsiť znova
+                {t('notes.quizRetry')}
               </Button>
             </div>
           )}
@@ -161,7 +161,7 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
           {!isLoading && !done && q && (
             <div className="space-y-4">
               <p className="text-xs text-gray-400 font-medium">
-                Otázka {current + 1} z {questions.length}
+                {t('notes.quizQuestion', { current: current + 1, total: questions.length })}
               </p>
               <p className="font-semibold text-gray-900 dark:text-white text-sm leading-relaxed">
                 {q.question}
@@ -205,10 +205,11 @@ export function QuizModal({ noteId, noteTitle, isOpen, onClose }: QuizModalProps
               disabled={current === 0}
               className="gap-1"
             >
-              <ChevronLeft size={14} /> Predošlá
+              <ChevronLeft size={14} /> {t('notes.quizPrev')}
             </Button>
             <Button size="sm" onClick={next} disabled={selected === null} className="gap-1">
-              {current === questions.length - 1 ? 'Dokončiť' : 'Ďalšia'} <ChevronRight size={14} />
+              {current === questions.length - 1 ? t('notes.quizFinish') : t('notes.quizNext')}{' '}
+              <ChevronRight size={14} />
             </Button>
           </div>
         )}

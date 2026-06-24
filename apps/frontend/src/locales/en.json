@@ -110,7 +110,18 @@
     "mdCode": "`code`",
     "newFolder": "New folder",
     "addTag": "Add tag...",
-    "tags": "Tags"
+    "tags": "Tags",
+    "quizGenerating": "Generating questions...",
+    "quizError": "Failed to generate questions.",
+    "quizRetry": "Try again",
+    "quizCorrect": "correct",
+    "quizPerfect": "Perfect!",
+    "quizGoodJob": "Good job!",
+    "quizReview": "Read the note again.",
+    "quizQuestion": "Question {{current}} of {{total}}",
+    "quizPrev": "Previous",
+    "quizNext": "Next",
+    "quizFinish": "Finish"
   },
   "ai": {
     "error": "An error occurred. Please try again.",

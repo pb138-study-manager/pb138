@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -65,6 +68,12 @@ const EVAL_LABELS: Record<string, string> = {
   graded: 'Graded',
 };
 
+const schema = z.object({
+  title: z.string().min(1, { message: 'Assignment name is required' }),
+});
+
+type AssignmentForm = z.infer<typeof schema>;
+
 export default function EditAssignmentDialog({
   assignmentId,
   courseId,
@@ -76,7 +85,14 @@ export default function EditAssignmentDialog({
 }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState(initialTitle);
+
+  const { register, watch } = useForm<AssignmentForm>({
+    resolver: zodResolver(schema),
+    defaultValues: { title: initialTitle },
+  });
+
+  const title = watch('title');
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(initialDueDate));
   const [evalType, setEvalType] = useState(initialEvalType);
   const [isDateOpen, setIsDateOpen] = useState(false);
@@ -161,15 +177,6 @@ export default function EditAssignmentDialog({
   const doneCount = students.filter((s) => s.status === 'DONE').length;
   const deadlinePassed = selectedDate !== null && selectedDate < new Date();
 
-  const pills = [
-    {
-      icon: Calendar,
-      label: selectedDate ? selectedDate.toLocaleDateString() : 'Deadline',
-      active: selectedDate !== null,
-      onClick: () => setIsDateOpen(true),
-    },
-  ];
-
   return (
     <>
       <Dialog open onOpenChange={onClose}>
@@ -180,9 +187,8 @@ export default function EditAssignmentDialog({
           <div className="px-6 py-6 space-y-0">
             <Input
               placeholder="Assignment name..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               autoFocus
+              {...register('title')}
               className="text-lg font-semibold border-none shadow-none focus-visible:ring-0 px-0 placeholder:text-gray-400"
             />
 
@@ -190,20 +196,18 @@ export default function EditAssignmentDialog({
 
             <div className="flex flex-wrap gap-2 pt-4">
               {/* Deadline date pill */}
-              {pills.map((pill) => (
-                <button
-                  key={pill.label}
-                  onClick={pill.onClick}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
-                    pill.active
-                      ? 'bg-indigo-100 text-indigo-700'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <pill.icon className="w-3.5 h-3.5" />
-                  {pill.label}
-                </button>
-              ))}
+              <button
+                type="button"
+                onClick={() => setIsDateOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
+                  selectedDate
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                {selectedDate ? selectedDate.toLocaleDateString() : 'Deadline'}
+              </button>
 
               {/* Eval type dropdown */}
               <DropdownMenu>
@@ -233,6 +237,7 @@ export default function EditAssignmentDialog({
 
               {/* Subtasks pill */}
               <button
+                type="button"
                 onClick={() => setSubtasksExpanded((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   subtasksExpanded
@@ -248,6 +253,7 @@ export default function EditAssignmentDialog({
 
               {/* Students pill */}
               <button
+                type="button"
                 onClick={() => setStudentsExpanded((v) => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium transition-colors ${
                   studentsExpanded
@@ -274,6 +280,7 @@ export default function EditAssignmentDialog({
                         {s.title}
                       </span>
                       <button
+                        type="button"
                         onClick={() => handleDeleteSubtask(s.id)}
                         className="text-gray-300 hover:text-red-400 transition-colors shrink-0"
                       >
@@ -357,6 +364,7 @@ export default function EditAssignmentDialog({
                             </span>
                           ) : s.status === 'DONE' || deadlinePassed ? (
                             <button
+                              type="button"
                               onClick={() =>
                                 onEval(
                                   s.taskId,

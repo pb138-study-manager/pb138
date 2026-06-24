@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Event, EventType } from '@/types';
-import EditEventDialog from '@/components/timeline/EditEventDialog';
+import EditEventDialog from '@/components/timeline/edit-event-dialog';
 
 interface EventCardProps {
   event: Event;

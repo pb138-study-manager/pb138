@@ -32,10 +32,10 @@ function AdminLayout() {
           You don&apos;t have permission to access the administration panel.
         </p>
         <Link
-          to="/dashboard"
+          to="/today"
           className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
         >
-          Go to Dashboard
+          Go to App
         </Link>
       </div>
     );

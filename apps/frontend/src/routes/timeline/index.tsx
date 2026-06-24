@@ -13,9 +13,9 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useTimelineManager } from '@/hooks/useTimelineManager';
-import { EventCard } from '@/components/timeline/EventCard';
-import { TaskTimelineCard } from '@/components/timeline/TaskTimelineCard';
-import NewEventDialog from '@/components/timeline/NewEventDialog';
+import { EventCard } from '@/components/timeline/event-card';
+import { TaskTimelineCard } from '@/components/timeline/task-timeline-card';
+import NewEventDialog from '@/components/timeline/new-event-dialog';
 import { useTranslation } from 'react-i18next';
 import { api } from '@/lib/api';
 import { Event, Task } from '@/types';

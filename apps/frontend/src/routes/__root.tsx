@@ -1,13 +1,13 @@
-import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+﻿import { createRootRoute, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import BottomNav from '@/components/ui/bottom-nav';
 import Sidebar from '@/components/ui/sidebar';
 import '@/lib/i18n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
-import { RoleModeProvider } from '@/lib/roleMode';
-import { AIPanelProvider, useAIPanel } from '@/context/AIPanelContext';
-import { AICopilotPanel } from '@/components/ai/AICopilotPanel';
+import { RoleModeProvider } from '@/lib/role-mode';
+import { AIPanelProvider, useAIPanel } from '@/context/ai-panel-context';
+import { AICopilotPanel } from '@/components/ai/ai-copilot-panel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,9 +62,7 @@ function RootLayout() {
             ? 'profile'
             : pathname.startsWith('/others')
               ? 'others'
-              : pathname.startsWith('/dashboard')
-                ? 'dashboard'
-                : pathname === '/teachers' || pathname.startsWith('/teachers/')
+              : pathname === '/teachers' || pathname.startsWith('/teachers/')
                   ? 'teachers'
                   : 'tasks';
 
@@ -99,7 +97,7 @@ function AppShell({
 
   useEffect(() => {
     if (isAdminRoute) close();
-  }, [isAdminRoute]);
+  }, [isAdminRoute, close]);
 
   return (
     <div className="h-screen w-full bg-gray-50 dark:bg-gray-900 flex flex-col md:flex-row overflow-hidden">

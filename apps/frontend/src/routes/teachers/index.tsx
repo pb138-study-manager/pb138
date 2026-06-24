@@ -70,7 +70,7 @@ function TeachersPage() {
             <TeacherCourseCard
               key={course.id}
               course={course}
-              onClick={() => navigate({ to: `/courses/${course.id}` })}
+              onClick={() => navigate({ to: '/courses/$courseId', params: { courseId: String(course.id) } })}
             />
           ))
         )}

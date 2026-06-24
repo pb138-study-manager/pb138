@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
@@ -18,6 +21,12 @@ export const PRIORITY_STYLES: Record<Exclude<Priority, null>, string> = {
   HIGH: 'bg-red-100 text-red-700',
 };
 
+const schema = z.object({
+  title: z.string().min(1, { message: 'Task name is required' }),
+});
+
+type TaskForm = z.infer<typeof schema>;
+
 interface UseNewTaskDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,7 +42,17 @@ interface UseNewTaskDialogProps {
 }
 
 export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskDialogProps) {
-  const [taskName, setTaskName] = useState('');
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    reset: resetForm,
+    formState: { isValid },
+  } = useForm<TaskForm>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: { title: '' },
+  });
+
   const [isDateOpen, setIsDateOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [isSubtasksOpen, setIsSubtasksOpen] = useState(false);
@@ -52,8 +71,8 @@ export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskD
     enabled: isOpen,
   });
 
-  const reset = useCallback(() => {
-    setTaskName('');
+  const resetAll = useCallback(() => {
+    resetForm({ title: '' });
     setSelectedDate(new Date());
     setSubtasks([]);
     setSelectedCourse(null);
@@ -63,12 +82,12 @@ export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskD
     setTagInput('');
     setIsDateOpen(false);
     setIsSubtasksOpen(false);
-  }, []);
+  }, [resetForm]);
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: TaskForm) => {
       await onSubmit(
-        taskName.trim(),
+        data.title.trim(),
         selectedDate?.toISOString() ?? undefined,
         subtasks,
         undefined,
@@ -78,21 +97,17 @@ export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskD
       );
     },
     onSuccess: () => {
-      reset();
+      resetAll();
       onOpenChange(false);
     },
   });
 
   useEffect(() => {
-    if (!isOpen) {
-      reset();
-    }
-  }, [isOpen, reset]);
+    if (!isOpen) resetAll();
+  }, [isOpen, resetAll]);
 
   useEffect(() => {
-    if (tagInputOpen) {
-      tagInputRef.current?.focus();
-    }
+    if (tagInputOpen) tagInputRef.current?.focus();
   }, [tagInputOpen]);
 
   const cyclePriority = useCallback(() => {
@@ -129,14 +144,14 @@ export function useNewTaskDialog({ isOpen, onOpenChange, onSubmit }: UseNewTaskD
     setTagInput('');
   }, [tagInput]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!taskName.trim()) return;
-    await mutation.mutateAsync();
-  }, [mutation, taskName]);
+  const handleSubmit = useCallback(
+    () => rhfHandleSubmit((data) => mutation.mutateAsync(data))(),
+    [rhfHandleSubmit, mutation]
+  );
 
   return {
-    taskName,
-    setTaskName,
+    register,
+    isValid,
     isDateOpen,
     setIsDateOpen,
     selectedDate,

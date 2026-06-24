@@ -11,8 +11,8 @@ import {
   Users,
   Plus,
 } from 'lucide-react';
-import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
-import { useRoleMode } from '@/lib/roleMode';
+import { FilterControl, type FilterGroup } from '@/components/shared/filter-control';
+import { useRoleMode } from '@/lib/role-mode';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -79,15 +79,15 @@ function CourseDetailPage() {
     queryFn: () => api.get<Task[]>('/tasks').catch(() => []),
     enabled: !isTeacher,
   });
-  const courseTasks = allTasks.filter((t) => t.courseId === Number(courseId));
-  const allTaskTags = Array.from(new Set(courseTasks.flatMap((t) => t.tags ?? []))).sort();
+  const courseTasks = allTasks.filter((task) => task.courseId === Number(courseId));
+  const allTaskTags = Array.from(new Set(courseTasks.flatMap((task) => task.tags ?? []))).sort();
 
   const taskFilterGroups: FilterGroup[] =
     allTaskTags.length > 0
       ? [
           {
             type: 'tags' as const,
-            label: 'Tags',
+            label: t('tasks.tags'),
             options: allTaskTags.map((tag) => ({ key: tag, label: tag })),
             active: taskFilterTags,
             onToggle: (key) =>

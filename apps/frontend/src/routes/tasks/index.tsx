@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useTasksManager } from '@/hooks/useTasksManager';
 import { filterTasks } from '@/lib/task-utils';
 import { SegmentedTabs, type TabItem } from '@/components/ui/segmented-tabs';
-import { FilterControl, type FilterGroup } from '@/components/shared/FilterControl';
+import { FilterControl, type FilterGroup } from '@/components/shared/filter-control';
 import NewTaskDialog from '@/components/tasks/new-tasks-dialog';
 
 export const Route = createFileRoute('/tasks/')({

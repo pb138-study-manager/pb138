@@ -69,7 +69,7 @@ function OthersPage() {
                   key={item.id}
                   icon={ICON_MAP[item.id]}
                   label={item.label.includes('.') ? t(item.label) : item.label}
-                  onClick={() => navigate({ to: item.href as '/' })}
+                  onClick={() => navigate({ to: item.href })}
                 />
               ))}
               <ActionSetting

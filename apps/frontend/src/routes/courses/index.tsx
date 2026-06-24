@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useRoleMode } from '@/lib/roleMode';
-import { getCourseColor } from '@/lib/courseColors';
+import { useRoleMode } from '@/lib/role-mode';
+import { getCourseColor } from '@/lib/course-colors';
 import { useTranslation } from 'react-i18next';
 
 export const Route = createFileRoute('/courses/')({
@@ -113,7 +113,7 @@ function CoursesPage() {
             return (
               <div
                 key={course.id}
-                onClick={() => navigate({ to: `/courses/${course.id}` })}
+                onClick={() => navigate({ to: '/courses/$courseId', params: { courseId: String(course.id) } })}
                 className="flex gap-3 rounded-2xl p-4 cursor-pointer active:scale-95 transition border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md"
               >
                 {/* Left color accent bar */}

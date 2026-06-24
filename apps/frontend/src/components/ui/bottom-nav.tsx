@@ -15,8 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useRoleMode } from '@/lib/roleMode';
-import { useAIPanel } from '@/context/AIPanelContext';
+import { useRoleMode } from '@/lib/role-mode';
+import { useAIPanel } from '@/context/ai-panel-context';
 import { AVAILABLE_ITEMS } from '@/hooks/useCustomNavManager';
 
 const ICON_MAP: Record<string, JSX.Element> = {

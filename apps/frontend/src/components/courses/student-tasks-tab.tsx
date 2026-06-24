@@ -1,10 +1,20 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useTranslation } from 'react-i18next';
 import { Task, TaskStatus } from '@/types';
 import TaskCard from '@/components/tasks/tasks-card';
-import { EntityFormDialog } from '@/components/shared/EntityFormDialog';
+import { EntityFormDialog } from '@/components/shared/entity-form-dialog';
+
+const taskSchema = z.object({
+  title: z.string().min(1, { message: 'Task title is required' }),
+  dueDate: z.string().min(1, { message: 'Due date is required' }),
+});
+
+type TaskForm = z.infer<typeof taskSchema>;
 
 export default function StudentTasksTab({
   courseId,
@@ -23,8 +33,21 @@ export default function StudentTasksTab({
   const [showAddInternal, setShowAddInternal] = useState(false);
   const showAdd = addOpen !== undefined ? addOpen : showAddInternal;
   const setShowAdd = onAddOpenChange ?? setShowAddInternal;
-  const [taskTitle, setTaskTitle] = useState('');
-  const [taskDate, setTaskDate] = useState('');
+
+  const {
+    watch,
+    setValue,
+    reset: resetForm,
+    handleSubmit: rhfHandleSubmit,
+    register,
+    formState: { isValid },
+  } = useForm<TaskForm>({
+    resolver: zodResolver(taskSchema),
+    mode: 'onChange',
+    defaultValues: { title: '', dueDate: '' },
+  });
+
+  const taskTitle = watch('title');
 
   const { data: allTasks = [] } = useQuery({
     queryKey: ['tasks'],
@@ -111,24 +134,20 @@ export default function StudentTasksTab({
   }
 
   const createTaskMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (data: TaskForm) =>
       api.post<Task>('/tasks', {
-        title: taskTitle.trim(),
-        dueDate: taskDate,
+        title: data.title.trim(),
+        dueDate: data.dueDate,
         courseId: Number(courseId),
       }),
     onSuccess: () => {
-      setTaskTitle('');
-      setTaskDate('');
+      resetForm();
       setShowAdd(false);
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 
-  function handleCreate() {
-    if (!taskTitle.trim() || !taskDate) return;
-    createTaskMutation.mutate();
-  }
+  const handleCreate = rhfHandleSubmit((data) => createTaskMutation.mutate(data));
 
   return (
     <div className="px-4 mt-6 mb-6">
@@ -181,21 +200,17 @@ export default function StudentTasksTab({
         open={showAdd}
         onOpenChange={(open) => {
           setShowAdd(open);
-          if (!open) {
-            setTaskTitle('');
-            setTaskDate('');
-          }
+          if (!open) resetForm();
         }}
         title={taskTitle}
-        onTitleChange={setTaskTitle}
+        onTitleChange={(v) => setValue('title', v, { shouldValidate: true })}
         titlePlaceholder={t('tasks.titlePlaceholder', 'Task title')}
-        submitDisabled={createTaskMutation.isPending || !taskDate}
+        submitDisabled={createTaskMutation.isPending || !isValid}
         onSubmit={handleCreate}
       >
         <input
           type="datetime-local"
-          value={taskDate}
-          onChange={(e) => setTaskDate(e.target.value)}
+          {...register('dueDate')}
           className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-1.5 text-sm outline-none focus:border-indigo-400 dark:focus:border-indigo-500"
         />
       </EntityFormDialog>
